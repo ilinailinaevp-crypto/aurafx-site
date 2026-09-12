@@ -1,1 +1,94 @@
-
+name: AuraFX Telegram
+on:
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: "Publish welcome post (leave unchecked to test connection only)"
+        type: boolean
+        default: false
+        required: true
+permissions: {}
+concurrency:
+  group: aurafx-telegram
+  cancel-in-progress: false
+jobs:
+  telegram:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Verify bot and optionally publish welcome post
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          PUBLISH_POST: ${{ inputs.publish }}
+        shell: python
+        run: |
+          import json
+          import os
+          import sys
+          import urllib.request
+          
+          CHANNEL = "@AuraFX_design"
+          BOT_USERNAME = "AuraFX_notify_bot"
+          SITE = "https://ilinailinaevp-crypto.github.io/aurafx-site/?utm_source=telegram&utm_medium=channel&utm_campaign=welcome"
+          TEXT = """💜 Товар классный, а карточка выглядит скучно? Пора это исправить.
+          
+          AuraFX — дизайн карточек для маркетплейсов.
+          Яркие обложки, понятная инфографика и акцент на преимуществах твоего товара.
+          
+          150 ₽ за карточку.
+          
+          Посмотри примеры работ на сайте 👇
+          Заказать: @AuraFX_marketplace"""
+          
+          def api(token, method, payload):
+              request = urllib.request.Request(
+                  "https://api.telegram.org/bot" + token + "/" + method,
+                  data=json.dumps(payload).encode("utf-8"),
+                  headers={"Content-Type": "application/json"},
+                  method="POST",
+              )
+              try:
+                  with urllib.request.urlopen(request, timeout=25) as response:
+                      result = json.load(response)
+              except Exception:
+                  # Never print exceptions: request URLs contain the bot token.
+                  raise RuntimeError("Telegram request failed. Check token, bot permissions and connectivity.") from None
+              if not result.get("ok"):
+                  raise RuntimeError("Telegram rejected the request. Check bot permissions.")
+              return result["result"]
+          
+          def main():
+              token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+              if not token:
+                  raise RuntimeError("Add TELEGRAM_BOT_TOKEN to GitHub Actions repository secrets.")
+              me = api(token, "getMe", {})
+              if me.get("username", "").lower() != BOT_USERNAME.lower():
+                  raise RuntimeError("Token belongs to another bot. Expected @AuraFX_notify_bot.")
+              chat = api(token, "getChat", {"chat_id": CHANNEL})
+              if chat.get("type") != "channel":
+                  raise RuntimeError("Destination must be a Telegram channel.")
+              membership = api(token, "getChatMember", {"chat_id": CHANNEL, "user_id": me["id"]})
+              if membership.get("status") != "administrator" or not membership.get("can_post_messages"):
+                  raise RuntimeError("Add @AuraFX_notify_bot as channel admin with permission to post.")
+              print("Verified @AuraFX_notify_bot and channel posting permission.")
+              if os.environ.get("PUBLISH_POST") != "true":
+                  print("Check complete. No message sent.")
+                  return
+              result = api(token, "sendMessage", {
+                  "chat_id": CHANNEL,
+                  "text": TEXT,
+                  "link_preview_options": {"is_disabled": True},
+                  "reply_markup": {"inline_keyboard": [
+                      [{"text": "💜 Посмотреть работы", "url": SITE}],
+                      [{"text": "✍️ Обсудить заказ", "url": "https://t.me/AuraFX_marketplace"}],
+                  ]},
+              })
+              print("Published: https://t.me/AuraFX_design/" + str(result["message_id"]))
+          
+          if __name__ == "__main__":
+              try:
+                  main()
+              except RuntimeError as error:
+                  print(str(error), file=sys.stderr)
+                  sys.exit(1)
