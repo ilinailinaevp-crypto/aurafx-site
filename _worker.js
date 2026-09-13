@@ -279,6 +279,119 @@ const PRICING_EFFECT_HTML = String.raw`
 })();
 </script>`;
 
+
+const SITE_TOOLS_HTML = String.raw`
+<style>
+  #afx-site-tools{
+    position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:9998;
+    display:flex;gap:8px;align-items:center;justify-content:center;
+    font-family:inherit;pointer-events:none;
+  }
+  .afx-tool-pill{
+    pointer-events:auto;display:inline-flex;align-items:center;gap:8px;min-height:42px;
+    padding:10px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.12);
+    background:linear-gradient(180deg,rgba(21,12,35,.88),rgba(11,6,21,.82));
+    color:#f6f1fb;box-shadow:0 10px 34px rgba(0,0,0,.28),inset 0 1px rgba(255,255,255,.05);
+    backdrop-filter:blur(16px) saturate(125%);-webkit-backdrop-filter:blur(16px) saturate(125%);
+    font-size:13px;font-weight:850;letter-spacing:.01em;white-space:nowrap;
+  }
+  #afx-online-pill{color:#dcd1e8}
+  .afx-online-sep{opacity:.42;margin:0 1px}
+  #afx-total-text{color:#b8aac8;font-weight:760}
+  .afx-online-dot{
+    width:8px;height:8px;border-radius:50%;background:#56f4ad;
+    box-shadow:0 0 0 4px rgba(86,244,173,.08),0 0 16px rgba(86,244,173,.72);
+    animation:afxOnlinePulse 2s ease-in-out infinite;
+  }
+  #afx-pricing-jump{
+    appearance:none;border:1px solid rgba(162,85,255,.30);cursor:pointer;
+    background:linear-gradient(135deg,rgba(151,61,255,.88),rgba(90,42,214,.9));
+    box-shadow:0 10px 34px rgba(106,43,224,.28),inset 0 1px rgba(255,255,255,.12);
+    transition:transform .2s ease,box-shadow .2s ease;
+  }
+  #afx-pricing-jump:active{transform:scale(.97)}
+  #afx-pricing-jump:hover{box-shadow:0 12px 40px rgba(122,54,239,.38),inset 0 1px rgba(255,255,255,.14)}
+  @keyframes afxOnlinePulse{0%,100%{transform:scale(.9);opacity:.72}50%{transform:scale(1.12);opacity:1}}
+  @media(max-width:520px){
+    #afx-site-tools{bottom:12px;gap:6px;width:calc(100% - 24px)}
+    .afx-tool-pill{min-height:40px;padding:9px 12px;font-size:12px}
+    #afx-online-pill{max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+  }
+  @media(prefers-reduced-motion:reduce){.afx-online-dot{animation:none}}
+</style>
+<div id="afx-site-tools" aria-label="Быстрые действия">
+  <div class="afx-tool-pill" id="afx-online-pill" title="Онлайн сейчас и общее число уникальных посетителей">
+    <span class="afx-online-dot"></span>
+    <span id="afx-online-text">… онлайн</span>
+    <span class="afx-online-sep">·</span>
+    <span id="afx-total-text">👥 … всего</span>
+  </div>
+  <button class="afx-tool-pill" id="afx-pricing-jump" type="button">⚡ Тарифы</button>
+</div>
+<script>
+(function(){
+  var onlineText=document.getElementById('afx-online-text');
+  var totalText=document.getElementById('afx-total-text');
+  var jump=document.getElementById('afx-pricing-jump');
+  if(!onlineText||!totalText||!jump)return;
+
+  function makeVisitorId(){
+    try{
+      var existing=localStorage.getItem('afx_visitor_id');
+      if(existing&&/^[A-Za-z0-9_-]{16,80}$/.test(existing))return existing;
+      var bytes=new Uint8Array(18);
+      crypto.getRandomValues(bytes);
+      var id='v_'+Array.from(bytes,function(b){return b.toString(36).padStart(2,'0')}).join('');
+      localStorage.setItem('afx_visitor_id',id);
+      return id;
+    }catch(e){
+      return 'v_'+Math.random().toString(36).slice(2)+Date.now().toString(36);
+    }
+  }
+  var visitorId=makeVisitorId();
+
+  async function heartbeat(){
+    if(document.visibilityState==='hidden')return;
+    try{
+      var res=await fetch('/api/online',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify({visitor_id:visitorId}),cache:'no-store'});
+      var data=await res.json();
+      if(!res.ok)throw new Error('online');
+      var n=Number(data.online||0);
+      var total=Number(data.total||0);
+      onlineText.textContent=n+' онлайн';
+      totalText.textContent='👥 '+total+' всего';
+    }catch(e){
+      onlineText.textContent='онлайн';
+      totalText.textContent='👥 — всего';
+    }
+  }
+
+  function findPricingSection(){
+    var heads=[].slice.call(document.querySelectorAll('h1,h2,h3,h4,strong,.title,.section-title'));
+    for(var i=0;i<heads.length;i++){
+      var txt=(heads[i].textContent||'').trim().toLowerCase();
+      if(/тариф|пакет|стоим|цена|pricing|plans?/i.test(txt)){
+        var section=heads[i].closest('section,article,div');
+        if(!section)continue;
+        var hops=0;
+        while(section&&section.parentElement&&section.clientHeight<320&&hops<4){section=section.parentElement;hops++;}
+        return section;
+      }
+    }
+    return document.querySelector('[id*="tarif"],[class*="tarif"],[id*="price"],[class*="price"],[id*="plan"],[class*="plan"]');
+  }
+
+  jump.addEventListener('click',function(){
+    var section=findPricingSection();
+    if(section)section.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+
+  heartbeat();
+  setInterval(heartbeat,25000);
+  document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')heartbeat()});
+})();
+</script>`;
+
 const ADMIN_HTML = String.raw`<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AuraFX — модерация отзывов</title>
@@ -420,6 +533,17 @@ async function ensureDb(env) {
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`).run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_admin_login_ip_created ON admin_login_attempts(ip_hash, created_at DESC)").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS online_visitors (
+    visitor_id TEXT PRIMARY KEY,
+    last_seen TEXT NOT NULL DEFAULT (datetime('now'))
+  )`).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_online_visitors_last_seen ON online_visitors(last_seen DESC)").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS site_visitors (
+    visitor_id TEXT PRIMARY KEY,
+    first_seen TEXT NOT NULL DEFAULT (datetime('now')),
+    last_seen TEXT NOT NULL DEFAULT (datetime('now'))
+  )`).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_site_visitors_first_seen ON site_visitors(first_seen DESC)").run();
 }
 
 function normalize(value) {
@@ -521,6 +645,41 @@ async function handlePublicReviews(request, env) {
   return json({ ok: true, status }, 201);
 }
 
+
+async function handleOnline(request, env) {
+  try { await ensureDb(env); }
+  catch { return json({ error: "Счётчик временно недоступен." }, 503); }
+
+  if (!sameOrigin(request)) return json({ error: "Запрос отклонён." }, 403);
+
+  if (request.method === "POST") {
+    let body = {};
+    try { body = await request.json(); } catch {}
+    const visitorId = String(body.visitor_id || "").trim();
+    if (!/^[A-Za-z0-9_-]{16,80}$/.test(visitorId)) {
+      return json({ error: "Некорректный идентификатор." }, 400);
+    }
+    await env.DB.prepare(`INSERT INTO online_visitors (visitor_id, last_seen)
+      VALUES (?, datetime('now'))
+      ON CONFLICT(visitor_id) DO UPDATE SET last_seen = datetime('now')`).bind(visitorId).run();
+    await env.DB.prepare(`INSERT INTO site_visitors (visitor_id, first_seen, last_seen)
+      VALUES (?, datetime('now'), datetime('now'))
+      ON CONFLICT(visitor_id) DO UPDATE SET last_seen = datetime('now')`).bind(visitorId).run();
+  } else if (request.method !== "GET") {
+    return json({ error: "Метод не поддерживается." }, 405);
+  }
+
+  // Cleanup is deliberately lazy; this keeps the table tiny without a cron job.
+  await env.DB.prepare("DELETE FROM online_visitors WHERE datetime(last_seen) < datetime('now', '-10 minutes')").run();
+  // Seed currently-known active visitors into the permanent counter on upgrade.
+  await env.DB.prepare(`INSERT OR IGNORE INTO site_visitors (visitor_id, first_seen, last_seen)
+    SELECT visitor_id, last_seen, last_seen FROM online_visitors`).run();
+
+  const onlineRow = await env.DB.prepare("SELECT COUNT(*) AS n FROM online_visitors WHERE datetime(last_seen) >= datetime('now', '-70 seconds')").first();
+  const totalRow = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_visitors").first();
+  return json({ online: Number(onlineRow?.n || 0), total: Number(totalRow?.n || 0) });
+}
+
 async function handleAdminApi(request, env, url) {
   try { await ensureDb(env); }
   catch { return json({ error: "База данных недоступна." }, 503); }
@@ -587,6 +746,7 @@ export default {
     const url = new URL(request.url);
 
     if (url.pathname === "/api/reviews") return handlePublicReviews(request, env);
+    if (url.pathname === "/api/online") return handleOnline(request, env);
     if (url.pathname.startsWith("/api/admin/")) return handleAdminApi(request, env, url);
 
     if (url.pathname === "/admin" || url.pathname === "/admin/") {
@@ -596,7 +756,7 @@ export default {
     const response = await env.ASSETS.fetch(request);
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter().on("body", {
-        element(element) { element.append(PRICING_EFFECT_HTML + REVIEW_WIDGET_HTML, { html: true }); }
+        element(element) { element.append(PRICING_EFFECT_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML, { html: true }); }
       }).transform(response);
     }
     return response;
