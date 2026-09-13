@@ -116,11 +116,14 @@ const PRICING_EFFECT_HTML = String.raw`
     -webkit-text-stroke:1px rgba(178,130,255,.16);
     text-shadow:0 0 18px rgba(128,56,255,.10),0 0 36px rgba(85,231,255,.05);
     filter:drop-shadow(0 10px 18px rgba(0,0,0,.18));
+    will-change:transform,opacity,filter;
+    animation:afxCardWordFloat 8.6s ease-in-out var(--float-delay,0s) infinite;
   }
   .afx-price-card-decor .afx-price-card-word span{
     display:inline-block;transform:translateZ(0);
-    background:linear-gradient(180deg,rgba(210,188,255,.18),rgba(93,236,255,.08));
+    background:linear-gradient(180deg,rgba(216,194,255,.20),rgba(93,236,255,.10));
     -webkit-background-clip:text;background-clip:text;color:transparent;
+    animation:afxCardWordGlow 8.6s ease-in-out var(--float-delay,0s) infinite;
   }
   .afx-price-card-decor .afx-price-card-orb,
   .afx-price-card-decor .afx-price-card-orb2{
@@ -169,6 +172,16 @@ const PRICING_EFFECT_HTML = String.raw`
   @keyframes afxCardLine2{0%,100%{transform:rotate(7deg) translateX(0);opacity:.14}50%{transform:rotate(10deg) translateX(-3%);opacity:.36}}
   @keyframes afxCardSpark{0%,100%{transform:scale(.9) rotate(0deg);opacity:.22}50%{transform:scale(1.2) rotate(90deg);opacity:.65}}
   @keyframes afxCardParticle{0%{transform:translate3d(0,14px,0) scale(.9);opacity:0}18%{opacity:.8}100%{transform:translate3d(var(--dx),var(--dy),0) scale(1.2);opacity:0}}
+  @keyframes afxCardWordFloat{
+    0%,100%{transform:translate(-50%,-50%) perspective(520px) rotateX(22deg) translateY(0) scale(1);opacity:.72;filter:drop-shadow(0 10px 18px rgba(0,0,0,.18))}
+    25%{transform:translate(calc(-50% + 2px),calc(-50% - 4px)) perspective(520px) rotateX(22deg) scale(1.01);opacity:.82;filter:drop-shadow(0 12px 20px rgba(89,40,180,.18))}
+    50%{transform:translate(-50%,calc(-50% - 8px)) perspective(520px) rotateX(22deg) scale(1.025);opacity:.92;filter:drop-shadow(0 14px 24px rgba(98,48,200,.22))}
+    75%{transform:translate(calc(-50% - 2px),calc(-50% - 4px)) perspective(520px) rotateX(22deg) scale(1.01);opacity:.84;filter:drop-shadow(0 12px 20px rgba(45,150,255,.12))}
+  }
+  @keyframes afxCardWordGlow{
+    0%,100%{opacity:.72;filter:brightness(1)}
+    50%{opacity:1;filter:brightness(1.14)}
+  }
 
   @media(max-width:700px){
     .afx-price-card-decor .afx-price-card-word{font-size:clamp(38px,13vw,78px);top:58%;opacity:1}
@@ -221,7 +234,7 @@ const PRICING_EFFECT_HTML = String.raw`
     return candidates;
   }
 
-  function decorateCard(card){
+  function decorateCard(card, index){
     if(!card || card.classList.contains('afx-price-card-decor')) return;
     card.classList.add('afx-price-card-decor');
     if(getComputedStyle(card).position==='static') card.style.position='relative';
@@ -238,6 +251,10 @@ const PRICING_EFFECT_HTML = String.raw`
       +'<div class="afx-price-card-spark s1"></div>'
       +'<div class="afx-price-card-spark s2"></div>';
     card.prepend(bg);
+    var word=bg.querySelector('.afx-price-card-word');
+    if(word){
+      word.style.setProperty('--float-delay',((-index||0)*1.1).toFixed(2)+'s');
+    }
     for(var i=0;i<6;i++){
       var p=document.createElement('span');
       p.className='afx-price-card-particle';
