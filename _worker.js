@@ -445,6 +445,129 @@ const SITE_UPGRADES_HTML = String.raw`
 })();
 </script>`;
 
+
+const PERFORMANCE_HTML = String.raw`
+<style>
+  html{
+    scroll-behavior:smooth;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+  }
+
+  /* Keep heavy effects visually intact, but isolate their repaint area. */
+  .afx-price-card-decor,
+  .afx-r-card,
+  .afx-r-panel,
+  .afx-faq-item{
+    contain:paint style;
+  }
+
+  .afx-price-card-bg,
+  .afx-price-card-word,
+  .afx-price-card-orb,
+  .afx-price-card-orb2,
+  .afx-price-card-line,
+  .afx-price-card-line2,
+  .afx-price-card-spark,
+  .afx-price-card-particle,
+  .afx-online-dot{
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    transform-style:preserve-3d;
+  }
+
+  a,button,summary{
+    touch-action:manipulation;
+    -webkit-tap-highlight-color:transparent;
+  }
+
+  /* Off-screen animation pause: nothing disappears; it simply stops using GPU/CPU
+     while the section is outside the viewport, then resumes seamlessly. */
+  .afx-perf-paused,
+  .afx-perf-paused *{
+    animation-play-state:paused !important;
+  }
+
+  /* The visual difference on phones is negligible, while compositing becomes
+     noticeably lighter on Android browsers. */
+  @media(max-width:720px){
+    .afx-r-panel,
+    .afx-faq-item,
+    .afx-tool-pill{
+      backdrop-filter:blur(9px) saturate(115%);
+      -webkit-backdrop-filter:blur(9px) saturate(115%);
+    }
+
+    .afx-price-card-decor{
+      transform:translateZ(0);
+    }
+
+    .afx-price-card-bg{
+      transform:translateZ(0);
+    }
+  }
+
+  @media(pointer:coarse){
+    #afx-pricing-jump:hover{
+      box-shadow:0 10px 34px rgba(106,43,224,.28),inset 0 1px rgba(255,255,255,.12);
+    }
+  }
+</style>
+<script>
+(function(){
+  function idle(fn){
+    if('requestIdleCallback' in window){
+      requestIdleCallback(fn,{timeout:1200});
+    }else{
+      setTimeout(fn,120);
+    }
+  }
+
+  function setupAnimationPause(){
+    if(!('IntersectionObserver' in window))return;
+
+    var targets=[].slice.call(document.querySelectorAll(
+      '.afx-price-card-decor,#aurafx-reviews,#afx-faq'
+    ));
+    if(!targets.length)return;
+
+    var observer=new IntersectionObserver(function(entries){
+      entries.forEach(function(entry){
+        entry.target.classList.toggle('afx-perf-paused',!entry.isIntersecting);
+      });
+    },{
+      root:null,
+      rootMargin:'180px 0px 180px 0px',
+      threshold:0.01
+    });
+
+    targets.forEach(function(el){observer.observe(el)});
+  }
+
+  function makeScrollingLighter(){
+    var ticking=false;
+    window.addEventListener('scroll',function(){
+      if(ticking)return;
+      ticking=true;
+      requestAnimationFrame(function(){ticking=false});
+    },{passive:true});
+  }
+
+  function optimizeImages(){
+    var imgs=document.querySelectorAll('img');
+    imgs.forEach(function(img,index){
+      if(index>1 && !img.hasAttribute('loading'))img.loading='lazy';
+      if(!img.hasAttribute('decoding'))img.decoding='async';
+    });
+  }
+
+  idle(function(){
+    setupAnimationPause();
+    makeScrollingLighter();
+    optimizeImages();
+  });
+})();
+</script>`;
 const ADMIN_HTML = String.raw`<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AuraFX Admin</title>
@@ -831,7 +954,7 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
