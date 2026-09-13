@@ -823,6 +823,120 @@ const SMOOTH_MOTION_HTML = String.raw`
   });
 })();
 </script>`;
+const SHOWCASE_FLOAT_HTML = String.raw`
+<style>
+  .afx-showcase-float-card{
+    will-change:transform,opacity;
+    transform-style:preserve-3d;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+    transition:box-shadow .35s ease;
+  }
+  .afx-showcase-float-card img{
+    will-change:transform,opacity;
+    backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
+  }
+</style>
+<script>
+(function(){
+  var force=false;
+  try{force=localStorage.getItem('afx_motion_mode')==='full'}catch(e){}
+  var reduced=!force && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function headingSection(pattern){
+    var heads=[].slice.call(document.querySelectorAll('h1,h2,h3,.section-title,.title'));
+    for(var i=0;i<heads.length;i++){
+      var t=(heads[i].textContent||'').replace(/\s+/g,' ').trim();
+      if(pattern.test(t)) return heads[i].closest('section,article') || heads[i].parentElement;
+    }
+    return null;
+  }
+
+  function unique(list, el){ if(el && list.indexOf(el)===-1) list.push(el); }
+
+  function findShowcaseCards(section){
+    if(!section) return [];
+    var nodes=[].slice.call(section.querySelectorAll('article,div,a,li'));
+    nodes=nodes.filter(function(el){
+      var txt=(el.textContent||'').replace(/\s+/g,' ').trim();
+      if(!/карточка/i.test(txt)) return false;
+      var r=el.getBoundingClientRect();
+      if(r.width < 90 || r.height < 120) return false;
+      if(el.children.length < 1) return false;
+      return true;
+    });
+    nodes=nodes.filter(function(el){
+      return !nodes.some(function(other){ return other!==el && el.contains(other); });
+    });
+    nodes.sort(function(a,b){
+      var ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+      return (ra.top-rb.top) || (ra.left-rb.left);
+    });
+    return nodes.slice(0,3);
+  }
+
+  function preloadCardAssets(card){
+    [].slice.call(card.querySelectorAll('img')).forEach(function(img, idx){
+      try{
+        img.loading='eager';
+        img.decoding='async';
+        if(idx===0) img.fetchPriority='high';
+      }catch(e){}
+      if(img.currentSrc || img.src){
+        var pre=new Image();
+        pre.decoding='async';
+        pre.src=img.currentSrc || img.src;
+      }
+    });
+
+    var bg=(getComputedStyle(card).backgroundImage||'');
+    var m, re=/url\(["']?([^"')]+)["']?\)/g;
+    while((m=re.exec(bg))){
+      var pre=new Image();
+      pre.decoding='async';
+      pre.src=m[1];
+    }
+  }
+
+  function initFloat(cards){
+    if(!cards.length || reduced) return;
+    cards.forEach(function(card, index){
+      card.classList.add('afx-showcase-float-card');
+      card.dataset.afxCardFloatPhase=String(index*1.7);
+      card.style.willChange='transform';
+    });
+
+    var start=performance.now();
+    function frame(now){
+      if(document.hidden){ requestAnimationFrame(frame); return; }
+      var t=(now-start)/1000;
+      cards.forEach(function(card, index){
+        if(!card.isConnected) return;
+        var ph=Number(card.dataset.afxCardFloatPhase||0);
+        var x=Math.sin(t*0.72 + ph)*7;
+        var y=Math.sin(t*1.04 + ph*1.18)*9;
+        var rz=Math.sin(t*0.58 + ph)*2.4;
+        var scale=1 + Math.sin(t*0.88 + ph + 0.6)*0.012;
+        card.style.transform='translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0) rotate('+rz.toFixed(2)+'deg) scale('+scale.toFixed(4)+')';
+      });
+      requestAnimationFrame(frame);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function init(){
+    var sec=headingSection(/детали решают|рассмотри поближе|каталог дизайна/i);
+    if(!sec) return;
+    var cards=findShowcaseCards(sec);
+    cards.forEach(preloadCardAssets);
+    initFloat(cards);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init, {once:true});
+  else init();
+})();
+</script>`;
 const ADMIN_HTML = String.raw`<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AuraFX Admin</title>
@@ -1228,7 +1342,7 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
