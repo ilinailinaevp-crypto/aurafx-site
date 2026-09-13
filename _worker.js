@@ -568,6 +568,126 @@ const PERFORMANCE_HTML = String.raw`
   });
 })();
 </script>`;
+
+const SCROLL_REVEAL_HTML = String.raw`
+<style>
+  .afx-reveal{
+    opacity:0;
+    transform:translate3d(0,18px,0);
+    transition:
+      opacity .72s cubic-bezier(.22,.75,.24,1),
+      transform .72s cubic-bezier(.22,.75,.24,1);
+    will-change:opacity,transform;
+  }
+
+  .afx-reveal.afx-reveal-visible{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  .afx-reveal-item{
+    opacity:0;
+    transform:translate3d(0,12px,0);
+    transition:
+      opacity .56s cubic-bezier(.22,.75,.24,1),
+      transform .56s cubic-bezier(.22,.75,.24,1);
+    transition-delay:var(--afx-reveal-delay,0ms);
+    will-change:opacity,transform;
+  }
+
+  .afx-reveal-visible .afx-reveal-item,
+  .afx-reveal-item.afx-reveal-visible{
+    opacity:1;
+    transform:translate3d(0,0,0);
+  }
+
+  @media(max-width:720px){
+    .afx-reveal{
+      transform:translate3d(0,12px,0);
+      transition-duration:.55s;
+    }
+    .afx-reveal-item{
+      transform:translate3d(0,8px,0);
+      transition-duration:.44s;
+    }
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    .afx-reveal,
+    .afx-reveal-item{
+      opacity:1!important;
+      transform:none!important;
+      transition:none!important;
+      will-change:auto!important;
+    }
+  }
+</style>
+<script>
+(function(){
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  if(!('IntersectionObserver' in window))return;
+
+  function byHeading(pattern){
+    var heads=[].slice.call(document.querySelectorAll('h1,h2,h3,.section-title,.title'));
+    for(var i=0;i<heads.length;i++){
+      var txt=(heads[i].textContent||'').replace(/\s+/g,' ').trim();
+      if(pattern.test(txt)){
+        return heads[i].closest('section,article') || heads[i].parentElement;
+      }
+    }
+    return null;
+  }
+
+  function addUnique(list,el){
+    if(el && list.indexOf(el)===-1)list.push(el);
+  }
+
+  var sections=[];
+  addUnique(sections,byHeading(/портфолио|работы|кейсы/i));
+  addUnique(sections,byHeading(/тариф|цены|без квеста/i));
+  addUnique(sections,byHeading(/как работаем|четыре шага/i));
+  addUnique(sections,document.getElementById('afx-faq'));
+  addUnique(sections,document.getElementById('aurafx-reviews'));
+
+  var observer=new IntersectionObserver(function(entries,obs){
+    entries.forEach(function(entry){
+      if(!entry.isIntersecting)return;
+      entry.target.classList.add('afx-reveal-visible');
+      obs.unobserve(entry.target);
+    });
+  },{
+    root:null,
+    rootMargin:'0px 0px -8% 0px',
+    threshold:.08
+  });
+
+  sections.forEach(function(section){
+    if(!section)return;
+    var rect=section.getBoundingClientRect();
+
+    /* Anything already clearly visible on first paint stays visible.
+       This avoids the page "blinking" while loading. */
+    if(rect.top < window.innerHeight*.82){
+      section.classList.add('afx-reveal-visible');
+    }else{
+      section.classList.add('afx-reveal');
+      observer.observe(section);
+    }
+
+    var items=[].slice.call(section.querySelectorAll(
+      '.afx-price-card-decor,.afx-r-card,.afx-r-panel,.afx-faq-item'
+    )).slice(0,12);
+
+    items.forEach(function(item,index){
+      item.classList.add('afx-reveal-item');
+      item.style.setProperty('--afx-reveal-delay',Math.min(index*55,330)+'ms');
+      if(section.classList.contains('afx-reveal-visible')){
+        item.classList.add('afx-reveal-visible');
+      }
+    });
+  });
+})();
+</script>`;
 const ADMIN_HTML = String.raw`<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AuraFX Admin</title>
@@ -954,7 +1074,7 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
