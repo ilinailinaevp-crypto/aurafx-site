@@ -85,288 +85,166 @@ const PRICING_EFFECT_HTML = String.raw`
     overflow:hidden!important;
     isolation:isolate;
     background:
-      radial-gradient(1200px 700px at 50% -10%,rgba(125,50,255,.20),transparent 58%),
-      linear-gradient(180deg,#090511 0%,#0d0618 45%,#090510 100%)!important;
+      radial-gradient(1200px 600px at 50% 0%,rgba(127,66,255,.12),transparent 55%),
+      linear-gradient(180deg,#0a0612 0%,#0c0715 100%)!important;
   }
-  .afx-price-animated > *{position:relative;z-index:3}
-  .afx-price-animated .afx-ultra-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
-  .afx-price-animated .afx-ultra-vignette{
-    position:absolute;inset:0;
+  .afx-price-animated > *{position:relative;z-index:2}
+  .afx-price-animated .afx-price-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .afx-price-animated .afx-price-bg::before{
+    content:"";position:absolute;inset:0;
     background:
-      radial-gradient(circle at 50% 45%,transparent 0 32%,rgba(5,2,10,.18) 70%,rgba(5,2,10,.55) 100%),
-      linear-gradient(180deg,rgba(255,255,255,.018),transparent 18%,transparent 82%,rgba(0,0,0,.18));
+      radial-gradient(520px 520px at 12% 30%,rgba(92,224,255,.14),transparent 60%),
+      radial-gradient(640px 640px at 88% 20%,rgba(165,77,255,.16),transparent 60%),
+      radial-gradient(620px 620px at 50% 88%,rgba(110,52,255,.12),transparent 62%);
+    filter:blur(8px);
+    animation:afxPriceGlow 14s ease-in-out infinite alternate;
   }
-  .afx-price-animated .afx-ultra-grid{
-    position:absolute;inset:-10%;
+  .afx-price-animated .afx-price-bg::after{
+    content:"";position:absolute;left:0;right:0;bottom:0;height:42%;
     background:
-      linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),
-      linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px);
-    background-size:40px 40px;
-    transform:perspective(700px) rotateX(60deg) translateY(34%);
-    transform-origin:50% 100%;
-    mask-image:linear-gradient(180deg,transparent 8%,rgba(0,0,0,.75) 38%,rgba(0,0,0,.9) 100%);
-    opacity:.16;
-    animation:afxUltraGrid 16s linear infinite;
+      linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);
+    background-size:32px 32px;
+    mask-image:linear-gradient(180deg,transparent,rgba(0,0,0,.72) 25%,rgba(0,0,0,.96));
+    opacity:.18;
+    transform:perspective(900px) rotateX(72deg) scale(1.1);
+    transform-origin:bottom center;
   }
-  .afx-price-animated .afx-ultra-aurora{
-    position:absolute;width:72%;height:58%;border-radius:50%;
-    filter:blur(62px);mix-blend-mode:screen;opacity:.5;
-    will-change:transform,opacity;
+  .afx-price-animated .afx-price-line,
+  .afx-price-animated .afx-price-line2{
+    position:absolute;left:-12%;width:124%;height:1px;
+    background:linear-gradient(90deg,transparent,rgba(124,231,255,.22),rgba(172,84,255,.26),transparent);
+    filter:blur(.2px);opacity:.55;
   }
-  .afx-price-animated .afx-ultra-a1{
-    left:-16%;top:-12%;
-    background:conic-gradient(from 180deg at 50% 50%,rgba(87,226,255,.55),rgba(128,70,255,.52),rgba(255,67,190,.28),rgba(87,226,255,.55));
-    animation:afxUltraA1 18s ease-in-out infinite;
+  .afx-price-animated .afx-price-line{top:33%;transform:rotate(-8deg);animation:afxPriceLine1 10s ease-in-out infinite}
+  .afx-price-animated .afx-price-line2{top:68%;transform:rotate(7deg);animation:afxPriceLine2 12s ease-in-out infinite}
+  .afx-price-animated .afx-price-orb,
+  .afx-price-animated .afx-price-orb2{
+    position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.02);
+    box-shadow:inset 0 0 34px rgba(150,76,255,.06),0 0 55px rgba(101,221,255,.04);
   }
-  .afx-price-animated .afx-ultra-a2{
-    right:-18%;top:14%;
-    background:conic-gradient(from 30deg at 50% 50%,rgba(173,70,255,.60),rgba(255,94,202,.35),rgba(73,218,255,.38),rgba(173,70,255,.60));
-    animation:afxUltraA2 22s ease-in-out infinite;
+  .afx-price-animated .afx-price-orb{width:290px;height:290px;right:-100px;top:10%;animation:afxPriceOrb 16s ease-in-out infinite}
+  .afx-price-animated .afx-price-orb2{width:210px;height:210px;left:-70px;bottom:8%;animation:afxPriceOrb 18s ease-in-out infinite reverse}
+  .afx-price-animated .afx-price-spark{
+    position:absolute;width:14px;height:14px;opacity:.5;animation:afxPriceSpark 5.5s ease-in-out infinite;
   }
-  .afx-price-animated .afx-ultra-a3{
-    left:18%;bottom:-28%;
-    width:62%;height:52%;
-    background:radial-gradient(circle at 50% 50%,rgba(123,53,255,.42),rgba(69,215,255,.24) 42%,transparent 70%);
-    animation:afxUltraA3 20s ease-in-out infinite;
+  .afx-price-animated .afx-price-spark::before,
+  .afx-price-animated .afx-price-spark::after{
+    content:"";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);
+    background:linear-gradient(90deg,transparent,rgba(146,234,255,.92),transparent);
+    box-shadow:0 0 14px rgba(146,234,255,.28);
   }
-  .afx-price-animated .afx-ultra-beam{
-    position:absolute;height:2px;width:80%;
-    background:linear-gradient(90deg,transparent,rgba(130,228,255,.55),rgba(183,89,255,.6),transparent);
-    filter:blur(.2px);
-    opacity:.36;
-    transform-origin:center;
+  .afx-price-animated .afx-price-spark::before{width:14px;height:1px}
+  .afx-price-animated .afx-price-spark::after{width:1px;height:14px}
+  .afx-price-animated .afx-price-spark.s1{right:20%;top:22%}
+  .afx-price-animated .afx-price-spark.s2{left:18%;bottom:19%;animation-delay:-2s}
+  .afx-price-animated .afx-price-tag{
+    position:absolute;display:inline-flex;align-items:center;gap:8px;padding:8px 12px;
+    border-radius:999px;border:1px solid rgba(255,255,255,.1);
+    background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));
+    color:rgba(233,225,244,.72);font-size:10px;font-weight:900;letter-spacing:.18em;
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+    box-shadow:0 10px 30px rgba(0,0,0,.14);
   }
-  .afx-price-animated .afx-ultra-beam.b1{left:-8%;top:28%;transform:rotate(-12deg);animation:afxUltraBeam1 8s ease-in-out infinite}
-  .afx-price-animated .afx-ultra-beam.b2{right:-12%;top:62%;transform:rotate(10deg);animation:afxUltraBeam2 10s ease-in-out infinite}
-  .afx-price-animated .afx-ultra-orbit{
-    position:absolute;border:1px solid rgba(180,112,255,.22);border-radius:999px;
-    box-shadow:inset 0 0 28px rgba(131,63,255,.08),0 0 40px rgba(81,220,255,.05);
-  }
-  .afx-price-animated .afx-ultra-orbit.o1{width:520px;height:520px;right:-160px;top:-160px;animation:afxUltraOrbit 18s ease-in-out infinite}
-  .afx-price-animated .afx-ultra-orbit.o2{width:360px;height:360px;left:-130px;bottom:-110px;animation:afxUltraOrbit 16s ease-in-out infinite reverse}
-  .afx-price-animated .afx-ultra-orbit:after{
-    content:"";position:absolute;width:9px;height:9px;border-radius:50%;
-    background:#7cecff;box-shadow:0 0 18px #7cecff,0 0 34px rgba(124,236,255,.65);
-    left:50%;top:-5px;transform:translateX(-50%);
-  }
-  .afx-price-animated .afx-ultra-scan{
-    position:absolute;inset:-30% -20%;
-    background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.055) 48%,rgba(255,255,255,.11) 50%,rgba(255,255,255,.04) 52%,transparent 60%);
-    transform:translateX(-35%);
-    animation:afxUltraScan 9s ease-in-out infinite;
-    opacity:.45;
-  }
-  .afx-price-animated .afx-ultra-particle{
-    position:absolute;border-radius:999px;
-    background:radial-gradient(circle,#fff 0 25%,#8deeff 40%,rgba(141,238,255,0) 72%);
-    box-shadow:0 0 18px rgba(102,224,255,.75),0 0 30px rgba(173,78,255,.35);
-    opacity:.7;
-    will-change:transform,opacity;
+  .afx-price-animated .afx-price-tag span{display:block;width:7px;height:7px;border-radius:50%;background:#7aeaff;box-shadow:0 0 12px rgba(122,234,255,.7)}
+  .afx-price-animated .afx-price-tag.t1{left:5%;top:8%}
+  .afx-price-animated .afx-price-tag.t2{right:7%;bottom:10%}
+  .afx-price-animated .afx-price-particle{
+    position:absolute;width:5px;height:5px;border-radius:50%;
+    background:radial-gradient(circle,#fff 0 30%,#9aefff 42%,rgba(154,239,255,0) 72%);
+    box-shadow:0 0 14px rgba(135,235,255,.42);
+    opacity:.72;
+    animation:afxPriceParticle var(--dur) ease-in-out var(--delay) infinite;
   }
 
   .afx-price-animated [class*="card"],
   .afx-price-animated [class*="plan"],
   .afx-price-animated [class*="tariff"],
   .afx-price-animated [class*="package"]{
-    position:relative;
-    z-index:4;
-    backdrop-filter:blur(16px) saturate(120%);
-    -webkit-backdrop-filter:blur(16px) saturate(120%);
-    transition:transform .32s ease,box-shadow .32s ease,border-color .32s ease;
+    position:relative;z-index:3;
+    backdrop-filter:blur(10px) saturate(118%);
+    -webkit-backdrop-filter:blur(10px) saturate(118%);
+    box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 14px 34px rgba(0,0,0,.18);
   }
-  .afx-price-animated [class*="card"]:hover,
-  .afx-price-animated [class*="plan"]:hover,
-  .afx-price-animated [class*="tariff"]:hover,
-  .afx-price-animated [class*="package"]:hover{
-    transform:translateY(-4px);
-    box-shadow:0 22px 60px rgba(100,39,210,.18),0 0 0 1px rgba(151,87,255,.12);
-  }
-
-  @keyframes afxUltraGrid{
-    0%{background-position:0 0,0 0}
-    100%{background-position:0 40px,40px 0}
-  }
-  @keyframes afxUltraA1{
-    0%,100%{transform:translate3d(-2%,0,0) rotate(-4deg) scale(1);opacity:.42}
-    50%{transform:translate3d(16%,12%,0) rotate(10deg) scale(1.16);opacity:.62}
-  }
-  @keyframes afxUltraA2{
-    0%,100%{transform:translate3d(0,0,0) rotate(8deg) scale(1);opacity:.36}
-    50%{transform:translate3d(-18%,10%,0) rotate(-8deg) scale(1.13);opacity:.58}
-  }
-  @keyframes afxUltraA3{
-    0%,100%{transform:translate3d(0,0,0) scale(1);opacity:.36}
-    50%{transform:translate3d(4%,-18%,0) scale(1.18);opacity:.54}
-  }
-  @keyframes afxUltraBeam1{
-    0%,100%{transform:translateX(-6%) rotate(-12deg);opacity:.16}
-    50%{transform:translateX(18%) rotate(-8deg);opacity:.5}
-  }
-  @keyframes afxUltraBeam2{
-    0%,100%{transform:translateX(8%) rotate(10deg);opacity:.12}
-    50%{transform:translateX(-22%) rotate(6deg);opacity:.42}
-  }
-  @keyframes afxUltraOrbit{
-    0%,100%{transform:rotate(0deg) scale(1);opacity:.38}
-    50%{transform:rotate(180deg) scale(1.07);opacity:.16}
-  }
-  @keyframes afxUltraScan{
-    0%,18%{transform:translateX(-45%)}
-    65%,100%{transform:translateX(45%)}
-  }
-  @keyframes afxUltraParticle{
-    0%{transform:translate3d(0,20px,0) scale(.75);opacity:0}
-    12%{opacity:.9}
-    70%{opacity:.6}
-    100%{transform:translate3d(var(--dx),var(--dy),0) scale(1.25);opacity:0}
+  .afx-price-animated [class*="card"]::before,
+  .afx-price-animated [class*="plan"]::before,
+  .afx-price-animated [class*="tariff"]::before,
+  .afx-price-animated [class*="package"]::before{
+    content:"";position:absolute;inset:0;border-radius:inherit;padding:1px;
+    background:linear-gradient(180deg,rgba(255,255,255,.12),rgba(255,255,255,.02));
+    -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);
+    -webkit-mask-composite:xor;mask-composite:exclude;pointer-events:none;opacity:.45;
   }
 
-
-  .afx-price-animated .afx-ultra-word{
-    position:absolute;left:50%;top:49%;transform:translate(-50%,-50%);
-    font-size:clamp(110px,19vw,310px);font-weight:1000;letter-spacing:-.08em;
-    color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.075);
-    text-shadow:0 0 48px rgba(139,74,255,.05);
-    white-space:nowrap;opacity:.72;user-select:none;
-  }
-  .afx-price-animated .afx-ultra-side{
-    position:absolute;top:50%;font-size:10px;font-weight:850;letter-spacing:.34em;
-    color:rgba(220,207,236,.38);white-space:nowrap;
-  }
-  .afx-price-animated .afx-ultra-side.side-l{left:8px;transform:translateY(-50%) rotate(-90deg) translateX(-50%);transform-origin:left top}
-  .afx-price-animated .afx-ultra-side.side-r{right:8px;transform:translateY(-50%) rotate(90deg) translateX(50%);transform-origin:right top}
-  .afx-price-animated .afx-ultra-chip{
-    position:absolute;display:flex;align-items:center;gap:8px;padding:9px 12px;
-    border:1px solid rgba(255,255,255,.12);border-radius:999px;
-    background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
-    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-    color:rgba(242,236,250,.74);font-size:10px;font-weight:900;letter-spacing:.16em;
-    box-shadow:0 12px 40px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.08);
-    animation:afxChipFloat 8s ease-in-out infinite;
-  }
-  .afx-price-animated .afx-ultra-chip span{color:#87edff;text-shadow:0 0 12px rgba(135,237,255,.55)}
-  .afx-price-animated .afx-ultra-chip.c1{left:5%;top:17%;animation-delay:-1s}
-  .afx-price-animated .afx-ultra-chip.c2{right:7%;top:40%;animation-delay:-3s}
-  .afx-price-animated .afx-ultra-chip.c3{left:10%;bottom:13%;animation-delay:-5s}
-  .afx-price-animated .afx-ultra-cross{
-    position:absolute;width:18px;height:18px;opacity:.5;animation:afxCross 6s ease-in-out infinite;
-  }
-  .afx-price-animated .afx-ultra-cross:before,.afx-price-animated .afx-ultra-cross:after{
-    content:"";position:absolute;left:50%;top:50%;background:linear-gradient(90deg,transparent,#aeefff,transparent);
-    transform:translate(-50%,-50%);
-    box-shadow:0 0 14px rgba(142,229,255,.4);
-  }
-  .afx-price-animated .afx-ultra-cross:before{width:18px;height:1px}
-  .afx-price-animated .afx-ultra-cross:after{width:1px;height:18px}
-  .afx-price-animated .afx-ultra-cross.x1{right:17%;top:14%}
-  .afx-price-animated .afx-ultra-cross.x2{left:22%;top:58%;animation-delay:-2s}
-  .afx-price-animated .afx-ultra-cross.x3{right:24%;bottom:11%;animation-delay:-4s}
-  .afx-price-animated .afx-ultra-lens{
-    position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.085);
-    background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.08),rgba(255,255,255,.015) 42%,transparent 72%);
-    box-shadow:inset 0 0 40px rgba(120,70,255,.05),0 0 50px rgba(91,218,255,.04);
-    backdrop-filter:blur(2px);
-  }
-  .afx-price-animated .afx-ultra-lens.l1{width:150px;height:150px;left:4%;top:34%;animation:afxLens 11s ease-in-out infinite}
-  .afx-price-animated .afx-ultra-lens.l2{width:210px;height:210px;right:3%;bottom:5%;animation:afxLens 14s ease-in-out infinite reverse}
-  @keyframes afxChipFloat{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
-  @keyframes afxCross{0%,100%{transform:scale(.8) rotate(0deg);opacity:.24}50%{transform:scale(1.3) rotate(90deg);opacity:.68}}
-  @keyframes afxLens{0%,100%{transform:translate3d(0,0,0) scale(1);opacity:.55}50%{transform:translate3d(16px,-10px,0) scale(1.08);opacity:.78}}
+  @keyframes afxPriceGlow{0%{transform:translate3d(0,0,0) scale(1)}100%{transform:translate3d(0,-12px,0) scale(1.03)}}
+  @keyframes afxPriceLine1{0%,100%{transform:rotate(-8deg) translateX(0);opacity:.25}50%{transform:rotate(-5deg) translateX(4%);opacity:.55}}
+  @keyframes afxPriceLine2{0%,100%{transform:rotate(7deg) translateX(0);opacity:.18}50%{transform:rotate(10deg) translateX(-4%);opacity:.45}}
+  @keyframes afxPriceOrb{0%,100%{transform:translate3d(0,0,0) scale(1);opacity:.45}50%{transform:translate3d(0,-12px,0) scale(1.08);opacity:.7}}
+  @keyframes afxPriceSpark{0%,100%{transform:scale(.85) rotate(0deg);opacity:.22}50%{transform:scale(1.24) rotate(90deg);opacity:.65}}
+  @keyframes afxPriceParticle{0%{transform:translate3d(0,16px,0) scale(.9);opacity:0}18%{opacity:.82}100%{transform:translate3d(var(--dx),var(--dy),0) scale(1.25);opacity:0}}
 
   @media(max-width:700px){
-
-    .afx-price-animated .afx-ultra-word{font-size:32vw;opacity:.42}
-    .afx-price-animated .afx-ultra-side{display:none}
-    .afx-price-animated .afx-ultra-chip{font-size:8px;padding:7px 9px}
-    .afx-price-animated .afx-ultra-chip.c1{left:4%;top:13%}
-    .afx-price-animated .afx-ultra-chip.c2{right:4%;top:46%}
-    .afx-price-animated .afx-ultra-chip.c3{left:8%;bottom:8%}
-    .afx-price-animated .afx-ultra-lens.l1{width:110px;height:110px;left:-35px}
-    .afx-price-animated .afx-ultra-lens.l2{width:140px;height:140px;right:-48px}
-
-    .afx-price-animated .afx-ultra-grid{background-size:30px 30px;opacity:.12}
-    .afx-price-animated .afx-ultra-a1,.afx-price-animated .afx-ultra-a2{filter:blur(52px)}
-    .afx-price-animated .afx-ultra-orbit.o1{width:360px;height:360px;right:-180px}
-    .afx-price-animated .afx-ultra-orbit.o2{width:260px;height:260px;left:-130px}
+    .afx-price-animated .afx-price-orb{width:210px;height:210px;right:-105px;top:18%}
+    .afx-price-animated .afx-price-orb2{width:150px;height:150px;left:-75px;bottom:14%}
+    .afx-price-animated .afx-price-tag{font-size:9px;padding:7px 10px}
+    .afx-price-animated .afx-price-tag.t1{left:4%;top:10%}
+    .afx-price-animated .afx-price-tag.t2{right:4%;bottom:11%}
   }
   @media(prefers-reduced-motion:reduce){
-    .afx-price-animated .afx-ultra-grid,
-    .afx-price-animated .afx-ultra-aurora,
-    .afx-price-animated .afx-ultra-beam,
-    .afx-price-animated .afx-ultra-orbit,
-    .afx-price-animated .afx-ultra-scan,
-    .afx-price-animated .afx-ultra-particle{animation:none!important}
+    .afx-price-animated .afx-price-bg::before,
+    .afx-price-animated .afx-price-line,
+    .afx-price-animated .afx-price-line2,
+    .afx-price-animated .afx-price-orb,
+    .afx-price-animated .afx-price-orb2,
+    .afx-price-animated .afx-price-spark,
+    .afx-price-animated .afx-price-particle{animation:none!important}
   }
 </style>
 <script>
 (function(){
   function findPricingSection(){
-    var headings=[].slice.call(document.querySelectorAll('h1,h2,h3,h4,strong,.title,.section-title'));
-    for(var i=0;i<headings.length;i++){
-      var el=headings[i];
-      var txt=(el.textContent||'').trim().toLowerCase();
+    var heads=[].slice.call(document.querySelectorAll('h1,h2,h3,h4,strong,.title,.section-title'));
+    for(var i=0;i<heads.length;i++){
+      var txt=(heads[i].textContent||'').trim().toLowerCase();
       if(/тариф|пакет|стоим|цена|pricing|plans?/i.test(txt)){
-        var section=el.closest('section,article,div');
+        var section=heads[i].closest('section,article,div');
         if(!section)continue;
         var hops=0;
-        while(section&&section.parentElement&&section.clientHeight<320&&hops<4){
-          section=section.parentElement;hops++;
-        }
+        while(section&&section.parentElement&&section.clientHeight<320&&hops<4){section=section.parentElement;hops++;}
         return section;
       }
     }
     var fallback=document.querySelector('[id*="tarif"],[class*="tarif"],[id*="price"],[class*="price"],[id*="plan"],[class*="plan"]');
     return fallback?(fallback.closest('section,article,div')||fallback):null;
   }
-
   function decorate(section){
     if(!section||section.classList.contains('afx-price-animated'))return;
     section.classList.add('afx-price-animated');
     if(getComputedStyle(section).position==='static')section.style.position='relative';
-
     var bg=document.createElement('div');
-    bg.className='afx-ultra-bg';
+    bg.className='afx-price-bg';
     bg.innerHTML=''
-      +'<div class="afx-ultra-vignette"></div>'
-      +'<div class="afx-ultra-grid"></div>'
-      +'<div class="afx-ultra-aurora afx-ultra-a1"></div>'
-      +'<div class="afx-ultra-aurora afx-ultra-a2"></div>'
-      +'<div class="afx-ultra-aurora afx-ultra-a3"></div>'
-      +'<div class="afx-ultra-beam b1"></div>'
-      +'<div class="afx-ultra-beam b2"></div>'
-      +'<div class="afx-ultra-orbit o1"></div>'
-      +'<div class="afx-ultra-orbit o2"></div>'
-      +'<div class="afx-ultra-scan"></div>'+'<div class="afx-ultra-word">AURAFX</div>'+'<div class="afx-ultra-side side-l">DESIGN • MARKETPLACE • AURAFX</div>'+'<div class="afx-ultra-side side-r">PREMIUM • VISUAL • SYSTEM</div>'+'<div class="afx-ultra-chip c1"><span>✦</span> DESIGN</div>'+'<div class="afx-ultra-chip c2"><span>●</span> MARKETPLACE</div>'+'<div class="afx-ultra-chip c3"><span>↗</span> PREMIUM</div>'+'<div class="afx-ultra-cross x1"></div>'+'<div class="afx-ultra-cross x2"></div>'+'<div class="afx-ultra-cross x3"></div>'+'<div class="afx-ultra-lens l1"></div>'+'<div class="afx-ultra-lens l2"></div>';
+      +'<div class="afx-price-line"></div>'
+      +'<div class="afx-price-line2"></div>'
+      +'<div class="afx-price-orb"></div>'
+      +'<div class="afx-price-orb2"></div>'
+      +'<div class="afx-price-spark s1"></div>'
+      +'<div class="afx-price-spark s2"></div>'
+      +'<div class="afx-price-tag t1"><span></span> PREMIUM</div>'
+      +'<div class="afx-price-tag t2"><span></span> AURAFX</div>';
     section.prepend(bg);
-
-    for(var i=0;i<22;i++){
+    for(var i=0;i<12;i++){
       var p=document.createElement('span');
-      p.className='afx-ultra-particle';
-      var size=2+Math.random()*5;
-      p.style.width=size+'px';
-      p.style.height=size+'px';
-      p.style.left=(4+Math.random()*92)+'%';
-      p.style.top=(18+Math.random()*72)+'%';
-      p.style.setProperty('--dx',((-80)+Math.random()*160).toFixed(0)+'px');
-      p.style.setProperty('--dy',((-120)-Math.random()*210).toFixed(0)+'px');
-      p.style.animation='afxUltraParticle '+(8+Math.random()*9).toFixed(2)+'s ease-in-out '+(-Math.random()*10).toFixed(2)+'s infinite';
+      p.className='afx-price-particle';
+      p.style.left=(6+Math.random()*88)+'%';
+      p.style.top=(12+Math.random()*76)+'%';
+      p.style.setProperty('--dx',((-36)+Math.random()*72).toFixed(0)+'px');
+      p.style.setProperty('--dy',((-70)-Math.random()*90).toFixed(0)+'px');
+      p.style.setProperty('--dur',(8+Math.random()*7).toFixed(2)+'s');
+      p.style.setProperty('--delay',(-Math.random()*8).toFixed(2)+'s');
       bg.appendChild(p);
     }
-
-    var raf=0;
-    section.addEventListener('pointermove',function(e){
-      if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-      cancelAnimationFrame(raf);
-      raf=requestAnimationFrame(function(){
-        var r=section.getBoundingClientRect();
-        var x=(e.clientX-r.left)/r.width-.5;
-        var y=(e.clientY-r.top)/r.height-.5;
-        bg.style.transform='translate3d('+(x*-10).toFixed(2)+'px,'+(y*-7).toFixed(2)+'px,0)';
-      });
-    },{passive:true});
-    section.addEventListener('pointerleave',function(){bg.style.transform='translate3d(0,0,0)'},{passive:true});
   }
-
   function init(){decorate(findPricingSection())}
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
 })();
