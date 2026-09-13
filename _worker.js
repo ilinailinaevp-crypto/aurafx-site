@@ -631,20 +631,29 @@ const SCROLL_REVEAL_HTML = String.raw`
       group.targets.forEach(function(el,index){
         var delay=Math.min(index*52,310);
         el.classList.remove('afx-reveal-prep');
-        var anim=el.animate([
-          {opacity:0,transform:'translate3d(0,14px,0)'},
-          {opacity:1,transform:'translate3d(0,0,0)'}
-        ],{
-          duration:620,
-          delay:delay,
-          easing:'cubic-bezier(.16,.84,.28,1)',
-          fill:'both'
-        });
-        anim.finished.then(function(){
-          try{anim.cancel()}catch(e){}
+        if(typeof el.animate!=='function'){
           el.style.opacity='';
           el.style.transform='';
-        }).catch(function(){});
+          return;
+        }
+        try{
+          var anim=el.animate([
+            {opacity:0,transform:'translate3d(0,14px,0)'},
+            {opacity:1,transform:'translate3d(0,0,0)'}
+          ],{
+            duration:620,
+            delay:delay,
+            easing:'cubic-bezier(.16,.84,.28,1)',
+            fill:'both'
+          });
+          if(anim && anim.finished && typeof anim.finished.then==='function'){
+            anim.finished.then(function(){
+              try{anim.cancel()}catch(e){}
+              el.style.opacity='';
+              el.style.transform='';
+            }).catch(function(){});
+          }
+        }catch(e){el.style.opacity='';el.style.transform='';}
       });
 
       obs.unobserve(entry.target);
@@ -1294,122 +1303,79 @@ const PRIVACY_HTML = String.raw`<!doctype html><html lang="ru"><head><meta chars
 
 const HEADER_EXCLUSIVE_LOGO_HTML = String.raw`
 <style>
-  .afx-logo-v2-target{
-    position:relative!important;
-    overflow:hidden!important;
-    font-size:0!important;
-    color:transparent!important;
-    text-shadow:none!important;
-    background:none!important;
-    isolation:isolate!important;
-  }
-  .afx-logo-v2-target::before,
-  .afx-logo-v2-target::after{
-    content:none!important;
-    display:none!important;
-  }
-  .afx-logo-v2-target > *:not(.afx-logo-v2-img){
-    display:none!important;
-  }
-  .afx-logo-v2-img{
-    position:absolute!important;
-    inset:0!important;
-    width:100%!important;
-    height:100%!important;
-    object-fit:cover!important;
-    display:block!important;
-    z-index:999!important;
-    border-radius:inherit!important;
-    pointer-events:none!important;
-  }
+  .afx-logo-safe-target{position:relative!important;overflow:hidden!important;color:transparent!important;font-size:0!important;}
+  .afx-logo-safe-target::before,.afx-logo-safe-target::after{display:none!important;content:none!important;}
+  .afx-logo-safe-target > *:not(.afx-logo-safe-img){display:none!important;}
+  .afx-logo-safe-img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:inherit!important;display:block!important;z-index:5!important;pointer-events:none!important;}
+
+  /* Safari/iPhone safety: never let reveal/effects keep content invisible. */
+  html.afx-ios .afx-reveal-prep,
+  html.afx-ios .afx-reveal,
+  html.afx-ios .afx-reveal-item{opacity:1!important;transform:none!important;}
+  html.afx-ios .afx-r-panel,
+  html.afx-ios .afx-faq-item,
+  html.afx-ios .afx-tool-pill{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;}
+  html.afx-ios .afx-price-card-decor,
+  html.afx-ios .afx-r-card,
+  html.afx-ios .afx-r-panel,
+  html.afx-ios .afx-faq-item{contain:none!important;}
 </style>
 <script>
 (function(){
   var LOGO_SRC="data:image/webp;base64,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";
-  var done=false;
+  var ua=navigator.userAgent||'';
+  var isiOS=/iP(?:hone|ad|od)/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
+  if(isiOS)document.documentElement.classList.add('afx-ios');
 
-  function rect(el){try{return el.getBoundingClientRect()}catch(e){return null}}
-  function clean(s){return String(s||'').replace(/\s+/g,' ').trim()}
-  function all(){return [].slice.call(document.querySelectorAll('body *'))}
-
-  function findOldA(){
-    var list=[];
-    all().forEach(function(el){
-      var r=rect(el);if(!r)return;
-      var txt=clean(el.textContent);
-      if(txt!=='A')return;
-      if(r.top < 0 || r.top > 190 || r.left < 0 || r.left > 180)return;
-      if(r.width < 36 || r.width > 100 || r.height < 36 || r.height > 100)return;
-      if(Math.abs(r.width-r.height)>28)return;
-      var score=Math.abs(r.width-58)+Math.abs(r.height-58)+(r.left*.05)+(r.top*.05);
-      list.push({el:el,score:score});
-    });
-    list.sort(function(a,b){return a.score-b.score});
-    return list.length?list[0].el:null;
-  }
-
-  function findByBrand(){
-    var brandCandidates=[];
-    all().forEach(function(el){
-      var r=rect(el);if(!r)return;
-      var txt=clean(el.textContent);
-      if(txt!=='AuraFX')return;
-      if(r.top<0 || r.top>200 || r.left<40 || r.left>300)return;
-      brandCandidates.push({el:el,r:r,area:r.width*r.height});
-    });
-    brandCandidates.sort(function(a,b){return a.area-b.area});
-    if(!brandCandidates.length)return null;
-    var br=brandCandidates[0].r;
-
-    var candidates=[];
-    all().forEach(function(el){
-      var r=rect(el);if(!r)return;
-      if(r.top<0 || r.top>210 || r.left<0 || r.left>br.left)return;
-      if(r.width<36 || r.width>100 || r.height<36 || r.height>100)return;
-      if(Math.abs(r.width-r.height)>28)return;
-      var cy=r.top+r.height/2, by=br.top+br.height/2;
-      var gap=br.left-r.right;
-      if(Math.abs(cy-by)>42 || gap<-8 || gap>55)return;
-      var score=Math.abs(cy-by)+Math.abs(gap-12)+Math.abs(r.width-58);
-      candidates.push({el:el,score:score});
-    });
-    candidates.sort(function(a,b){return a.score-b.score});
-    return candidates.length?candidates[0].el:null;
-  }
-
-  function install(target){
-    if(!target || done)return false;
-    done=true;
-    target.classList.add('afx-logo-v2-target');
-    target.setAttribute('aria-label','AuraFX');
-    target.innerHTML='<img class="afx-logo-v2-img" src="'+LOGO_SRC+'" alt="AuraFX" decoding="async">';
+  function favicon(){
     try{
       var link=document.querySelector('link[rel="icon"]')||document.createElement('link');
       link.rel='icon';link.type='image/webp';link.href=LOGO_SRC;
       if(!link.parentNode)document.head.appendChild(link);
     }catch(e){}
-    return true;
   }
 
-  function attempt(){
-    if(done)return true;
-    return install(findOldA()||findByBrand());
+  function installLogo(){
+    try{
+      /* Fast bounded search: only elements near the top-left, once after first paint. */
+      var nodes=document.querySelectorAll('header *, nav *, body > *');
+      var best=null,bestScore=1e9;
+      for(var i=0;i<nodes.length && i<180;i++){
+        var el=nodes[i];
+        if(el.dataset && el.dataset.afxLogoSafe==='1')return true;
+        var t=(el.textContent||'').replace(/\s+/g,' ').trim();
+        if(t!=='A')continue;
+        var r=el.getBoundingClientRect();
+        if(r.top<0||r.top>180||r.left<0||r.left>170)continue;
+        if(r.width<34||r.width>90||r.height<34||r.height>90)continue;
+        var s=Math.abs(r.width-r.height)+Math.abs(r.width-58)+r.left*.05+r.top*.05;
+        if(s<bestScore){best=el;bestScore=s}
+      }
+      if(!best)return false;
+      best.dataset.afxLogoSafe='1';
+      best.classList.add('afx-logo-safe-target');
+      best.innerHTML='<img class="afx-logo-safe-img" src="'+LOGO_SRC+'" alt="AuraFX" decoding="async">';
+      return true;
+    }catch(e){return false}
   }
 
-  attempt();
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',attempt,{once:true});
-
-  var tries=0;
-  var timer=setInterval(function(){
-    tries++;
-    if(attempt()||tries>40)clearInterval(timer);
-  },250);
-
-  try{
-    var observer=new MutationObserver(function(){if(attempt())observer.disconnect()});
-    observer.observe(document.documentElement,{childList:true,subtree:true});
-    setTimeout(function(){try{observer.disconnect()}catch(e){}},12000);
-  }catch(e){}
+  favicon();
+  function start(){
+    /* First paint wins. Logo is secondary and must never block the page. */
+    requestAnimationFrame(function(){
+      requestAnimationFrame(function(){
+        if(installLogo())return;
+        setTimeout(installLogo,900);
+      });
+    });
+    /* Absolute reveal fail-safe for Safari/WebViews. */
+    setTimeout(function(){
+      try{
+        document.querySelectorAll('.afx-reveal-prep').forEach(function(el){el.classList.remove('afx-reveal-prep')});
+      }catch(e){}
+    },1400);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
 })();
 </script>`;
 
