@@ -221,7 +221,69 @@ const PRICING_EFFECT_HTML = String.raw`
     100%{transform:translate3d(var(--dx),var(--dy),0) scale(1.25);opacity:0}
   }
 
+
+  .afx-price-animated .afx-ultra-word{
+    position:absolute;left:50%;top:49%;transform:translate(-50%,-50%);
+    font-size:clamp(110px,19vw,310px);font-weight:1000;letter-spacing:-.08em;
+    color:transparent;-webkit-text-stroke:1px rgba(255,255,255,.075);
+    text-shadow:0 0 48px rgba(139,74,255,.05);
+    white-space:nowrap;opacity:.72;user-select:none;
+  }
+  .afx-price-animated .afx-ultra-side{
+    position:absolute;top:50%;font-size:10px;font-weight:850;letter-spacing:.34em;
+    color:rgba(220,207,236,.38);white-space:nowrap;
+  }
+  .afx-price-animated .afx-ultra-side.side-l{left:8px;transform:translateY(-50%) rotate(-90deg) translateX(-50%);transform-origin:left top}
+  .afx-price-animated .afx-ultra-side.side-r{right:8px;transform:translateY(-50%) rotate(90deg) translateX(50%);transform-origin:right top}
+  .afx-price-animated .afx-ultra-chip{
+    position:absolute;display:flex;align-items:center;gap:8px;padding:9px 12px;
+    border:1px solid rgba(255,255,255,.12);border-radius:999px;
+    background:linear-gradient(180deg,rgba(255,255,255,.075),rgba(255,255,255,.025));
+    backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+    color:rgba(242,236,250,.74);font-size:10px;font-weight:900;letter-spacing:.16em;
+    box-shadow:0 12px 40px rgba(0,0,0,.18),inset 0 1px rgba(255,255,255,.08);
+    animation:afxChipFloat 8s ease-in-out infinite;
+  }
+  .afx-price-animated .afx-ultra-chip span{color:#87edff;text-shadow:0 0 12px rgba(135,237,255,.55)}
+  .afx-price-animated .afx-ultra-chip.c1{left:5%;top:17%;animation-delay:-1s}
+  .afx-price-animated .afx-ultra-chip.c2{right:7%;top:40%;animation-delay:-3s}
+  .afx-price-animated .afx-ultra-chip.c3{left:10%;bottom:13%;animation-delay:-5s}
+  .afx-price-animated .afx-ultra-cross{
+    position:absolute;width:18px;height:18px;opacity:.5;animation:afxCross 6s ease-in-out infinite;
+  }
+  .afx-price-animated .afx-ultra-cross:before,.afx-price-animated .afx-ultra-cross:after{
+    content:"";position:absolute;left:50%;top:50%;background:linear-gradient(90deg,transparent,#aeefff,transparent);
+    transform:translate(-50%,-50%);
+    box-shadow:0 0 14px rgba(142,229,255,.4);
+  }
+  .afx-price-animated .afx-ultra-cross:before{width:18px;height:1px}
+  .afx-price-animated .afx-ultra-cross:after{width:1px;height:18px}
+  .afx-price-animated .afx-ultra-cross.x1{right:17%;top:14%}
+  .afx-price-animated .afx-ultra-cross.x2{left:22%;top:58%;animation-delay:-2s}
+  .afx-price-animated .afx-ultra-cross.x3{right:24%;bottom:11%;animation-delay:-4s}
+  .afx-price-animated .afx-ultra-lens{
+    position:absolute;border-radius:50%;border:1px solid rgba(255,255,255,.085);
+    background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.08),rgba(255,255,255,.015) 42%,transparent 72%);
+    box-shadow:inset 0 0 40px rgba(120,70,255,.05),0 0 50px rgba(91,218,255,.04);
+    backdrop-filter:blur(2px);
+  }
+  .afx-price-animated .afx-ultra-lens.l1{width:150px;height:150px;left:4%;top:34%;animation:afxLens 11s ease-in-out infinite}
+  .afx-price-animated .afx-ultra-lens.l2{width:210px;height:210px;right:3%;bottom:5%;animation:afxLens 14s ease-in-out infinite reverse}
+  @keyframes afxChipFloat{0%,100%{transform:translateY(0) rotate(-1deg)}50%{transform:translateY(-10px) rotate(1deg)}}
+  @keyframes afxCross{0%,100%{transform:scale(.8) rotate(0deg);opacity:.24}50%{transform:scale(1.3) rotate(90deg);opacity:.68}}
+  @keyframes afxLens{0%,100%{transform:translate3d(0,0,0) scale(1);opacity:.55}50%{transform:translate3d(16px,-10px,0) scale(1.08);opacity:.78}}
+
   @media(max-width:700px){
+
+    .afx-price-animated .afx-ultra-word{font-size:32vw;opacity:.42}
+    .afx-price-animated .afx-ultra-side{display:none}
+    .afx-price-animated .afx-ultra-chip{font-size:8px;padding:7px 9px}
+    .afx-price-animated .afx-ultra-chip.c1{left:4%;top:13%}
+    .afx-price-animated .afx-ultra-chip.c2{right:4%;top:46%}
+    .afx-price-animated .afx-ultra-chip.c3{left:8%;bottom:8%}
+    .afx-price-animated .afx-ultra-lens.l1{width:110px;height:110px;left:-35px}
+    .afx-price-animated .afx-ultra-lens.l2{width:140px;height:140px;right:-48px}
+
     .afx-price-animated .afx-ultra-grid{background-size:30px 30px;opacity:.12}
     .afx-price-animated .afx-ultra-a1,.afx-price-animated .afx-ultra-a2{filter:blur(52px)}
     .afx-price-animated .afx-ultra-orbit.o1{width:360px;height:360px;right:-180px}
@@ -274,7 +336,7 @@ const PRICING_EFFECT_HTML = String.raw`
       +'<div class="afx-ultra-beam b2"></div>'
       +'<div class="afx-ultra-orbit o1"></div>'
       +'<div class="afx-ultra-orbit o2"></div>'
-      +'<div class="afx-ultra-scan"></div>';
+      +'<div class="afx-ultra-scan"></div>'+'<div class="afx-ultra-word">AURAFX</div>'+'<div class="afx-ultra-side side-l">DESIGN • MARKETPLACE • AURAFX</div>'+'<div class="afx-ultra-side side-r">PREMIUM • VISUAL • SYSTEM</div>'+'<div class="afx-ultra-chip c1"><span>✦</span> DESIGN</div>'+'<div class="afx-ultra-chip c2"><span>●</span> MARKETPLACE</div>'+'<div class="afx-ultra-chip c3"><span>↗</span> PREMIUM</div>'+'<div class="afx-ultra-cross x1"></div>'+'<div class="afx-ultra-cross x2"></div>'+'<div class="afx-ultra-cross x3"></div>'+'<div class="afx-ultra-lens l1"></div>'+'<div class="afx-ultra-lens l2"></div>';
     section.prepend(bg);
 
     for(var i=0;i<22;i++){
