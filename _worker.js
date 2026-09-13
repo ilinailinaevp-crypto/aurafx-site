@@ -937,6 +937,327 @@ const SHOWCASE_FLOAT_HTML = String.raw`
   else init();
 })();
 </script>`;
+
+const PREMIUM_STUDIO_HTML = String.raw`
+<style>
+  #afx-premium-cta{
+    position:relative;overflow:hidden;padding:92px 24px;
+    color:#fff;font-family:inherit;
+  }
+  #afx-premium-cta:before{
+    content:"";position:absolute;inset:8% 6%;
+    border-radius:42px;
+    background:
+      radial-gradient(520px 280px at 80% 20%,rgba(174,72,255,.16),transparent 68%),
+      radial-gradient(430px 260px at 12% 84%,rgba(70,225,255,.08),transparent 70%),
+      linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.018));
+    border:1px solid rgba(255,255,255,.09);
+    box-shadow:0 28px 90px rgba(0,0,0,.24),inset 0 1px rgba(255,255,255,.035);
+    pointer-events:none;
+  }
+  .afx-premium-wrap{position:relative;z-index:1;max-width:1100px;margin:auto;padding:54px 48px}
+  .afx-premium-kicker{font-size:12px;font-weight:900;letter-spacing:.22em;text-transform:uppercase;color:#b985ff;margin-bottom:18px}
+  .afx-premium-title{max-width:850px;margin:0;font-size:clamp(42px,7vw,78px);line-height:.96;letter-spacing:-.055em;font-weight:950}
+  .afx-premium-copy{max-width:650px;margin:24px 0 0;color:#a99bb8;font-size:17px;line-height:1.65}
+  .afx-premium-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:30px}
+  .afx-premium-btn{
+    appearance:none;border:0;border-radius:17px;padding:15px 19px;font:inherit;font-size:15px;font-weight:900;
+    cursor:pointer;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:9px;
+    color:#fff;background:linear-gradient(135deg,#ad45ff,#6b2aee);box-shadow:0 15px 42px rgba(119,44,232,.28);
+    transition:transform .2s ease,box-shadow .2s ease;
+  }
+  .afx-premium-btn:active{transform:scale(.98)}
+  .afx-premium-btn.secondary{background:rgba(255,255,255,.055);border:1px solid rgba(255,255,255,.10);box-shadow:none;color:#dcd2e6}
+  .afx-premium-trust{display:flex;gap:18px;flex-wrap:wrap;margin-top:24px;color:#786d84;font-size:12px}
+  .afx-premium-trust span:before{content:"•";color:#9d52ff;margin-right:7px}
+
+  .afx-case-ready{position:relative;cursor:pointer}
+  .afx-case-ready:after{
+    content:"Открыть кейс ↗";position:absolute;z-index:20;right:12px;bottom:12px;
+    padding:8px 10px;border-radius:999px;background:rgba(10,5,18,.72);border:1px solid rgba(255,255,255,.12);
+    color:#eee7f5;font:800 11px/1 system-ui,sans-serif;letter-spacing:.02em;
+    backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+    opacity:0;transform:translateY(5px);transition:.2s ease;pointer-events:none;
+  }
+  .afx-case-ready:hover:after{opacity:1;transform:none}
+
+  .afx-premium-modal{
+    position:fixed;inset:0;z-index:10020;display:none;align-items:center;justify-content:center;padding:18px;
+    background:rgba(4,2,8,.78);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  }
+  .afx-premium-modal.open{display:flex}
+  .afx-premium-dialog{
+    position:relative;width:min(1060px,100%);max-height:min(880px,calc(100vh - 36px));overflow:auto;
+    border:1px solid rgba(255,255,255,.12);border-radius:30px;
+    background:linear-gradient(145deg,rgba(20,11,31,.98),rgba(8,4,14,.98));
+    box-shadow:0 35px 120px rgba(0,0,0,.55);
+    color:#fff;font-family:inherit;
+  }
+  .afx-modal-close{
+    position:sticky;float:right;top:14px;right:14px;z-index:12;margin:14px 14px -54px 0;
+    width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.11);
+    background:rgba(14,8,23,.78);color:#fff;font-size:23px;cursor:pointer;
+    backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  }
+
+  .afx-case-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr);min-height:620px}
+  .afx-case-media{position:relative;display:grid;place-items:center;min-height:620px;padding:34px;background:radial-gradient(circle at 50% 48%,rgba(132,54,244,.18),transparent 54%)}
+  .afx-case-media img{display:block;max-width:100%;max-height:74vh;object-fit:contain;border-radius:22px;box-shadow:0 24px 70px rgba(0,0,0,.3)}
+  .afx-case-info{padding:54px 42px 44px;border-left:1px solid rgba(255,255,255,.08);display:flex;flex-direction:column;justify-content:center}
+  .afx-case-kicker{color:#b67aff;font-size:11px;font-weight:900;letter-spacing:.2em;text-transform:uppercase}
+  .afx-case-title{margin:14px 0 16px;font-size:clamp(34px,5vw,58px);line-height:.98;letter-spacing:-.045em}
+  .afx-case-copy{margin:0;color:#a99db4;line-height:1.65}
+  .afx-case-chips{display:flex;gap:8px;flex-wrap:wrap;margin:22px 0 4px}
+  .afx-case-chip{padding:7px 10px;border-radius:999px;border:1px solid rgba(255,255,255,.10);background:rgba(255,255,255,.035);color:#aa9cb5;font-size:11px;font-weight:750}
+  .afx-case-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:26px}
+  .afx-case-nav{display:flex;gap:8px;margin-top:14px}
+  .afx-case-nav button{border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.045);color:#d9d0e2;border-radius:13px;padding:10px 13px;font:800 12px inherit;cursor:pointer}
+
+  .afx-brief-dialog{width:min(760px,100%);padding:48px}
+  .afx-brief-kicker{color:#b67aff;font-size:11px;font-weight:900;letter-spacing:.2em;text-transform:uppercase}
+  .afx-brief-title{margin:12px 0 8px;font-size:clamp(36px,6vw,58px);line-height:1;letter-spacing:-.045em}
+  .afx-brief-sub{margin:0 0 26px;color:#9c90a9;line-height:1.55}
+  .afx-brief-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .afx-field{display:grid;gap:7px;color:#bdb2c6;font-size:12px;font-weight:750}
+  .afx-field.full{grid-column:1/-1}
+  .afx-field input,.afx-field select,.afx-field textarea{
+    width:100%;box-sizing:border-box;border:1px solid rgba(255,255,255,.11);border-radius:15px;
+    background:#10081a;color:#fff;font:inherit;padding:13px 14px;outline:none;
+  }
+  .afx-field textarea{min-height:108px;resize:vertical}
+  .afx-field input:focus,.afx-field select:focus,.afx-field textarea:focus{border-color:#a84dff;box-shadow:0 0 0 4px rgba(157,67,255,.11)}
+  .afx-brief-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
+  .afx-brief-status{min-height:20px;margin:12px 0 0;color:#83eec2;font-size:12px;line-height:1.45}
+
+  #afx-premium-footer{padding:42px 24px 112px;color:#fff;font-family:inherit}
+  .afx-footer-inner{max-width:1100px;margin:auto;padding-top:28px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;gap:24px;align-items:flex-end}
+  .afx-footer-brand{font-size:30px;font-weight:950;letter-spacing:-.04em}
+  .afx-footer-brand span{background:linear-gradient(90deg,#70e9ff,#b34cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .afx-footer-copy{margin-top:7px;color:#746a7e;font-size:12px}
+  .afx-footer-links{display:flex;gap:9px;flex-wrap:wrap}
+  .afx-footer-links a{color:#c7bacf;text-decoration:none;font-size:12px;font-weight:800;padding:9px 11px;border-radius:999px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}
+
+  @media(max-width:760px){
+    #afx-premium-cta{padding:66px 16px}.afx-premium-wrap{padding:42px 26px}
+    .afx-premium-title{font-size:43px}.afx-premium-copy{font-size:15px}
+    .afx-case-ready:after{opacity:.86;transform:none;font-size:10px}
+    .afx-case-grid{grid-template-columns:1fr;min-height:0}.afx-case-media{min-height:380px;padding:22px}
+    .afx-case-info{padding:30px 24px 34px;border-left:0;border-top:1px solid rgba(255,255,255,.08)}
+    .afx-brief-dialog{padding:42px 20px 28px}.afx-brief-grid{grid-template-columns:1fr}.afx-field.full{grid-column:auto}
+    .afx-footer-inner{display:block}.afx-footer-links{margin-top:20px}
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    .afx-premium-btn,.afx-case-ready:after{transition:none}
+  }
+</style>
+
+<section id="afx-premium-cta">
+  <div class="afx-premium-wrap">
+    <div class="afx-premium-kicker">AuraFX / Start a project</div>
+    <h2 class="afx-premium-title">Карточки, которые хочется рассмотреть.</h2>
+    <p class="afx-premium-copy">Расскажи о товаре и задаче — короткий бриф соберёт всё нужное в одном сообщении. Без регистрации и длинной переписки на старте.</p>
+    <div class="afx-premium-actions">
+      <button class="afx-premium-btn" id="afx-open-brief" type="button">Начать проект →</button>
+      <a class="afx-premium-btn secondary" href="https://t.me/AuraFX_marketplace" target="_blank" rel="noopener">Telegram ↗</a>
+    </div>
+    <div class="afx-premium-trust"><span>Бриф ≈ 60 секунд</span><span>Можно начать с одной карточки</span><span>Telegram или Avito</span></div>
+  </div>
+</section>
+
+<div class="afx-premium-modal" id="afx-case-modal" aria-hidden="true">
+  <div class="afx-premium-dialog" role="dialog" aria-modal="true" aria-label="Кейс AuraFX">
+    <button class="afx-modal-close" type="button" data-close-modal aria-label="Закрыть">×</button>
+    <div class="afx-case-grid">
+      <div class="afx-case-media"><img id="afx-case-image" alt=""></div>
+      <div class="afx-case-info">
+        <div class="afx-case-kicker">AuraFX / Case study</div>
+        <h3 class="afx-case-title" id="afx-case-title">Дизайн карточки</h3>
+        <p class="afx-case-copy">Демонстрационный концепт AuraFX: акцент на читаемой иерархии, композиции и визуальной подаче преимуществ товара.</p>
+        <div class="afx-case-chips"><span class="afx-case-chip">Композиция</span><span class="afx-case-chip">Типографика</span><span class="afx-case-chip">Акценты</span></div>
+        <div class="afx-case-actions">
+          <button class="afx-premium-btn" id="afx-case-order" type="button">Хочу в таком стиле →</button>
+        </div>
+        <div class="afx-case-nav"><button id="afx-case-prev" type="button">← Предыдущий</button><button id="afx-case-next" type="button">Следующий →</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="afx-premium-modal" id="afx-brief-modal" aria-hidden="true">
+  <div class="afx-premium-dialog afx-brief-dialog" role="dialog" aria-modal="true" aria-label="Бриф AuraFX">
+    <button class="afx-modal-close" type="button" data-close-modal aria-label="Закрыть">×</button>
+    <div class="afx-brief-kicker">Новый проект</div>
+    <h3 class="afx-brief-title">Короткий бриф</h3>
+    <p class="afx-brief-sub">Заполни главное. После отправки бриф скопируется — останется открыть Telegram и вставить сообщение.</p>
+    <form id="afx-brief-form">
+      <div class="afx-brief-grid">
+        <label class="afx-field">Площадка
+          <select name="marketplace"><option>Wildberries</option><option>Ozon</option><option>Avito</option><option>Другое</option></select>
+        </label>
+        <label class="afx-field">Количество карточек
+          <input name="count" type="number" min="1" max="50" value="1" required>
+        </label>
+        <label class="afx-field full">Что за товар?
+          <input name="product" maxlength="100" placeholder="Например, беспроводные наушники" required>
+        </label>
+        <label class="afx-field">Стиль
+          <select name="style"><option>На усмотрение AuraFX</option><option>Премиальный</option><option>Минималистичный</option><option>Яркий marketplace</option><option>Технологичный</option></select>
+        </label>
+        <label class="afx-field">Желаемый срок
+          <input name="deadline" maxlength="60" placeholder="Не срочно / дата">
+        </label>
+        <label class="afx-field full">Комментарий
+          <textarea name="comment" maxlength="500" placeholder="Ссылка на товар, пожелания, референсы — если есть"></textarea>
+        </label>
+      </div>
+      <div class="afx-brief-actions">
+        <button class="afx-premium-btn" type="submit">Скопировать бриф →</button>
+        <a class="afx-premium-btn secondary" href="https://t.me/AuraFX_marketplace" target="_blank" rel="noopener">Открыть Telegram ↗</a>
+      </div>
+      <div class="afx-brief-status" id="afx-brief-status" aria-live="polite"></div>
+    </form>
+  </div>
+</div>
+
+<footer id="afx-premium-footer">
+  <div class="afx-footer-inner">
+    <div><div class="afx-footer-brand"><span>AuraFX</span></div><div class="afx-footer-copy">Дизайн карточек товаров • 2026</div></div>
+    <div class="afx-footer-links"><a href="https://t.me/AuraFX_marketplace" target="_blank" rel="noopener">Telegram ↗</a><a href="https://www.avito.ru/brands/9dc551ff2d81a0ee55cfe8690760f5ca" target="_blank" rel="noopener">Avito ↗</a><a href="/admin">Admin</a></div>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var body=document.body, caseModal=document.getElementById('afx-case-modal'), briefModal=document.getElementById('afx-brief-modal');
+  var caseImg=document.getElementById('afx-case-image'), caseTitle=document.getElementById('afx-case-title'), current=0, cases=[];
+
+  function visitorId(){
+    try{
+      var id=localStorage.getItem('afx_visitor_id');
+      if(id&&/^[A-Za-z0-9_-]{16,80}$/.test(id))return id;
+      return '';
+    }catch(e){return ''}
+  }
+  function track(type,meta){
+    var id=visitorId();if(!id)return;
+    try{fetch('/api/event',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({visitor_id:id,type:type,meta:String(meta||'').slice(0,160)}),keepalive:true,cache:'no-store'}).catch(function(){})}catch(e){}
+  }
+  function escText(s){return String(s||'').replace(/\s+/g,' ').trim()}
+  function headingSection(pattern){
+    var heads=[].slice.call(document.querySelectorAll('h1,h2,h3,.section-title,.title'));
+    for(var i=0;i<heads.length;i++){
+      var t=escText(heads[i].textContent);
+      if(pattern.test(t)) return heads[i].closest('section,article')||heads[i].parentElement;
+    }
+    return null;
+  }
+  function imageOf(el){
+    var img=el.querySelector('img');
+    if(img&&(img.currentSrc||img.src))return {src:img.currentSrc||img.src,alt:img.alt||''};
+    var all=[el].concat([].slice.call(el.querySelectorAll('*')));
+    for(var i=0;i<all.length;i++){
+      var bg=getComputedStyle(all[i]).backgroundImage||'',m=bg.match(/url\(["']?([^"')]+)["']?\)/);
+      if(m)return {src:m[1],alt:''};
+    }
+    return null;
+  }
+  function titleOf(el,info,index){
+    var h=el.querySelector('h2,h3,h4,strong,[class*="title"]');
+    var t=escText(h?h.textContent:'');
+    if(!t)t=escText(info.alt).replace(/^карточка\s*/i,'');
+    if(!t)t='Концепт '+(index+1);
+    return t.slice(0,90);
+  }
+  function collectCases(){
+    var sec=headingSection(/каталог дизайна|детали решают|рассмотри поближе|портфолио|работы|кейсы/i);
+    if(!sec)return;
+    var candidates=[].slice.call(sec.querySelectorAll('article,li,a,div')).filter(function(el){
+      var r=el.getBoundingClientRect(),info=imageOf(el);
+      return !!info && r.width>=120 && r.height>=150 && r.height<=900;
+    });
+    candidates=candidates.filter(function(el){
+      return !candidates.some(function(other){return other!==el&&el.contains(other)&&imageOf(other)});
+    });
+    var seen={};
+    candidates.forEach(function(el){
+      if(cases.length>=24)return;
+      var info=imageOf(el);if(!info||seen[info.src])return;seen[info.src]=1;
+      var item={el:el,src:info.src,title:titleOf(el,info,cases.length)};
+      cases.push(item);el.classList.add('afx-case-ready');
+      el.setAttribute('role','button');el.setAttribute('tabindex','0');
+      el.addEventListener('click',function(e){
+        var action=e.target.closest('button,input,select,textarea');if(action)return;
+        if(el.tagName==='A')e.preventDefault();
+        openCase(cases.indexOf(item));
+      });
+      el.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();openCase(cases.indexOf(item))}});
+    });
+  }
+  function openModal(el){el.classList.add('open');el.setAttribute('aria-hidden','false');body.style.overflow='hidden'}
+  function closeModal(el){el.classList.remove('open');el.setAttribute('aria-hidden','true');if(!document.querySelector('.afx-premium-modal.open'))body.style.overflow=''}
+  function openCase(index){
+    if(!cases.length)return;current=(index+cases.length)%cases.length;
+    var c=cases[current];caseImg.src=c.src;caseImg.alt=c.title;caseTitle.textContent=c.title;openModal(caseModal);track('case_open',c.title);
+  }
+  document.getElementById('afx-case-prev').addEventListener('click',function(){openCase(current-1)});
+  document.getElementById('afx-case-next').addEventListener('click',function(){openCase(current+1)});
+  document.getElementById('afx-case-order').addEventListener('click',function(){
+    var c=cases[current];closeModal(caseModal);openBrief(c?c.title:''); 
+  });
+
+  function openBrief(caseName){
+    var form=document.getElementById('afx-brief-form');
+    if(caseName){
+      var field=form.elements.comment;
+      if(field&&!field.value)field.value='Понравился стиль кейса: '+caseName+'. ';
+    }
+    openModal(briefModal);track('brief_open',caseName||'direct');
+  }
+  document.getElementById('afx-open-brief').addEventListener('click',function(){openBrief('')});
+  [].slice.call(document.querySelectorAll('[data-close-modal]')).forEach(function(btn){btn.addEventListener('click',function(){closeModal(btn.closest('.afx-premium-modal'))})});
+  [caseModal,briefModal].forEach(function(modal){modal.addEventListener('click',function(e){if(e.target===modal)closeModal(modal)})});
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){if(caseModal.classList.contains('open'))closeModal(caseModal);if(briefModal.classList.contains('open'))closeModal(briefModal)}
+    if(caseModal.classList.contains('open')&&e.key==='ArrowLeft')openCase(current-1);
+    if(caseModal.classList.contains('open')&&e.key==='ArrowRight')openCase(current+1);
+  });
+
+  document.getElementById('afx-brief-form').addEventListener('submit',async function(e){
+    e.preventDefault();
+    var f=new FormData(e.currentTarget);
+    var message=[
+      'AuraFX — новый проект',
+      '',
+      'Площадка: '+f.get('marketplace'),
+      'Количество карточек: '+f.get('count'),
+      'Товар: '+f.get('product'),
+      'Стиль: '+f.get('style'),
+      'Желаемый срок: '+(f.get('deadline')||'не указан'),
+      'Комментарий: '+(f.get('comment')||'—')
+    ].join('\n');
+    var status=document.getElementById('afx-brief-status');
+    try{
+      await navigator.clipboard.writeText(message);
+      status.textContent='Бриф скопирован ✓ Теперь открой Telegram и вставь сообщение.';
+    }catch(err){
+      status.textContent='Не получилось скопировать автоматически. Выдели данные вручную или напиши в Telegram.';
+    }
+    track('brief_submit',String(f.get('marketplace'))+' / '+String(f.get('count')));
+  });
+
+  function placeCTA(){
+    var cta=document.getElementById('afx-premium-cta');
+    var pricing=headingSection(/тариф|цены|без квеста/i);
+    var portfolio=headingSection(/каталог дизайна|детали решают|портфолио|работы|кейсы/i);
+    if(pricing&&pricing.parentNode){pricing.parentNode.insertBefore(cta,pricing)}
+    else if(portfolio&&portfolio.parentNode){portfolio.parentNode.insertBefore(cta,portfolio.nextSibling)}
+  }
+
+  placeCTA();
+  collectCases();
+})();
+</script>`;
 const ADMIN_HTML = String.raw`<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AuraFX Admin</title>
@@ -945,7 +1266,7 @@ const ADMIN_HTML = String.raw`<!doctype html>
 .wrap{position:relative;max-width:1180px;margin:auto;padding:28px 18px 70px}.top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:22px}.brand{font-size:25px;font-weight:950}.brand span{background:linear-gradient(90deg,#67e8ff,#b44dff);-webkit-background-clip:text;color:transparent}.sub{color:#8f839d;font-size:13px;margin-top:4px}.top-actions,.actions,.filters{display:flex;gap:8px;flex-wrap:wrap}
 .panel,.card{border:1px solid rgba(255,255,255,.095);background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));backdrop-filter:blur(18px);box-shadow:0 18px 60px rgba(0,0,0,.22);border-radius:22px}.login{max-width:440px;margin:12vh auto 0;padding:26px}.login h1{margin:0 0 8px;font-size:32px}.login p{margin:0 0 22px;color:#a99db5;line-height:1.55}
 input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color:#fff;border-radius:14px;padding:14px 15px;font:inherit;outline:none}input:focus{border-color:#a64bff;box-shadow:0 0 0 4px rgba(164,72,255,.12)}button,a.btn{border:0;border-radius:13px;padding:11px 14px;font:inherit;font-size:13px;font-weight:850;cursor:pointer;color:#fff;background:#251630;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}button:disabled{opacity:.5;cursor:wait}.primary{background:linear-gradient(135deg,#b247ff,#7027ed)}.danger{background:#39151d;color:#ff9cab}.warn{background:#352713;color:#ffd783}.ghost{background:rgba(255,255,255,.06)}.ok{background:#123126;color:#8ff3c6}
-.msg{min-height:20px;margin:12px 0 0;color:#ff9aaa;font-size:13px}.section-title{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:30px 0 12px}.section-title h2{margin:0;font-size:22px}.section-title p{margin:0;color:#81758e;font-size:12px}.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.metric{padding:16px}.metric small{color:#92869e;font-size:11px}.metric b{display:block;font-size:27px;margin-top:6px;letter-spacing:-.03em}.metric em{display:block;color:#746b7f;font-style:normal;font-size:11px;margin-top:3px}
+.msg{min-height:20px;margin:12px 0 0;color:#ff9aaa;font-size:13px}.section-title{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:30px 0 12px}.section-title h2{margin:0;font-size:22px}.section-title p{margin:0;color:#81758e;font-size:12px}.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.metric{padding:16px}.metric small{color:#92869e;font-size:11px}.metric b{display:block;font-size:27px;margin-top:6px;letter-spacing:-.03em}.metric em{display:block;color:#746b7f;font-style:normal;font-size:11px;margin-top:3px}
 .overview-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:12px}.chart{padding:18px}.bars{height:150px;display:flex;align-items:end;gap:8px;margin-top:18px}.bar-wrap{flex:1;min-width:0;text-align:center}.bar{width:100%;min-height:4px;border-radius:9px 9px 3px 3px;background:linear-gradient(180deg,#b14cff,#6330de);box-shadow:0 0 18px rgba(135,59,240,.18)}.bar-wrap span{display:block;color:#746a80;font-size:10px;margin-top:7px}.quick{padding:18px}.quick h3{margin:0 0 12px}.quick .actions{display:grid;grid-template-columns:1fr 1fr}.system{margin-top:12px;padding:14px;display:flex;justify-content:space-between;align-items:center;color:#9f93aa;font-size:12px}.status-dot{width:8px;height:8px;border-radius:50%;background:#59eeb2;box-shadow:0 0 14px rgba(89,238,178,.7);display:inline-block;margin-right:7px}
 .toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;margin:0 0 12px;flex-wrap:wrap}.filters button.active{background:#7629ee}.review-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.review-stat{padding:14px}.review-stat b{display:block;font-size:22px;margin-top:4px}.review-stat small{color:#8f839b}.list{display:grid;gap:10px}.card{padding:18px}.cardtop{display:flex;justify-content:space-between;gap:14px;align-items:start}.name{font-weight:900;font-size:17px}.stars{color:#ffd45c;letter-spacing:1px}.text{color:#ddd5e4;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:#786e82;font-size:11px}.badge{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:850}.approved{background:rgba(55,220,151,.12);color:#82f0be}.pending{background:rgba(255,188,61,.12);color:#ffd06f}.hidden{background:rgba(255,103,128,.12);color:#ff9bac}.empty{text-align:center;padding:40px 20px;color:#8f829c}.hidden-ui{display:none!important}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#171020;border:1px solid rgba(255,255,255,.1);padding:11px 15px;border-radius:999px;opacity:0;pointer-events:none;transition:.22s;z-index:20;font-size:12px}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:860px){.metrics{grid-template-columns:repeat(2,1fr)}.overview-grid{grid-template-columns:1fr}.review-stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.wrap{padding:20px 14px 60px}.top{align-items:flex-start}.top-actions{justify-content:flex-end}.metrics{grid-template-columns:repeat(2,1fr)}.quick .actions{grid-template-columns:1fr}.cardtop{display:block}.stars{margin-top:6px}}
@@ -963,6 +1284,8 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
     <div class="panel metric"><small>Выбор тарифа сегодня</small><b id="mPricing">0</b><em>клики «Выбрать»</em></div>
     <div class="panel metric"><small>Средняя оценка</small><b id="mRating">—</b><em>по опубликованным отзывам</em></div>
     <div class="panel metric"><small>Ждут модерации</small><b id="mPending">0</b><em>отзывы на проверке</em></div>
+    <div class="panel metric"><small>Открытия кейсов сегодня</small><b id="mCases">0</b><em>просмотры работ крупно</em></div>
+    <div class="panel metric"><small>Брифы сегодня</small><b id="mBriefs">0</b><em>готовые заявки</em></div>
   </div>
   <div class="overview-grid" style="margin-top:12px">
     <div class="panel chart"><div><b>Уникальные посетители за 7 дней</b><div class="sub">по дням</div></div><div id="bars" class="bars"></div></div>
@@ -984,7 +1307,7 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
   function showDash(){$('#loginBox').classList.add('hidden-ui');$('#dash').classList.remove('hidden-ui');$('#logout').classList.remove('hidden-ui');$('#openSite').classList.remove('hidden-ui')}
   async function api(url,opt){opt=opt||{};var headers=Object.assign({accept:'application/json','content-type':'application/json'},opt.headers||{});var r=await fetch(url,Object.assign({},opt,{headers:headers}));var d={};try{d=await r.json()}catch(e){}if(r.status===401){showLogin('Сессия закончилась. Войди снова.');throw new Error('AUTH')}if(!r.ok)throw new Error(d.error||'Ошибка');return d}
   function renderBars(days){var max=1;(days||[]).forEach(function(d){max=Math.max(max,Number(d.n||0))});$('#bars').innerHTML=(days||[]).map(function(d){var h=Math.max(4,Math.round((Number(d.n||0)/max)*132));return '<div class="bar-wrap"><div class="bar" style="height:'+h+'px" title="'+d.n+'"></div><span>'+esc(d.label)+'</span></div>'}).join('')||'<div class="empty">Данных пока нет</div>'}
-  async function loadDashboard(){var d=await api('/api/admin/dashboard');var m=d.metrics||{};$('#mOnline').textContent=m.online||0;$('#mTotal').textContent=m.total||0;$('#mToday').textContent=m.today_unique||0;$('#mViews').textContent=m.views_today||0;$('#mContact').textContent=m.contact_today||0;$('#mPricing').textContent=m.pricing_today||0;$('#mRating').textContent=m.avg_rating?Number(m.avg_rating).toFixed(1):'—';$('#mPending').textContent=m.pending_reviews||0;renderBars(d.days||[]);$('#sysStatus').textContent='OK'}
+  async function loadDashboard(){var d=await api('/api/admin/dashboard');var m=d.metrics||{};$('#mOnline').textContent=m.online||0;$('#mTotal').textContent=m.total||0;$('#mToday').textContent=m.today_unique||0;$('#mViews').textContent=m.views_today||0;$('#mContact').textContent=m.contact_today||0;$('#mPricing').textContent=m.pricing_today||0;$('#mRating').textContent=m.avg_rating?Number(m.avg_rating).toFixed(1):'—';$('#mPending').textContent=m.pending_reviews||0;$('#mCases').textContent=m.case_opens_today||0;$('#mBriefs').textContent=m.briefs_today||0;renderBars(d.days||[]);$('#sysStatus').textContent='OK'}
   function renderReviews(){var c={all:reviews.length,approved:0,pending:0,hidden:0};reviews.forEach(function(r){c[r.status]=(c[r.status]||0)+1});$('#sAll').textContent=c.all;$('#sApproved').textContent=c.approved;$('#sPending').textContent=c.pending;$('#sHidden').textContent=c.hidden;var data=filter==='all'?reviews:reviews.filter(function(r){return r.status===filter});if(!data.length){$('#list').innerHTML='<div class="panel empty">Здесь пока пусто.</div>';return}$('#list').innerHTML=data.map(function(r){var html='<article class="card" data-id="'+r.id+'"><div class="cardtop"><div><div class="name">'+esc(r.name)+'</div><div class="meta"><span class="badge '+esc(r.status)+'">'+(labels[r.status]||esc(r.status))+'</span><span>'+new Date(r.created_at+'Z').toLocaleString('ru-RU')+'</span><span>#'+r.id+'</span></div></div><div class="stars">'+'★'.repeat(r.rating)+'</div></div><p class="text">'+esc(r.text)+'</p><div class="actions">';if(r.status!=='approved')html+='<button class="ok" data-action="approved">Опубликовать</button>';if(r.status!=='hidden')html+='<button class="ghost" data-action="hidden">Скрыть</button>';html+='<button class="danger" data-action="delete">Удалить</button></div></article>';return html}).join('')}
   async function loadReviews(){var d=await api('/api/admin/reviews');reviews=d.reviews||[];renderReviews()}
   async function loadAll(){await Promise.all([loadDashboard(),loadReviews()]);showDash()}
@@ -1219,7 +1542,7 @@ async function handleSiteEvent(request, env) {
   const visitorId = String(body.visitor_id || "").trim();
   const type = String(body.type || "").trim();
   const meta = String(body.meta || "").trim().slice(0, 160);
-  const allowed = new Set(["page_view","telegram_click","avito_click","pricing_select","pricing_jump"]);
+  const allowed = new Set(["page_view","telegram_click","avito_click","pricing_select","pricing_jump","case_open","brief_open","brief_submit"]);
   if (!/^[A-Za-z0-9_-]{16,80}$/.test(visitorId) || !allowed.has(type)) return json({ error: "Некорректные данные." }, 400);
   await env.DB.prepare("INSERT INTO site_events (visitor_id, event_type, meta) VALUES (?, ?, ?)").bind(visitorId, type, meta).run();
   await env.DB.prepare(`INSERT INTO site_visitors (visitor_id, first_seen, last_seen) VALUES (?, datetime('now'), datetime('now')) ON CONFLICT(visitor_id) DO UPDATE SET last_seen=datetime('now')`).bind(visitorId).run();
@@ -1270,6 +1593,8 @@ async function handleAdminApi(request, env, url) {
     const views = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type='page_view' AND date(created_at)=date('now')").first();
     const contact = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type IN ('telegram_click','avito_click') AND date(created_at)=date('now')").first();
     const pricing = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type='pricing_select' AND date(created_at)=date('now')").first();
+    const caseOpens = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type='case_open' AND date(created_at)=date('now')").first();
+    const briefs = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type='brief_submit' AND date(created_at)=date('now')").first();
     const pending = await env.DB.prepare("SELECT COUNT(*) AS n FROM reviews WHERE status='pending'").first();
     const rating = await env.DB.prepare("SELECT AVG(rating) AS n FROM reviews WHERE status='approved'").first();
     const rows = await env.DB.prepare("SELECT day, COUNT(*) AS n FROM daily_visitors WHERE day >= date('now','-6 days') GROUP BY day ORDER BY day ASC").all();
@@ -1280,7 +1605,7 @@ async function handleAdminApi(request, env, url) {
       const key = d.toISOString().slice(0,10);
       days.push({ day:key, label:d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}), n:byDay.get(key)||0 });
     }
-    return json({ metrics:{ online:Number(online?.n||0), total:Number(total?.n||0), today_unique:Number(today?.n||0), views_today:Number(views?.n||0), contact_today:Number(contact?.n||0), pricing_today:Number(pricing?.n||0), pending_reviews:Number(pending?.n||0), avg_rating:rating?.n == null ? null : Number(rating.n) }, days });
+    return json({ metrics:{ online:Number(online?.n||0), total:Number(total?.n||0), today_unique:Number(today?.n||0), views_today:Number(views?.n||0), contact_today:Number(contact?.n||0), pricing_today:Number(pricing?.n||0), case_opens_today:Number(caseOpens?.n||0), briefs_today:Number(briefs?.n||0), pending_reviews:Number(pending?.n||0), avg_rating:rating?.n == null ? null : Number(rating.n) }, days });
   }
 
   if (url.pathname === "/api/admin/stats/reset" && request.method === "POST") {
@@ -1341,8 +1666,8 @@ export default {
     const response = await env.ASSETS.fetch(request);
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
-        .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML, { html: true }); } })
+        .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta property="og:site_name" content="AuraFX"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2358e6ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a53cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%230b0612%22/%3E%3Cpath d=%22M16 46 29 16h6l13 30h-8l-2.5-6H26L23.5 46zm12.5-13h6.4L31.7 24z%22 fill=%22url(%23g)%22/%3E%3C/svg%3E"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
