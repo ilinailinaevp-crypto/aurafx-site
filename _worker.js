@@ -608,7 +608,9 @@ const SCROLL_REVEAL_HTML = String.raw`
 </style>
 <script>
 (function(){
-  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var afxForceMotion=false;
+  try{afxForceMotion=localStorage.getItem('afx_motion_mode')==='full'}catch(e){}
+  if(!afxForceMotion && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
   if(!('IntersectionObserver' in window))return;
 
   function byHeading(pattern){
@@ -672,6 +674,84 @@ const SCROLL_REVEAL_HTML = String.raw`
   });
 })();
 </script>`;
+
+const MOTION_OVERRIDE_HTML = String.raw`
+<style>
+  /* Owner override: full motion on this browser even when the OS requests reduced motion. */
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-glow{
+    animation:afxCardGlow 9s ease-in-out infinite alternate!important;
+  }
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-word{
+    animation:afxCardWordFloat 8.6s ease-in-out var(--float-delay,0s) infinite!important;
+  }
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-word span{
+    animation:afxCardWordGlow 8.6s ease-in-out var(--float-delay,0s) infinite!important;
+  }
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-orb{
+    animation:afxCardOrb 12s ease-in-out infinite!important;
+  }
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-orb2{
+    animation:afxCardOrb 10s ease-in-out infinite reverse!important;
+  }
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-line{
+    animation:afxCardLine1 8s ease-in-out infinite!important;
+  }
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-line2{
+    animation:afxCardLine2 10s ease-in-out infinite!important;
+  }
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-spark{
+    animation:afxCardSpark 5.5s ease-in-out infinite!important;
+  }
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-particle{
+    animation:afxCardParticle var(--dur) ease-in-out var(--delay) infinite!important;
+  }
+  html.afx-force-motion .afx-online-dot{
+    animation:afxOnlinePulse 2s ease-in-out infinite!important;
+  }
+
+  @media(prefers-reduced-motion:reduce){
+    html.afx-force-motion .afx-reveal{
+      opacity:0!important;
+      transform:translate3d(0,18px,0)!important;
+      transition:
+        opacity .72s cubic-bezier(.22,.75,.24,1),
+        transform .72s cubic-bezier(.22,.75,.24,1)!important;
+      will-change:opacity,transform!important;
+    }
+    html.afx-force-motion .afx-reveal.afx-reveal-visible{
+      opacity:1!important;
+      transform:translate3d(0,0,0)!important;
+    }
+    html.afx-force-motion .afx-reveal-item{
+      opacity:0!important;
+      transform:translate3d(0,12px,0)!important;
+      transition:
+        opacity .56s cubic-bezier(.22,.75,.24,1),
+        transform .56s cubic-bezier(.22,.75,.24,1)!important;
+      transition-delay:var(--afx-reveal-delay,0ms)!important;
+      will-change:opacity,transform!important;
+    }
+    html.afx-force-motion .afx-reveal-visible .afx-reveal-item,
+    html.afx-force-motion .afx-reveal-item.afx-reveal-visible{
+      opacity:1!important;
+      transform:translate3d(0,0,0)!important;
+    }
+  }
+</style>
+<script>
+(function(){
+  try{
+    var params=new URLSearchParams(location.search);
+    if(params.get('motion')==='full')localStorage.setItem('afx_motion_mode','full');
+    if(params.get('motion')==='system')localStorage.removeItem('afx_motion_mode');
+    if(localStorage.getItem('afx_motion_mode')==='full'){
+      document.documentElement.classList.add('afx-force-motion');
+    }else{
+      document.documentElement.classList.remove('afx-force-motion');
+    }
+  }catch(e){}
+})();
+</script>`;
 const ADMIN_HTML = String.raw`<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AuraFX Admin</title>
@@ -701,7 +781,7 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
   </div>
   <div class="overview-grid" style="margin-top:12px">
     <div class="panel chart"><div><b>Уникальные посетители за 7 дней</b><div class="sub">по дням</div></div><div id="bars" class="bars"></div></div>
-    <div class="panel quick"><h3>Быстрые действия</h3><div class="actions"><button id="copyLink" class="ghost">⧉ Скопировать ссылку</button><button id="clearOnline" class="warn">Очистить онлайн</button><button id="resetTraffic" class="danger">Сбросить статистику</button><button id="exportReviews" class="ghost">↓ Экспорт отзывов CSV</button></div><div class="panel system"><span><span class="status-dot"></span>D1 и API</span><b id="sysStatus">OK</b></div></div>
+    <div class="panel quick"><h3>Быстрые действия</h3><div class="actions"><button id="copyLink" class="ghost">⧉ Скопировать ссылку</button><button id="motionToggle" class="primary">✨ Полные анимации</button><button id="clearOnline" class="warn">Очистить онлайн</button><button id="resetTraffic" class="danger">Сбросить статистику</button><button id="exportReviews" class="ghost">↓ Экспорт отзывов CSV</button></div><div class="panel system"><span><span class="status-dot"></span>D1 и API</span><b id="sysStatus">OK</b></div></div>
   </div>
 
   <div class="section-title"><div><h2>Отзывы</h2><p>Публикуй, скрывай и удаляй</p></div></div>
@@ -729,6 +809,25 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
   $('#filters').addEventListener('click',function(e){var b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;document.querySelectorAll('#filters button').forEach(function(x){x.classList.toggle('active',x===b)});renderReviews()});
   $('#list').addEventListener('click',async function(e){var b=e.target.closest('button[data-action]');if(!b)return;var card=b.closest('[data-id]'),id=card.dataset.id,action=b.dataset.action;if(action==='delete'&&!confirm('Удалить отзыв навсегда?'))return;b.disabled=true;try{if(action==='delete')await api('/api/admin/reviews/'+id,{method:'DELETE'});else await api('/api/admin/reviews/'+id,{method:'PATCH',body:JSON.stringify({status:action})});await Promise.all([loadReviews(),loadDashboard()])}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#copyLink').addEventListener('click',async function(){try{await navigator.clipboard.writeText(location.origin+'/');toast('Ссылка скопирована')}catch(e){toast(location.origin+'/')}});
+  function syncMotionButton(){
+    var on=false;
+    try{on=localStorage.getItem('afx_motion_mode')==='full'}catch(e){}
+    var b=$('#motionToggle');
+    if(!b)return;
+    b.textContent=on?'✨ Полные анимации: ВКЛ':'✨ Полные анимации: СИСТЕМА';
+    b.className=on?'ok':'primary';
+  }
+  $('#motionToggle').addEventListener('click',function(){
+    var on=false;
+    try{
+      on=localStorage.getItem('afx_motion_mode')==='full';
+      if(on)localStorage.removeItem('afx_motion_mode');
+      else localStorage.setItem('afx_motion_mode','full');
+    }catch(e){}
+    syncMotionButton();
+    toast(on?'Системный режим анимаций':'Полные анимации включены');
+  });
+  syncMotionButton();
   $('#clearOnline').addEventListener('click',async function(){if(!confirm('Очистить только текущий онлайн? Общая статистика останется.'))return;await api('/api/admin/stats/reset',{method:'POST',body:JSON.stringify({scope:'online'})});await loadDashboard();toast('Онлайн очищен')});
   $('#resetTraffic').addEventListener('click',async function(){if(!confirm('Сбросить ВСЮ статистику посетителей и кликов? Отзывы не удалятся.'))return;if(!confirm('Точно? Это действие нельзя отменить.'))return;await api('/api/admin/stats/reset',{method:'POST',body:JSON.stringify({scope:'traffic'})});await loadDashboard();toast('Статистика сброшена')});
   $('#exportReviews').addEventListener('click',function(){var rows=[['id','name','rating','status','created_at','text']].concat(reviews.map(function(r){return [r.id,r.name,r.rating,r.status,r.created_at,r.text]}));var csv=rows.map(function(row){return row.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}).join(',')}).join('\\n');var blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aurafx-reviews.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},500);toast('CSV готов')});
@@ -1058,7 +1157,7 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
