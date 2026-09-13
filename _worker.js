@@ -77,6 +77,239 @@ const REVIEW_WIDGET_HTML = String.raw`
 })();
 </script>`;
 
+
+const PRICING_EFFECT_HTML = String.raw`
+<style>
+  .afx-price-animated{
+    position:relative!important;
+    overflow:hidden!important;
+    isolation:isolate;
+    background:
+      radial-gradient(1200px 700px at 50% -10%,rgba(125,50,255,.20),transparent 58%),
+      linear-gradient(180deg,#090511 0%,#0d0618 45%,#090510 100%)!important;
+  }
+  .afx-price-animated > *{position:relative;z-index:3}
+  .afx-price-animated .afx-ultra-bg{position:absolute;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+  .afx-price-animated .afx-ultra-vignette{
+    position:absolute;inset:0;
+    background:
+      radial-gradient(circle at 50% 45%,transparent 0 32%,rgba(5,2,10,.18) 70%,rgba(5,2,10,.55) 100%),
+      linear-gradient(180deg,rgba(255,255,255,.018),transparent 18%,transparent 82%,rgba(0,0,0,.18));
+  }
+  .afx-price-animated .afx-ultra-grid{
+    position:absolute;inset:-10%;
+    background:
+      linear-gradient(rgba(255,255,255,.055) 1px,transparent 1px),
+      linear-gradient(90deg,rgba(255,255,255,.055) 1px,transparent 1px);
+    background-size:40px 40px;
+    transform:perspective(700px) rotateX(60deg) translateY(34%);
+    transform-origin:50% 100%;
+    mask-image:linear-gradient(180deg,transparent 8%,rgba(0,0,0,.75) 38%,rgba(0,0,0,.9) 100%);
+    opacity:.16;
+    animation:afxUltraGrid 16s linear infinite;
+  }
+  .afx-price-animated .afx-ultra-aurora{
+    position:absolute;width:72%;height:58%;border-radius:50%;
+    filter:blur(62px);mix-blend-mode:screen;opacity:.5;
+    will-change:transform,opacity;
+  }
+  .afx-price-animated .afx-ultra-a1{
+    left:-16%;top:-12%;
+    background:conic-gradient(from 180deg at 50% 50%,rgba(87,226,255,.55),rgba(128,70,255,.52),rgba(255,67,190,.28),rgba(87,226,255,.55));
+    animation:afxUltraA1 18s ease-in-out infinite;
+  }
+  .afx-price-animated .afx-ultra-a2{
+    right:-18%;top:14%;
+    background:conic-gradient(from 30deg at 50% 50%,rgba(173,70,255,.60),rgba(255,94,202,.35),rgba(73,218,255,.38),rgba(173,70,255,.60));
+    animation:afxUltraA2 22s ease-in-out infinite;
+  }
+  .afx-price-animated .afx-ultra-a3{
+    left:18%;bottom:-28%;
+    width:62%;height:52%;
+    background:radial-gradient(circle at 50% 50%,rgba(123,53,255,.42),rgba(69,215,255,.24) 42%,transparent 70%);
+    animation:afxUltraA3 20s ease-in-out infinite;
+  }
+  .afx-price-animated .afx-ultra-beam{
+    position:absolute;height:2px;width:80%;
+    background:linear-gradient(90deg,transparent,rgba(130,228,255,.55),rgba(183,89,255,.6),transparent);
+    filter:blur(.2px);
+    opacity:.36;
+    transform-origin:center;
+  }
+  .afx-price-animated .afx-ultra-beam.b1{left:-8%;top:28%;transform:rotate(-12deg);animation:afxUltraBeam1 8s ease-in-out infinite}
+  .afx-price-animated .afx-ultra-beam.b2{right:-12%;top:62%;transform:rotate(10deg);animation:afxUltraBeam2 10s ease-in-out infinite}
+  .afx-price-animated .afx-ultra-orbit{
+    position:absolute;border:1px solid rgba(180,112,255,.22);border-radius:999px;
+    box-shadow:inset 0 0 28px rgba(131,63,255,.08),0 0 40px rgba(81,220,255,.05);
+  }
+  .afx-price-animated .afx-ultra-orbit.o1{width:520px;height:520px;right:-160px;top:-160px;animation:afxUltraOrbit 18s ease-in-out infinite}
+  .afx-price-animated .afx-ultra-orbit.o2{width:360px;height:360px;left:-130px;bottom:-110px;animation:afxUltraOrbit 16s ease-in-out infinite reverse}
+  .afx-price-animated .afx-ultra-orbit:after{
+    content:"";position:absolute;width:9px;height:9px;border-radius:50%;
+    background:#7cecff;box-shadow:0 0 18px #7cecff,0 0 34px rgba(124,236,255,.65);
+    left:50%;top:-5px;transform:translateX(-50%);
+  }
+  .afx-price-animated .afx-ultra-scan{
+    position:absolute;inset:-30% -20%;
+    background:linear-gradient(105deg,transparent 40%,rgba(255,255,255,.055) 48%,rgba(255,255,255,.11) 50%,rgba(255,255,255,.04) 52%,transparent 60%);
+    transform:translateX(-35%);
+    animation:afxUltraScan 9s ease-in-out infinite;
+    opacity:.45;
+  }
+  .afx-price-animated .afx-ultra-particle{
+    position:absolute;border-radius:999px;
+    background:radial-gradient(circle,#fff 0 25%,#8deeff 40%,rgba(141,238,255,0) 72%);
+    box-shadow:0 0 18px rgba(102,224,255,.75),0 0 30px rgba(173,78,255,.35);
+    opacity:.7;
+    will-change:transform,opacity;
+  }
+
+  .afx-price-animated [class*="card"],
+  .afx-price-animated [class*="plan"],
+  .afx-price-animated [class*="tariff"],
+  .afx-price-animated [class*="package"]{
+    position:relative;
+    z-index:4;
+    backdrop-filter:blur(16px) saturate(120%);
+    -webkit-backdrop-filter:blur(16px) saturate(120%);
+    transition:transform .32s ease,box-shadow .32s ease,border-color .32s ease;
+  }
+  .afx-price-animated [class*="card"]:hover,
+  .afx-price-animated [class*="plan"]:hover,
+  .afx-price-animated [class*="tariff"]:hover,
+  .afx-price-animated [class*="package"]:hover{
+    transform:translateY(-4px);
+    box-shadow:0 22px 60px rgba(100,39,210,.18),0 0 0 1px rgba(151,87,255,.12);
+  }
+
+  @keyframes afxUltraGrid{
+    0%{background-position:0 0,0 0}
+    100%{background-position:0 40px,40px 0}
+  }
+  @keyframes afxUltraA1{
+    0%,100%{transform:translate3d(-2%,0,0) rotate(-4deg) scale(1);opacity:.42}
+    50%{transform:translate3d(16%,12%,0) rotate(10deg) scale(1.16);opacity:.62}
+  }
+  @keyframes afxUltraA2{
+    0%,100%{transform:translate3d(0,0,0) rotate(8deg) scale(1);opacity:.36}
+    50%{transform:translate3d(-18%,10%,0) rotate(-8deg) scale(1.13);opacity:.58}
+  }
+  @keyframes afxUltraA3{
+    0%,100%{transform:translate3d(0,0,0) scale(1);opacity:.36}
+    50%{transform:translate3d(4%,-18%,0) scale(1.18);opacity:.54}
+  }
+  @keyframes afxUltraBeam1{
+    0%,100%{transform:translateX(-6%) rotate(-12deg);opacity:.16}
+    50%{transform:translateX(18%) rotate(-8deg);opacity:.5}
+  }
+  @keyframes afxUltraBeam2{
+    0%,100%{transform:translateX(8%) rotate(10deg);opacity:.12}
+    50%{transform:translateX(-22%) rotate(6deg);opacity:.42}
+  }
+  @keyframes afxUltraOrbit{
+    0%,100%{transform:rotate(0deg) scale(1);opacity:.38}
+    50%{transform:rotate(180deg) scale(1.07);opacity:.16}
+  }
+  @keyframes afxUltraScan{
+    0%,18%{transform:translateX(-45%)}
+    65%,100%{transform:translateX(45%)}
+  }
+  @keyframes afxUltraParticle{
+    0%{transform:translate3d(0,20px,0) scale(.75);opacity:0}
+    12%{opacity:.9}
+    70%{opacity:.6}
+    100%{transform:translate3d(var(--dx),var(--dy),0) scale(1.25);opacity:0}
+  }
+
+  @media(max-width:700px){
+    .afx-price-animated .afx-ultra-grid{background-size:30px 30px;opacity:.12}
+    .afx-price-animated .afx-ultra-a1,.afx-price-animated .afx-ultra-a2{filter:blur(52px)}
+    .afx-price-animated .afx-ultra-orbit.o1{width:360px;height:360px;right:-180px}
+    .afx-price-animated .afx-ultra-orbit.o2{width:260px;height:260px;left:-130px}
+  }
+  @media(prefers-reduced-motion:reduce){
+    .afx-price-animated .afx-ultra-grid,
+    .afx-price-animated .afx-ultra-aurora,
+    .afx-price-animated .afx-ultra-beam,
+    .afx-price-animated .afx-ultra-orbit,
+    .afx-price-animated .afx-ultra-scan,
+    .afx-price-animated .afx-ultra-particle{animation:none!important}
+  }
+</style>
+<script>
+(function(){
+  function findPricingSection(){
+    var headings=[].slice.call(document.querySelectorAll('h1,h2,h3,h4,strong,.title,.section-title'));
+    for(var i=0;i<headings.length;i++){
+      var el=headings[i];
+      var txt=(el.textContent||'').trim().toLowerCase();
+      if(/тариф|пакет|стоим|цена|pricing|plans?/i.test(txt)){
+        var section=el.closest('section,article,div');
+        if(!section)continue;
+        var hops=0;
+        while(section&&section.parentElement&&section.clientHeight<320&&hops<4){
+          section=section.parentElement;hops++;
+        }
+        return section;
+      }
+    }
+    var fallback=document.querySelector('[id*="tarif"],[class*="tarif"],[id*="price"],[class*="price"],[id*="plan"],[class*="plan"]');
+    return fallback?(fallback.closest('section,article,div')||fallback):null;
+  }
+
+  function decorate(section){
+    if(!section||section.classList.contains('afx-price-animated'))return;
+    section.classList.add('afx-price-animated');
+    if(getComputedStyle(section).position==='static')section.style.position='relative';
+
+    var bg=document.createElement('div');
+    bg.className='afx-ultra-bg';
+    bg.innerHTML=''
+      +'<div class="afx-ultra-vignette"></div>'
+      +'<div class="afx-ultra-grid"></div>'
+      +'<div class="afx-ultra-aurora afx-ultra-a1"></div>'
+      +'<div class="afx-ultra-aurora afx-ultra-a2"></div>'
+      +'<div class="afx-ultra-aurora afx-ultra-a3"></div>'
+      +'<div class="afx-ultra-beam b1"></div>'
+      +'<div class="afx-ultra-beam b2"></div>'
+      +'<div class="afx-ultra-orbit o1"></div>'
+      +'<div class="afx-ultra-orbit o2"></div>'
+      +'<div class="afx-ultra-scan"></div>';
+    section.prepend(bg);
+
+    for(var i=0;i<22;i++){
+      var p=document.createElement('span');
+      p.className='afx-ultra-particle';
+      var size=2+Math.random()*5;
+      p.style.width=size+'px';
+      p.style.height=size+'px';
+      p.style.left=(4+Math.random()*92)+'%';
+      p.style.top=(18+Math.random()*72)+'%';
+      p.style.setProperty('--dx',((-80)+Math.random()*160).toFixed(0)+'px');
+      p.style.setProperty('--dy',((-120)-Math.random()*210).toFixed(0)+'px');
+      p.style.animation='afxUltraParticle '+(8+Math.random()*9).toFixed(2)+'s ease-in-out '+(-Math.random()*10).toFixed(2)+'s infinite';
+      bg.appendChild(p);
+    }
+
+    var raf=0;
+    section.addEventListener('pointermove',function(e){
+      if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+      cancelAnimationFrame(raf);
+      raf=requestAnimationFrame(function(){
+        var r=section.getBoundingClientRect();
+        var x=(e.clientX-r.left)/r.width-.5;
+        var y=(e.clientY-r.top)/r.height-.5;
+        bg.style.transform='translate3d('+(x*-10).toFixed(2)+'px,'+(y*-7).toFixed(2)+'px,0)';
+      });
+    },{passive:true});
+    section.addEventListener('pointerleave',function(){bg.style.transform='translate3d(0,0,0)'},{passive:true});
+  }
+
+  function init(){decorate(findPricingSection())}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init,{once:true});else init();
+})();
+</script>`;
+
 const ADMIN_HTML = String.raw`<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AuraFX — модерация отзывов</title>
@@ -394,7 +627,7 @@ export default {
     const response = await env.ASSETS.fetch(request);
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter().on("body", {
-        element(element) { element.append(REVIEW_WIDGET_HTML, { html: true }); }
+        element(element) { element.append(PRICING_EFFECT_HTML + REVIEW_WIDGET_HTML, { html: true }); }
       }).transform(response);
     }
     return response;
