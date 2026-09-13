@@ -1107,6 +1107,9 @@ const PREMIUM_STUDIO_HTML = String.raw`
         <label class="afx-field">Желаемый срок
           <input name="deadline" maxlength="60" placeholder="Не срочно / дата">
         </label>
+        <label class="afx-field">Как связаться?
+          <input name="contact" maxlength="100" placeholder="Telegram @username / Avito" required>
+        </label>
         <label class="afx-field full">Комментарий
           <textarea name="comment" maxlength="500" placeholder="Ссылка на товар, пожелания, референсы — если есть"></textarea>
         </label>
@@ -1123,7 +1126,7 @@ const PREMIUM_STUDIO_HTML = String.raw`
 <footer id="afx-premium-footer">
   <div class="afx-footer-inner">
     <div><div class="afx-footer-brand"><span>AuraFX</span></div><div class="afx-footer-copy">Дизайн карточек товаров • 2026</div></div>
-    <div class="afx-footer-links"><a href="https://t.me/AuraFX_marketplace" target="_blank" rel="noopener">Telegram ↗</a><a href="https://www.avito.ru/brands/9dc551ff2d81a0ee55cfe8690760f5ca" target="_blank" rel="noopener">Avito ↗</a><a href="/admin">Admin</a></div>
+    <div class="afx-footer-links"><a href="https://t.me/AuraFX_marketplace" target="_blank" rel="noopener">Telegram ↗</a><a href="https://www.avito.ru/brands/9dc551ff2d81a0ee55cfe8690760f5ca" target="_blank" rel="noopener">Avito ↗</a><a href="/privacy">Конфиденциальность</a><a href="/admin">Admin</a></div>
   </div>
 </footer>
 
@@ -1143,6 +1146,29 @@ const PREMIUM_STUDIO_HTML = String.raw`
     var id=visitorId();if(!id)return;
     try{fetch('/api/event',{method:'POST',headers:{'content-type':'application/json'},body:JSON.stringify({visitor_id:id,type:type,meta:String(meta||'').slice(0,160)}),keepalive:true,cache:'no-store'}).catch(function(){})}catch(e){}
   }
+  function attribution(){
+    try{
+      var key='afx_attribution', existing=null;
+      try{existing=JSON.parse(localStorage.getItem(key)||'null')}catch(e){}
+      var p=new URLSearchParams(location.search);
+      var hasUtm=['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].some(function(k){return p.get(k)});
+      if(!existing || hasUtm){
+        existing={
+          source:(p.get('utm_source')||'').slice(0,80),
+          medium:(p.get('utm_medium')||'').slice(0,80),
+          campaign:(p.get('utm_campaign')||'').slice(0,120),
+          content:(p.get('utm_content')||'').slice(0,120),
+          term:(p.get('utm_term')||'').slice(0,120),
+          referrer:(document.referrer||'').slice(0,300),
+          landing:(location.pathname+location.search).slice(0,300),
+          captured_at:new Date().toISOString()
+        };
+        localStorage.setItem(key,JSON.stringify(existing));
+      }
+      return existing||{};
+    }catch(e){return {}}
+  }
+  attribution();
   function escText(s){return String(s||'').replace(/\s+/g,' ').trim()}
   function headingSection(pattern){
     var heads=[].slice.call(document.querySelectorAll('h1,h2,h3,.section-title,.title'));
@@ -1225,25 +1251,41 @@ const PREMIUM_STUDIO_HTML = String.raw`
 
   document.getElementById('afx-brief-form').addEventListener('submit',async function(e){
     e.preventDefault();
-    var f=new FormData(e.currentTarget);
+    var form=e.currentTarget, btn=form.querySelector('button[type="submit"]');
+    var f=new FormData(form), status=document.getElementById('afx-brief-status');
+    var attr=attribution();
+    var payload={
+      visitor_id:visitorId(),
+      marketplace:String(f.get('marketplace')||''),
+      count:Number(f.get('count')||1),
+      product:String(f.get('product')||''),
+      style:String(f.get('style')||''),
+      deadline:String(f.get('deadline')||''),
+      contact:String(f.get('contact')||''),
+      comment:String(f.get('comment')||''),
+      source:String(attr.source||''),medium:String(attr.medium||''),campaign:String(attr.campaign||''),
+      content:String(attr.content||''),term:String(attr.term||''),referrer:String(attr.referrer||''),landing:String(attr.landing||'')
+    };
     var message=[
-      'AuraFX — новый проект',
-      '',
-      'Площадка: '+f.get('marketplace'),
-      'Количество карточек: '+f.get('count'),
-      'Товар: '+f.get('product'),
-      'Стиль: '+f.get('style'),
-      'Желаемый срок: '+(f.get('deadline')||'не указан'),
-      'Комментарий: '+(f.get('comment')||'—')
+      'AuraFX — новый проект','',
+      'Площадка: '+payload.marketplace,
+      'Количество карточек: '+payload.count,
+      'Товар: '+payload.product,
+      'Стиль: '+payload.style,
+      'Желаемый срок: '+(payload.deadline||'не указан'),
+      'Связь: '+payload.contact,
+      'Комментарий: '+(payload.comment||'—')
     ].join('\n');
-    var status=document.getElementById('afx-brief-status');
+    btn.disabled=true;status.textContent='Сохраняю заявку…';
     try{
-      await navigator.clipboard.writeText(message);
-      status.textContent='Бриф скопирован ✓ Теперь открой Telegram и вставь сообщение.';
-    }catch(err){
-      status.textContent='Не получилось скопировать автоматически. Выдели данные вручную или напиши в Telegram.';
-    }
-    track('brief_submit',String(f.get('marketplace'))+' / '+String(f.get('count')));
+      var res=await fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify(payload)});
+      var data=await res.json();
+      if(!res.ok)throw new Error(data.error||'Не удалось сохранить заявку');
+      try{await navigator.clipboard.writeText(message)}catch(e){}
+      status.textContent='Заявка №'+data.id+' сохранена ✓ Можешь открыть Telegram — бриф уже скопирован.';
+      track('brief_submit',payload.marketplace+' / '+payload.count);
+    }catch(err){status.textContent=err.message||'Не удалось сохранить заявку. Попробуй ещё раз.'}
+    finally{btn.disabled=false}
   });
 
   function placeCTA(){
@@ -1258,6 +1300,107 @@ const PREMIUM_STUDIO_HTML = String.raw`
   collectCases();
 })();
 </script>`;
+
+const PRIVACY_HTML = String.raw`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>AuraFX — конфиденциальность</title><style>*{box-sizing:border-box}body{margin:0;background:#0b0612;color:#eee7f5;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:820px;margin:auto;padding:54px 20px 80px}a{color:#b77cff}h1{font-size:clamp(38px,7vw,64px);letter-spacing:-.05em;margin:0 0 12px}.sub{color:#91849f;margin-bottom:38px}.card{padding:26px;border:1px solid rgba(255,255,255,.09);border-radius:24px;background:rgba(255,255,255,.035);line-height:1.65;color:#c6bacf}.card h2{color:#fff;margin:26px 0 8px;font-size:20px}.card h2:first-child{margin-top:0}.back{display:inline-flex;margin-top:20px;text-decoration:none;padding:11px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}</style></head><body><main class="wrap"><h1>Конфиденциальность</h1><div class="sub">Коротко и понятным языком.</div><div class="card"><h2>Какие данные использует сайт</h2><p>AuraFX хранит технический анонимный идентификатор браузера для счётчика посещений и аналитики действий на сайте. При отправке брифа сохраняются данные, которые посетитель вводит сам: информация о проекте и контакт для связи.</p><h2>Для чего это нужно</h2><p>Чтобы показать статистику посещений, понять эффективность рекламы, обработать заявку и связаться по проекту.</p><h2>Что не делаем</h2><p>Данные не продаются и не публикуются. Пароль администратора хранится отдельно в Cloudflare Secrets.</p><h2>Реклама и UTM</h2><p>При переходе по рекламной ссылке сайт может сохранять UTM-метки и адрес источника перехода, чтобы определить, какая рекламная кампания привела посетителя или заявку.</p><h2>Удаление данных</h2><p>Если нужно удалить отправленную заявку или связанные с ней контактные данные, напиши владельцу AuraFX через Telegram.</p><p>Политика может обновляться вместе с функционалом сайта.</p></div><a class="back" href="/">← Вернуться на AuraFX</a></main></body></html>`;
+
+const HEADER_EXCLUSIVE_LOGO_HTML = String.raw`
+<style>
+  .afx-brand-logo-upgraded{
+    position:relative;display:grid !important;place-items:center;overflow:hidden;
+    width:56px;height:56px;min-width:56px;flex:0 0 56px;border-radius:18px;
+    background:linear-gradient(145deg,rgba(11,6,22,.96),rgba(22,9,39,.96));
+    border:1px solid rgba(174,92,255,.18);
+    box-shadow:0 16px 40px rgba(77,23,176,.28), inset 0 1px 0 rgba(255,255,255,.08), 0 0 0 1px rgba(103,47,223,.08);
+    transform:translateZ(0);
+    isolation:isolate;
+  }
+  .afx-brand-logo-upgraded::before{
+    content:"";position:absolute;inset:-24%;z-index:0;pointer-events:none;
+    background:
+      radial-gradient(circle at 24% 18%, rgba(91,238,255,.28), transparent 35%),
+      radial-gradient(circle at 76% 20%, rgba(187,91,255,.26), transparent 36%),
+      radial-gradient(circle at 50% 78%, rgba(114,61,255,.22), transparent 42%);
+    filter:blur(10px); opacity:.95;
+  }
+  .afx-brand-logo-upgraded::after{
+    content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;z-index:2;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.10), inset 0 -18px 32px rgba(0,0,0,.18);
+  }
+  .afx-brand-logo-upgraded img{
+    position:relative;z-index:1;width:84%;height:84%;object-fit:contain;display:block;
+    filter:drop-shadow(0 0 18px rgba(102,224,255,.18)) drop-shadow(0 0 24px rgba(192,74,255,.18));
+    transform:translateZ(0);
+  }
+  .afx-brand-row-upgraded{display:flex !important;align-items:center !important;gap:14px !important}
+  @media (max-width:760px){
+    .afx-brand-logo-upgraded{width:50px;height:50px;min-width:50px;flex-basis:50px;border-radius:16px}
+    .afx-brand-row-upgraded{gap:12px !important}
+  }
+</style>
+<script>
+(function(){
+  var LOGO_SRC = "data:image/webp;base64,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";
+  function setFavicon(){
+    try{
+      var link=document.querySelector('link[rel="icon"]')||document.createElement('link');
+      link.setAttribute('rel','icon');
+      link.setAttribute('type','image/webp');
+      link.setAttribute('href',LOGO_SRC);
+      if(!link.parentNode) document.head.appendChild(link);
+    }catch(e){}
+  }
+  function findBrandText(){
+    var nodes=[].slice.call(document.querySelectorAll('body *'));
+    for(var i=0;i<nodes.length;i++){
+      var el=nodes[i];
+      if(el.children.length) continue;
+      var txt=(el.textContent||'').replace(/\s+/g,' ').trim();
+      if(txt!=='AuraFX') continue;
+      var r=el.getBoundingClientRect();
+      if(r.top < window.innerHeight*0.35 && r.left < window.innerWidth*0.6) return el;
+    }
+    return null;
+  }
+  function upgrade(){
+    setFavicon();
+    var brand=findBrandText();
+    if(!brand) return false;
+    var row=brand.parentElement;
+    if(!row) return false;
+    row.classList.add('afx-brand-row-upgraded');
+    var logo=row.children[0];
+    if(!logo || logo===brand || row.children.length<2 || ((logo.textContent||'').replace(/\s+/g,'').length>3 && !logo.querySelector('img,svg,canvas'))){
+      var candidates=[].slice.call(row.children).filter(function(ch){
+        if(ch===brand) return false;
+        var cr=ch.getBoundingClientRect();
+        return cr.width<=84 && cr.height<=84;
+      });
+      logo=candidates[0] || null;
+    }
+    if(!logo || logo===brand){
+      logo=document.createElement('div');
+      row.insertBefore(logo, brand);
+    }
+    if(logo.dataset.afxLogoDone==='1') return true;
+    logo.dataset.afxLogoDone='1';
+    logo.className=(logo.className ? logo.className+' ' : '') + 'afx-brand-logo-upgraded';
+    logo.innerHTML='<img src="'+LOGO_SRC+'" alt="AuraFX logo" loading="eager" decoding="async">';
+    logo.setAttribute('aria-label','AuraFX');
+    return true;
+  }
+  var done=upgrade();
+  if(done) return;
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', upgrade, {once:true});
+  var tries=0;
+  var iv=setInterval(function(){
+    tries++;
+    if(upgrade() || tries>25) clearInterval(iv);
+  }, 400);
+  var mo=new MutationObserver(function(){ if(upgrade()){ try{mo.disconnect()}catch(e){} } });
+  try{mo.observe(document.documentElement,{childList:true,subtree:true})}catch(e){}
+})();
+</script>`;
+
 const ADMIN_HTML = String.raw`<!doctype html>
 <html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>AuraFX Admin</title>
@@ -1268,7 +1411,7 @@ const ADMIN_HTML = String.raw`<!doctype html>
 input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color:#fff;border-radius:14px;padding:14px 15px;font:inherit;outline:none}input:focus{border-color:#a64bff;box-shadow:0 0 0 4px rgba(164,72,255,.12)}button,a.btn{border:0;border-radius:13px;padding:11px 14px;font:inherit;font-size:13px;font-weight:850;cursor:pointer;color:#fff;background:#251630;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}button:disabled{opacity:.5;cursor:wait}.primary{background:linear-gradient(135deg,#b247ff,#7027ed)}.danger{background:#39151d;color:#ff9cab}.warn{background:#352713;color:#ffd783}.ghost{background:rgba(255,255,255,.06)}.ok{background:#123126;color:#8ff3c6}
 .msg{min-height:20px;margin:12px 0 0;color:#ff9aaa;font-size:13px}.section-title{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:30px 0 12px}.section-title h2{margin:0;font-size:22px}.section-title p{margin:0;color:#81758e;font-size:12px}.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.metric{padding:16px}.metric small{color:#92869e;font-size:11px}.metric b{display:block;font-size:27px;margin-top:6px;letter-spacing:-.03em}.metric em{display:block;color:#746b7f;font-style:normal;font-size:11px;margin-top:3px}
 .overview-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:12px}.chart{padding:18px}.bars{height:150px;display:flex;align-items:end;gap:8px;margin-top:18px}.bar-wrap{flex:1;min-width:0;text-align:center}.bar{width:100%;min-height:4px;border-radius:9px 9px 3px 3px;background:linear-gradient(180deg,#b14cff,#6330de);box-shadow:0 0 18px rgba(135,59,240,.18)}.bar-wrap span{display:block;color:#746a80;font-size:10px;margin-top:7px}.quick{padding:18px}.quick h3{margin:0 0 12px}.quick .actions{display:grid;grid-template-columns:1fr 1fr}.system{margin-top:12px;padding:14px;display:flex;justify-content:space-between;align-items:center;color:#9f93aa;font-size:12px}.status-dot{width:8px;height:8px;border-radius:50%;background:#59eeb2;box-shadow:0 0 14px rgba(89,238,178,.7);display:inline-block;margin-right:7px}
-.toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;margin:0 0 12px;flex-wrap:wrap}.filters button.active{background:#7629ee}.review-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.review-stat{padding:14px}.review-stat b{display:block;font-size:22px;margin-top:4px}.review-stat small{color:#8f839b}.list{display:grid;gap:10px}.card{padding:18px}.cardtop{display:flex;justify-content:space-between;gap:14px;align-items:start}.name{font-weight:900;font-size:17px}.stars{color:#ffd45c;letter-spacing:1px}.text{color:#ddd5e4;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:#786e82;font-size:11px}.badge{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:850}.approved{background:rgba(55,220,151,.12);color:#82f0be}.pending{background:rgba(255,188,61,.12);color:#ffd06f}.hidden{background:rgba(255,103,128,.12);color:#ff9bac}.empty{text-align:center;padding:40px 20px;color:#8f829c}.hidden-ui{display:none!important}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#171020;border:1px solid rgba(255,255,255,.1);padding:11px 15px;border-radius:999px;opacity:0;pointer-events:none;transition:.22s;z-index:20;font-size:12px}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;margin:0 0 12px;flex-wrap:wrap}.filters button.active{background:#7629ee}.review-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.review-stat{padding:14px}.review-stat b{display:block;font-size:22px;margin-top:4px}.review-stat small{color:#8f839b}.list{display:grid;gap:10px}.card{padding:18px}.cardtop{display:flex;justify-content:space-between;gap:14px;align-items:start}.name{font-weight:900;font-size:17px}.stars{color:#ffd45c;letter-spacing:1px}.text{color:#ddd5e4;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:#786e82;font-size:11px}.badge{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:850}.approved{background:rgba(55,220,151,.12);color:#82f0be}.pending{background:rgba(255,188,61,.12);color:#ffd06f}.hidden{background:rgba(255,103,128,.12);color:#ff9bac}.new{background:rgba(102,213,255,.12);color:#83e7ff}.contacted{background:rgba(177,91,255,.14);color:#d3a6ff}.done{background:rgba(55,220,151,.12);color:#82f0be}.spam{background:rgba(255,103,128,.12);color:#ff9bac}.empty{text-align:center;padding:40px 20px;color:#8f829c}.hidden-ui{display:none!important}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#171020;border:1px solid rgba(255,255,255,.1);padding:11px 15px;border-radius:999px;opacity:0;pointer-events:none;transition:.22s;z-index:20;font-size:12px}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 @media(max-width:860px){.metrics{grid-template-columns:repeat(2,1fr)}.overview-grid{grid-template-columns:1fr}.review-stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.wrap{padding:20px 14px 60px}.top{align-items:flex-start}.top-actions{justify-content:flex-end}.metrics{grid-template-columns:repeat(2,1fr)}.quick .actions{grid-template-columns:1fr}.cardtop{display:block}.stars{margin-top:6px}}
 </style></head><body><div class="wrap">
 <div class="top"><div><div class="brand"><span>AuraFX</span> Admin Pro</div><div class="sub">Аналитика, отзывы и управление сайтом</div></div><div class="top-actions"><a class="btn ghost hidden-ui" id="openSite" href="/" target="_blank">↗ Сайт</a><button id="logout" class="ghost hidden-ui">Выйти</button></div></div>
@@ -1286,11 +1429,17 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
     <div class="panel metric"><small>Ждут модерации</small><b id="mPending">0</b><em>отзывы на проверке</em></div>
     <div class="panel metric"><small>Открытия кейсов сегодня</small><b id="mCases">0</b><em>просмотры работ крупно</em></div>
     <div class="panel metric"><small>Брифы сегодня</small><b id="mBriefs">0</b><em>готовые заявки</em></div>
+    <div class="panel metric"><small>Заявки сегодня</small><b id="mLeads">0</b><em>сохранены в базе</em></div>
+    <div class="panel metric"><small>Главный источник</small><b id="mSource">—</b><em>по заявкам</em></div>
   </div>
   <div class="overview-grid" style="margin-top:12px">
     <div class="panel chart"><div><b>Уникальные посетители за 7 дней</b><div class="sub">по дням</div></div><div id="bars" class="bars"></div></div>
-    <div class="panel quick"><h3>Быстрые действия</h3><div class="actions"><button id="copyLink" class="ghost">⧉ Скопировать ссылку</button><button id="motionToggle" class="primary">✨ Полные анимации</button><button id="clearOnline" class="warn">Очистить онлайн</button><button id="resetTraffic" class="danger">Сбросить статистику</button><button id="exportReviews" class="ghost">↓ Экспорт отзывов CSV</button></div><div class="panel system"><span><span class="status-dot"></span>D1 и API</span><b id="sysStatus">OK</b></div></div>
+    <div class="panel quick"><h3>Быстрые действия</h3><div class="actions"><button id="copyLink" class="ghost">⧉ Скопировать ссылку</button><button id="motionToggle" class="primary">✨ Полные анимации</button><button id="clearOnline" class="warn">Очистить онлайн</button><button id="resetTraffic" class="danger">Сбросить статистику</button><button id="exportReviews" class="ghost">↓ Экспорт отзывов CSV</button><button id="exportLeads" class="ghost">↓ Экспорт заявок CSV</button></div><div class="panel system"><span><span class="status-dot"></span>D1 и API</span><b id="sysStatus">OK</b></div></div>
   </div>
+
+
+  <div class="section-title"><div><h2>Заявки</h2><p>Лиды с сайта и источник рекламы</p></div><button id="refreshLeads" class="ghost">Обновить заявки</button></div>
+  <div id="leadList" class="list"></div>
 
   <div class="section-title"><div><h2>Отзывы</h2><p>Публикуй, скрывай и удаляй</p></div></div>
   <div class="review-stats"><div class="panel review-stat"><small>Всего</small><b id="sAll">0</b></div><div class="panel review-stat"><small>Опубликовано</small><b id="sApproved">0</b></div><div class="panel review-stat"><small>На проверке</small><b id="sPending">0</b></div><div class="panel review-stat"><small>Скрыто</small><b id="sHidden">0</b></div></div>
@@ -1299,7 +1448,7 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
 </section></div><div id="toast" class="toast"></div>
 <script>
 (function(){
-  var $=function(s){return document.querySelector(s)},reviews=[],filter='all';
+  var $=function(s){return document.querySelector(s)},reviews=[],leads=[],filter='all';
   var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
   var labels={approved:'Опубликован',pending:'На проверке',hidden:'Скрыт'};
   function toast(t){var el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(function(){el.classList.remove('show')},1800)}
@@ -1307,14 +1456,27 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
   function showDash(){$('#loginBox').classList.add('hidden-ui');$('#dash').classList.remove('hidden-ui');$('#logout').classList.remove('hidden-ui');$('#openSite').classList.remove('hidden-ui')}
   async function api(url,opt){opt=opt||{};var headers=Object.assign({accept:'application/json','content-type':'application/json'},opt.headers||{});var r=await fetch(url,Object.assign({},opt,{headers:headers}));var d={};try{d=await r.json()}catch(e){}if(r.status===401){showLogin('Сессия закончилась. Войди снова.');throw new Error('AUTH')}if(!r.ok)throw new Error(d.error||'Ошибка');return d}
   function renderBars(days){var max=1;(days||[]).forEach(function(d){max=Math.max(max,Number(d.n||0))});$('#bars').innerHTML=(days||[]).map(function(d){var h=Math.max(4,Math.round((Number(d.n||0)/max)*132));return '<div class="bar-wrap"><div class="bar" style="height:'+h+'px" title="'+d.n+'"></div><span>'+esc(d.label)+'</span></div>'}).join('')||'<div class="empty">Данных пока нет</div>'}
-  async function loadDashboard(){var d=await api('/api/admin/dashboard');var m=d.metrics||{};$('#mOnline').textContent=m.online||0;$('#mTotal').textContent=m.total||0;$('#mToday').textContent=m.today_unique||0;$('#mViews').textContent=m.views_today||0;$('#mContact').textContent=m.contact_today||0;$('#mPricing').textContent=m.pricing_today||0;$('#mRating').textContent=m.avg_rating?Number(m.avg_rating).toFixed(1):'—';$('#mPending').textContent=m.pending_reviews||0;$('#mCases').textContent=m.case_opens_today||0;$('#mBriefs').textContent=m.briefs_today||0;renderBars(d.days||[]);$('#sysStatus').textContent='OK'}
+  async function loadDashboard(){var d=await api('/api/admin/dashboard');var m=d.metrics||{};$('#mOnline').textContent=m.online||0;$('#mTotal').textContent=m.total||0;$('#mToday').textContent=m.today_unique||0;$('#mViews').textContent=m.views_today||0;$('#mContact').textContent=m.contact_today||0;$('#mPricing').textContent=m.pricing_today||0;$('#mRating').textContent=m.avg_rating?Number(m.avg_rating).toFixed(1):'—';$('#mPending').textContent=m.pending_reviews||0;$('#mCases').textContent=m.case_opens_today||0;$('#mBriefs').textContent=m.briefs_today||0;$('#mLeads').textContent=m.leads_today||0;$('#mSource').textContent=m.top_source||'—';renderBars(d.days||[]);$('#sysStatus').textContent='OK'}
+  function renderLeads(){
+    if(!leads.length){$('#leadList').innerHTML='<div class="panel empty">Заявок пока нет.</div>';return}
+    $('#leadList').innerHTML=leads.map(function(l){
+      var src=[l.source,l.campaign,l.content].filter(Boolean).join(' • ')||'прямой переход';
+      var meta=[new Date(l.created_at+'Z').toLocaleString('ru-RU'),'#'+l.id,src].join(' · ');
+      var html='<article class="card" data-lead-id="'+l.id+'"><div class="cardtop"><div><div class="name">'+esc(l.product)+'</div><div class="meta"><span class="badge '+esc(l.status)+'">'+esc(l.status)+'</span><span>'+esc(meta)+'</span></div></div><div class="stars">'+esc(String(l.count))+' шт.</div></div>';
+      html+='<p class="text"><b>'+esc(l.marketplace)+'</b> · '+esc(l.style)+'<br>Связь: <b>'+esc(l.contact)+'</b><br>Срок: '+esc(l.deadline||'—')+'<br>'+esc(l.comment||'')+'</p>';
+      html+='<div class="actions"><button class="ghost" data-lead-status="contacted">В работе</button><button class="ok" data-lead-status="done">Готово</button><button class="danger" data-lead-status="spam">Спам</button></div></article>';return html
+    }).join('')
+  }
+  async function loadLeads(){var d=await api('/api/admin/leads');leads=d.leads||[];renderLeads()}
   function renderReviews(){var c={all:reviews.length,approved:0,pending:0,hidden:0};reviews.forEach(function(r){c[r.status]=(c[r.status]||0)+1});$('#sAll').textContent=c.all;$('#sApproved').textContent=c.approved;$('#sPending').textContent=c.pending;$('#sHidden').textContent=c.hidden;var data=filter==='all'?reviews:reviews.filter(function(r){return r.status===filter});if(!data.length){$('#list').innerHTML='<div class="panel empty">Здесь пока пусто.</div>';return}$('#list').innerHTML=data.map(function(r){var html='<article class="card" data-id="'+r.id+'"><div class="cardtop"><div><div class="name">'+esc(r.name)+'</div><div class="meta"><span class="badge '+esc(r.status)+'">'+(labels[r.status]||esc(r.status))+'</span><span>'+new Date(r.created_at+'Z').toLocaleString('ru-RU')+'</span><span>#'+r.id+'</span></div></div><div class="stars">'+'★'.repeat(r.rating)+'</div></div><p class="text">'+esc(r.text)+'</p><div class="actions">';if(r.status!=='approved')html+='<button class="ok" data-action="approved">Опубликовать</button>';if(r.status!=='hidden')html+='<button class="ghost" data-action="hidden">Скрыть</button>';html+='<button class="danger" data-action="delete">Удалить</button></div></article>';return html}).join('')}
   async function loadReviews(){var d=await api('/api/admin/reviews');reviews=d.reviews||[];renderReviews()}
-  async function loadAll(){await Promise.all([loadDashboard(),loadReviews()]);showDash()}
+  async function loadAll(){await Promise.all([loadDashboard(),loadReviews(),loadLeads()]);showDash()}
   $('#loginForm').addEventListener('submit',async function(e){e.preventDefault();$('#loginMsg').textContent='Проверяем…';try{await api('/api/admin/login',{method:'POST',body:JSON.stringify({password:$('#password').value})});$('#password').value='';await loadAll()}catch(err){if(err.message!=='AUTH')$('#loginMsg').textContent=err.message}});
   $('#logout').addEventListener('click',async function(){try{await api('/api/admin/logout',{method:'POST',body:'{}'})}catch(e){}showLogin('Ты вышел из панели.')});
   $('#refreshAll').addEventListener('click',async function(){await loadAll();toast('Обновлено')});$('#refreshReviews').addEventListener('click',async function(){await loadReviews();toast('Отзывы обновлены')});
   $('#filters').addEventListener('click',function(e){var b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;document.querySelectorAll('#filters button').forEach(function(x){x.classList.toggle('active',x===b)});renderReviews()});
+  $('#refreshLeads').addEventListener('click',async function(){await loadLeads();toast('Заявки обновлены')});
+  $('#leadList').addEventListener('click',async function(e){var b=e.target.closest('button[data-lead-status]');if(!b)return;var card=b.closest('[data-lead-id]');b.disabled=true;try{await api('/api/admin/leads/'+card.dataset.leadId,{method:'PATCH',body:JSON.stringify({status:b.dataset.leadStatus})});await Promise.all([loadLeads(),loadDashboard()]);toast('Статус обновлён')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#list').addEventListener('click',async function(e){var b=e.target.closest('button[data-action]');if(!b)return;var card=b.closest('[data-id]'),id=card.dataset.id,action=b.dataset.action;if(action==='delete'&&!confirm('Удалить отзыв навсегда?'))return;b.disabled=true;try{if(action==='delete')await api('/api/admin/reviews/'+id,{method:'DELETE'});else await api('/api/admin/reviews/'+id,{method:'PATCH',body:JSON.stringify({status:action})});await Promise.all([loadReviews(),loadDashboard()])}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#copyLink').addEventListener('click',async function(){try{await navigator.clipboard.writeText(location.origin+'/');toast('Ссылка скопирована')}catch(e){toast(location.origin+'/')}});
   function syncMotionButton(){
@@ -1338,6 +1500,7 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
   syncMotionButton();
   $('#clearOnline').addEventListener('click',async function(){if(!confirm('Очистить только текущий онлайн? Общая статистика останется.'))return;await api('/api/admin/stats/reset',{method:'POST',body:JSON.stringify({scope:'online'})});await loadDashboard();toast('Онлайн очищен')});
   $('#resetTraffic').addEventListener('click',async function(){if(!confirm('Сбросить ВСЮ статистику посетителей и кликов? Отзывы не удалятся.'))return;if(!confirm('Точно? Это действие нельзя отменить.'))return;await api('/api/admin/stats/reset',{method:'POST',body:JSON.stringify({scope:'traffic'})});await loadDashboard();toast('Статистика сброшена')});
+  $('#exportLeads').addEventListener('click',function(){var rows=[['id','status','created_at','marketplace','count','product','style','deadline','contact','comment','source','medium','campaign','content','referrer','landing']].concat(leads.map(function(l){return [l.id,l.status,l.created_at,l.marketplace,l.count,l.product,l.style,l.deadline,l.contact,l.comment,l.source,l.medium,l.campaign,l.content,l.referrer,l.landing]}));var csv=rows.map(function(row){return row.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}).join(',')}).join('\\n');var blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aurafx-leads.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},500);toast('CSV заявок готов')});
   $('#exportReviews').addEventListener('click',function(){var rows=[['id','name','rating','status','created_at','text']].concat(reviews.map(function(r){return [r.id,r.name,r.rating,r.status,r.created_at,r.text]}));var csv=rows.map(function(row){return row.map(function(v){return '"'+String(v==null?'':v).replace(/"/g,'""')+'"'}).join(',')}).join('\\n');var blob=new Blob([csv],{type:'text/csv;charset=utf-8'}),a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='aurafx-reviews.csv';a.click();setTimeout(function(){URL.revokeObjectURL(a.href)},500);toast('CSV готов')});
   loadAll().catch(function(e){if(e.message!=='AUTH')showLogin('Войди, чтобы открыть панель.')});
 })();
@@ -1392,6 +1555,28 @@ async function ensureDb(env) {
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`).run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_site_events_type_created ON site_events(event_type, created_at DESC)").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS leads (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    visitor_id TEXT,
+    marketplace TEXT NOT NULL,
+    count INTEGER NOT NULL,
+    product TEXT NOT NULL,
+    style TEXT,
+    deadline TEXT,
+    contact TEXT NOT NULL,
+    comment TEXT,
+    status TEXT NOT NULL DEFAULT 'new',
+    source TEXT,
+    medium TEXT,
+    campaign TEXT,
+    content TEXT,
+    term TEXT,
+    referrer TEXT,
+    landing TEXT,
+    ip_hash TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_leads_status_created ON leads(status, created_at DESC)").run();
 }
 
 function normalize(value) {
@@ -1550,6 +1735,28 @@ async function handleSiteEvent(request, env) {
   return json({ ok: true }, 201);
 }
 
+
+async function handleLead(request, env) {
+  try { await ensureDb(env); } catch { return json({ error:"База данных недоступна." },503); }
+  if (request.method !== "POST") return json({ error:"Метод не поддерживается." },405);
+  if (!sameOrigin(request)) return json({ error:"Запрос отклонён." },403);
+  let b={}; try{ b=await request.json(); }catch{}
+  const visitorId=String(b.visitor_id||"").trim();
+  const marketplace=normalize(b.marketplace).slice(0,50), product=normalize(b.product).slice(0,100), style=normalize(b.style).slice(0,80);
+  const deadline=normalize(b.deadline).slice(0,80), contact=normalize(b.contact).slice(0,100), comment=String(b.comment||"").trim().slice(0,600);
+  const count=Math.max(1,Math.min(50,Number(b.count)||1));
+  if (!product || product.length<2 || !contact || contact.length<3 || !marketplace) return json({ error:"Заполни товар и контакт для связи." },400);
+  if (visitorId && !/^[A-Za-z0-9_-]{16,80}$/.test(visitorId)) return json({ error:"Некорректные данные." },400);
+  const ipHash=await hashIp(request);
+  const recent=await env.DB.prepare("SELECT id FROM leads WHERE ip_hash=? AND datetime(created_at)>datetime('now','-2 minutes') LIMIT 1").bind(ipHash).first();
+  if(recent) return json({ error:"Заявка уже сохранена. Подожди пару минут перед новой." },429);
+  const fields=['source','medium','campaign','content','term'].map(k=>normalize(b[k]).slice(0,120));
+  const referrer=String(b.referrer||"").trim().slice(0,300), landing=String(b.landing||"").trim().slice(0,300);
+  const result=await env.DB.prepare(`INSERT INTO leads (visitor_id,marketplace,count,product,style,deadline,contact,comment,status,source,medium,campaign,content,term,referrer,landing,ip_hash)
+    VALUES (?,?,?,?,?,?,?,?, 'new',?,?,?,?,?,?,?,?,?)`).bind(visitorId||null,marketplace,count,product,style,deadline,contact,comment,...fields,referrer,landing,ipHash).run();
+  return json({ok:true,id:Number(result.meta?.last_row_id||0)},201);
+}
+
 async function handleAdminApi(request, env, url) {
   try { await ensureDb(env); }
   catch { return json({ error: "База данных недоступна." }, 503); }
@@ -1595,6 +1802,8 @@ async function handleAdminApi(request, env, url) {
     const pricing = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type='pricing_select' AND date(created_at)=date('now')").first();
     const caseOpens = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type='case_open' AND date(created_at)=date('now')").first();
     const briefs = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type='brief_submit' AND date(created_at)=date('now')").first();
+    const leadsToday = await env.DB.prepare("SELECT COUNT(*) AS n FROM leads WHERE date(created_at)=date('now')").first();
+    const topSource = await env.DB.prepare("SELECT COALESCE(NULLIF(source,''),'Прямой') AS source, COUNT(*) AS n FROM leads GROUP BY COALESCE(NULLIF(source,''),'Прямой') ORDER BY n DESC LIMIT 1").first();
     const pending = await env.DB.prepare("SELECT COUNT(*) AS n FROM reviews WHERE status='pending'").first();
     const rating = await env.DB.prepare("SELECT AVG(rating) AS n FROM reviews WHERE status='approved'").first();
     const rows = await env.DB.prepare("SELECT day, COUNT(*) AS n FROM daily_visitors WHERE day >= date('now','-6 days') GROUP BY day ORDER BY day ASC").all();
@@ -1605,7 +1814,7 @@ async function handleAdminApi(request, env, url) {
       const key = d.toISOString().slice(0,10);
       days.push({ day:key, label:d.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}), n:byDay.get(key)||0 });
     }
-    return json({ metrics:{ online:Number(online?.n||0), total:Number(total?.n||0), today_unique:Number(today?.n||0), views_today:Number(views?.n||0), contact_today:Number(contact?.n||0), pricing_today:Number(pricing?.n||0), case_opens_today:Number(caseOpens?.n||0), briefs_today:Number(briefs?.n||0), pending_reviews:Number(pending?.n||0), avg_rating:rating?.n == null ? null : Number(rating.n) }, days });
+    return json({ metrics:{ online:Number(online?.n||0), total:Number(total?.n||0), today_unique:Number(today?.n||0), views_today:Number(views?.n||0), contact_today:Number(contact?.n||0), pricing_today:Number(pricing?.n||0), case_opens_today:Number(caseOpens?.n||0), briefs_today:Number(briefs?.n||0), leads_today:Number(leadsToday?.n||0), top_source:String(topSource?.source||''), pending_reviews:Number(pending?.n||0), avg_rating:rating?.n == null ? null : Number(rating.n) }, days });
   }
 
   if (url.pathname === "/api/admin/stats/reset" && request.method === "POST") {
@@ -1623,6 +1832,18 @@ async function handleAdminApi(request, env, url) {
       return json({ ok:true, scope });
     }
     return json({ error:"Неизвестный тип сброса." }, 400);
+  }
+
+  if (url.pathname === "/api/admin/leads" && request.method === "GET") {
+    const result=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,contact,comment,status,source,medium,campaign,content,referrer,landing,created_at FROM leads ORDER BY datetime(created_at) DESC,id DESC LIMIT 300").all();
+    return json({leads:result.results||[]});
+  }
+  const leadMatch=url.pathname.match(/^\/api\/admin\/leads\/(\d+)$/);
+  if(leadMatch && request.method==="PATCH"){
+    let body={};try{body=await request.json()}catch{}
+    if(!["new","contacted","done","spam"].includes(body.status))return json({error:"Недопустимый статус."},400);
+    await env.DB.prepare("UPDATE leads SET status=? WHERE id=?").bind(body.status,Number(leadMatch[1])).run();
+    return json({ok:true});
   }
 
   if (url.pathname === "/api/admin/reviews" && request.method === "GET") {
@@ -1657,7 +1878,12 @@ export default {
     if (url.pathname === "/api/reviews") return handlePublicReviews(request, env);
     if (url.pathname === "/api/online") return handleOnline(request, env);
     if (url.pathname === "/api/event") return handleSiteEvent(request, env);
+    if (url.pathname === "/api/lead") return handleLead(request, env);
     if (url.pathname.startsWith("/api/admin/")) return handleAdminApi(request, env, url);
+
+    if (url.pathname === "/privacy" || url.pathname === "/privacy/") {
+      return new Response(PRIVACY_HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600" } });
+    }
 
     if (url.pathname === "/admin" || url.pathname === "/admin/") {
       return new Response(ADMIN_HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
@@ -1667,7 +1893,7 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta property="og:site_name" content="AuraFX"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2358e6ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a53cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%230b0612%22/%3E%3Cpath d=%22M16 46 29 16h6l13 30h-8l-2.5-6H26L23.5 46zm12.5-13h6.4L31.7 24z%22 fill=%22url(%23g)%22/%3E%3C/svg%3E"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
