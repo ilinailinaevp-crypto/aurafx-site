@@ -481,13 +481,6 @@ const PERFORMANCE_HTML = String.raw`
     -webkit-tap-highlight-color:transparent;
   }
 
-  /* Off-screen animation pause: nothing disappears; it simply stops using GPU/CPU
-     while the section is outside the viewport, then resumes seamlessly. */
-  .afx-perf-paused,
-  .afx-perf-paused *{
-    animation-play-state:paused !important;
-  }
-
   /* The visual difference on phones is negligible, while compositing becomes
      noticeably lighter on Android browsers. */
   @media(max-width:720px){
@@ -507,6 +500,19 @@ const PERFORMANCE_HTML = String.raw`
     }
   }
 
+  .afx-price-card-word,
+  .afx-price-card-word span,
+  .afx-price-card-glow,
+  .afx-price-card-orb,
+  .afx-price-card-orb2,
+  .afx-price-card-line,
+  .afx-price-card-line2,
+  .afx-price-card-spark,
+  .afx-price-card-particle,
+  .afx-online-dot{
+    animation-play-state:running;
+  }
+
   @media(pointer:coarse){
     #afx-pricing-jump:hover{
       box-shadow:0 10px 34px rgba(106,43,224,.28),inset 0 1px rgba(255,255,255,.12);
@@ -521,27 +527,6 @@ const PERFORMANCE_HTML = String.raw`
     }else{
       setTimeout(fn,120);
     }
-  }
-
-  function setupAnimationPause(){
-    if(!('IntersectionObserver' in window))return;
-
-    var targets=[].slice.call(document.querySelectorAll(
-      '.afx-price-card-decor,#aurafx-reviews,#afx-faq'
-    ));
-    if(!targets.length)return;
-
-    var observer=new IntersectionObserver(function(entries){
-      entries.forEach(function(entry){
-        entry.target.classList.toggle('afx-perf-paused',!entry.isIntersecting);
-      });
-    },{
-      root:null,
-      rootMargin:'180px 0px 180px 0px',
-      threshold:0.01
-    });
-
-    targets.forEach(function(el){observer.observe(el)});
   }
 
   function makeScrollingLighter(){
@@ -562,7 +547,6 @@ const PERFORMANCE_HTML = String.raw`
   }
 
   idle(function(){
-    setupAnimationPause();
     makeScrollingLighter();
     optimizeImages();
   });
