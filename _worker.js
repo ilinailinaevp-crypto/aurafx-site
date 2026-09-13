@@ -555,123 +555,103 @@ const PERFORMANCE_HTML = String.raw`
 
 const SCROLL_REVEAL_HTML = String.raw`
 <style>
-  .afx-reveal{
+  .afx-reveal-prep{
     opacity:0;
-    transform:translate3d(0,18px,0);
-    transition:
-      opacity .72s cubic-bezier(.22,.75,.24,1),
-      transform .72s cubic-bezier(.22,.75,.24,1);
-    will-change:opacity,transform;
+    transform:translate3d(0,14px,0);
   }
-
-  .afx-reveal.afx-reveal-visible{
-    opacity:1;
-    transform:translate3d(0,0,0);
-  }
-
-  .afx-reveal-item{
-    opacity:0;
-    transform:translate3d(0,12px,0);
-    transition:
-      opacity .56s cubic-bezier(.22,.75,.24,1),
-      transform .56s cubic-bezier(.22,.75,.24,1);
-    transition-delay:var(--afx-reveal-delay,0ms);
-    will-change:opacity,transform;
-  }
-
-  .afx-reveal-visible .afx-reveal-item,
-  .afx-reveal-item.afx-reveal-visible{
-    opacity:1;
-    transform:translate3d(0,0,0);
-  }
-
-  @media(max-width:720px){
-    .afx-reveal{
-      transform:translate3d(0,12px,0);
-      transition-duration:.55s;
-    }
-    .afx-reveal-item{
-      transform:translate3d(0,8px,0);
-      transition-duration:.44s;
-    }
-  }
-
   @media(prefers-reduced-motion:reduce){
-    .afx-reveal,
-    .afx-reveal-item{
+    html:not(.afx-force-motion) .afx-reveal-prep{
       opacity:1!important;
       transform:none!important;
-      transition:none!important;
-      will-change:auto!important;
     }
   }
 </style>
 <script>
 (function(){
-  var afxForceMotion=false;
-  try{afxForceMotion=localStorage.getItem('afx_motion_mode')==='full'}catch(e){}
-  if(!afxForceMotion && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
-  if(!('IntersectionObserver' in window))return;
+  var force=false;
+  try{force=localStorage.getItem('afx_motion_mode')==='full'}catch(e){}
+  var reduced=!force && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced || !('IntersectionObserver' in window))return;
 
-  function byHeading(pattern){
+  function uniquePush(arr,el){if(el && arr.indexOf(el)===-1)arr.push(el)}
+  function headingSection(pattern){
     var heads=[].slice.call(document.querySelectorAll('h1,h2,h3,.section-title,.title'));
     for(var i=0;i<heads.length;i++){
-      var txt=(heads[i].textContent||'').replace(/\s+/g,' ').trim();
-      if(pattern.test(txt)){
-        return heads[i].closest('section,article') || heads[i].parentElement;
-      }
+      var t=(heads[i].textContent||'').replace(/\s+/g,' ').trim();
+      if(pattern.test(t))return heads[i].closest('section,article')||heads[i].parentElement;
     }
     return null;
   }
 
-  function addUnique(list,el){
-    if(el && list.indexOf(el)===-1)list.push(el);
+  var sections=[];
+  uniquePush(sections,headingSection(/портфолио|работы|кейсы/i));
+  uniquePush(sections,headingSection(/тариф|цены|без квеста/i));
+  uniquePush(sections,headingSection(/как работаем|четыре шага/i));
+  uniquePush(sections,document.getElementById('afx-faq'));
+  uniquePush(sections,document.getElementById('aurafx-reviews'));
+
+  function targetsFor(section){
+    var list=[];
+    var selectors=[
+      'h2','h3',
+      '.afx-price-card-decor',
+      '.afx-faq-kicker','.afx-faq-title','.afx-faq-item',
+      '.afx-r-kicker','.afx-r-title','.afx-r-sub','.afx-r-panel','.afx-r-card'
+    ];
+    selectors.forEach(function(sel){
+      [].slice.call(section.querySelectorAll(sel)).forEach(function(el){
+        if(list.indexOf(el)===-1 && list.length<14)list.push(el);
+      });
+    });
+    if(!list.length){
+      [].slice.call(section.children).slice(0,8).forEach(function(el){list.push(el)});
+    }
+    return list;
   }
 
-  var sections=[];
-  addUnique(sections,byHeading(/портфолио|работы|кейсы/i));
-  addUnique(sections,byHeading(/тариф|цены|без квеста/i));
-  addUnique(sections,byHeading(/как работаем|четыре шага/i));
-  addUnique(sections,document.getElementById('afx-faq'));
-  addUnique(sections,document.getElementById('aurafx-reviews'));
+  var groups=[];
+  sections.forEach(function(section){
+    if(!section)return;
+    var targets=targetsFor(section);
+    if(!targets.length)return;
+
+    var rect=section.getBoundingClientRect();
+    if(rect.top < innerHeight*.84)return;
+
+    targets.forEach(function(el){el.classList.add('afx-reveal-prep')});
+    groups.push({section:section,targets:targets});
+  });
 
   var observer=new IntersectionObserver(function(entries,obs){
     entries.forEach(function(entry){
       if(!entry.isIntersecting)return;
-      entry.target.classList.add('afx-reveal-visible');
+      var group=groups.find(function(g){return g.section===entry.target});
+      if(!group)return;
+
+      group.targets.forEach(function(el,index){
+        var delay=Math.min(index*52,310);
+        el.classList.remove('afx-reveal-prep');
+        var anim=el.animate([
+          {opacity:0,transform:'translate3d(0,14px,0)'},
+          {opacity:1,transform:'translate3d(0,0,0)'}
+        ],{
+          duration:620,
+          delay:delay,
+          easing:'cubic-bezier(.16,.84,.28,1)',
+          fill:'both'
+        });
+        anim.finished.then(function(){
+          try{anim.cancel()}catch(e){}
+          el.style.opacity='';
+          el.style.transform='';
+        }).catch(function(){});
+      });
+
       obs.unobserve(entry.target);
     });
-  },{
-    root:null,
-    rootMargin:'0px 0px -8% 0px',
-    threshold:.08
-  });
+  },{root:null,rootMargin:'0px 0px -7% 0px',threshold:.06});
 
-  sections.forEach(function(section){
-    if(!section)return;
-    var rect=section.getBoundingClientRect();
-
-    /* Anything already clearly visible on first paint stays visible.
-       This avoids the page "blinking" while loading. */
-    if(rect.top < window.innerHeight*.82){
-      section.classList.add('afx-reveal-visible');
-    }else{
-      section.classList.add('afx-reveal');
-      observer.observe(section);
-    }
-
-    var items=[].slice.call(section.querySelectorAll(
-      '.afx-price-card-decor,.afx-r-card,.afx-r-panel,.afx-faq-item'
-    )).slice(0,12);
-
-    items.forEach(function(item,index){
-      item.classList.add('afx-reveal-item');
-      item.style.setProperty('--afx-reveal-delay',Math.min(index*55,330)+'ms');
-      if(section.classList.contains('afx-reveal-visible')){
-        item.classList.add('afx-reveal-visible');
-      }
-    });
-  });
+  groups.forEach(function(g){observer.observe(g.section)});
 })();
 </script>`;
 
@@ -750,6 +730,97 @@ const MOTION_OVERRIDE_HTML = String.raw`
       document.documentElement.classList.remove('afx-force-motion');
     }
   }catch(e){}
+})();
+</script>`;
+
+const SMOOTH_MOTION_HTML = String.raw`
+<style>
+  /* The main floating logo is driven by rAF below. This avoids CSS keyframe
+     jumps on some Android GPU/WebView combinations. */
+  .afx-price-card-decor .afx-price-card-word,
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-word{
+    animation:none!important;
+    filter:drop-shadow(0 10px 18px rgba(0,0,0,.18));
+  }
+  .afx-price-card-decor .afx-price-card-word span,
+  html.afx-force-motion .afx-price-card-decor .afx-price-card-word span{
+    animation:none!important;
+    filter:none!important;
+  }
+
+  /* Keep glow visual, but animate only cheap transform/opacity properties. */
+  .afx-price-card-decor .afx-price-card-glow{
+    filter:blur(6px);
+  }
+</style>
+<script>
+(function(){
+  var force=false;
+  try{force=localStorage.getItem('afx_motion_mode')==='full'}catch(e){}
+  var reduced=!force && window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduced)return;
+
+  var words=[];
+  var raf=0;
+  var start=performance.now();
+
+  function collect(){
+    words=[].slice.call(document.querySelectorAll('.afx-price-card-word'));
+    words.forEach(function(word,index){
+      word.dataset.afxPhase=String(index*1.83);
+      word.style.willChange='transform,opacity';
+    });
+  }
+
+  function frame(now){
+    if(document.hidden){
+      raf=requestAnimationFrame(frame);
+      return;
+    }
+
+    var t=(now-start)/1000;
+    for(var i=0;i<words.length;i++){
+      var word=words[i];
+      if(!word.isConnected)continue;
+
+      var phase=Number(word.dataset.afxPhase||0);
+      var a=t*(Math.PI*2/7.6)+phase;
+      var b=t*(Math.PI*2/11.4)+phase*.7;
+
+      var x=Math.sin(b)*2.3;
+      var y=-4.5 + Math.sin(a)*5.2;
+      var scale=1.012 + Math.sin(a+1.1)*0.011;
+      var opacity=.80 + (Math.sin(a-0.6)+1)*.07;
+
+      word.style.transform=
+        'translate(-50%,-50%) perspective(520px) rotateX(22deg) '+
+        'translate3d('+x.toFixed(2)+'px,'+y.toFixed(2)+'px,0) '+
+        'scale('+scale.toFixed(4)+')';
+      word.style.opacity=opacity.toFixed(3);
+    }
+
+    raf=requestAnimationFrame(frame);
+  }
+
+  function init(){
+    collect();
+    if(!words.length)return;
+    cancelAnimationFrame(raf);
+    start=performance.now();
+    raf=requestAnimationFrame(frame);
+  }
+
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',function(){
+      requestAnimationFrame(function(){requestAnimationFrame(init)});
+    },{once:true});
+  }else{
+    requestAnimationFrame(function(){requestAnimationFrame(init)});
+  }
+
+  document.addEventListener('visibilitychange',function(){
+    if(!document.hidden)start=performance.now();
+  });
 })();
 </script>`;
 const ADMIN_HTML = String.raw`<!doctype html>
@@ -1157,7 +1228,7 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
