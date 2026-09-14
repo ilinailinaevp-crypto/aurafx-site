@@ -1354,7 +1354,201 @@ const PREMIUM_STUDIO_HTML = String.raw`
 })();
 </script>`;
 
-const PRIVACY_HTML = String.raw`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>AuraFX — конфиденциальность</title><style>*{box-sizing:border-box}body{margin:0;background:#0b0612;color:#eee7f5;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:820px;margin:auto;padding:54px 20px 80px}a{color:#b77cff}h1{font-size:clamp(38px,7vw,64px);letter-spacing:-.05em;margin:0 0 12px}.sub{color:#91849f;margin-bottom:38px}.card{padding:26px;border:1px solid rgba(255,255,255,.09);border-radius:24px;background:rgba(255,255,255,.035);line-height:1.65;color:#c6bacf}.card h2{color:#fff;margin:26px 0 8px;font-size:20px}.card h2:first-child{margin-top:0}.back{display:inline-flex;margin-top:20px;text-decoration:none;padding:11px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}</style></head><body><main class="wrap"><h1>Конфиденциальность</h1><div class="sub">Коротко и понятным языком.</div><div class="card"><h2>Какие данные использует сайт</h2><p>AuraFX хранит технический анонимный идентификатор браузера для счётчика посещений и аналитики действий на сайте. При отправке брифа сохраняются данные, которые посетитель вводит сам: информация о проекте и контакт для связи.</p><h2>Для чего это нужно</h2><p>Чтобы показать статистику посещений, понять эффективность рекламы, обработать заявку и связаться по проекту.</p><h2>Что не делаем</h2><p>Данные не продаются и не публикуются. Пароль администратора хранится отдельно в Cloudflare Secrets.</p><h2>Реклама и UTM</h2><p>При переходе по рекламной ссылке сайт может сохранять UTM-метки и адрес источника перехода, чтобы определить, какая рекламная кампания привела посетителя или заявку.</p><h2>Удаление данных</h2><p>Если нужно удалить отправленную заявку или связанные с ней контактные данные, напиши владельцу AuraFX через Telegram.</p><p>Политика может обновляться вместе с функционалом сайта.</p></div><a class="back" href="/">← Вернуться на AuraFX</a></main></body></html>`;
+
+const PROMO_WHEEL_HTML = String.raw`
+<style>
+  #afx-promo-lab{padding:30px 24px 12px;color:#fff}
+  .afx-promo-wrap{max-width:1100px;margin:0 auto}
+  .afx-promo-panel{position:relative;overflow:hidden;border:1px solid rgba(165,93,255,.16);border-radius:30px;padding:30px 28px;background:linear-gradient(145deg,rgba(255,255,255,.06),rgba(255,255,255,.025));box-shadow:0 24px 70px rgba(0,0,0,.22);backdrop-filter:blur(16px)}
+  .afx-promo-panel:before,.afx-promo-panel:after{content:"";position:absolute;border-radius:50%;pointer-events:none;filter:blur(40px)}
+  .afx-promo-panel:before{width:240px;height:240px;right:-60px;top:-60px;background:rgba(161,68,255,.18)}
+  .afx-promo-panel:after{width:220px;height:220px;left:-70px;bottom:-90px;background:rgba(69,223,255,.09)}
+  .afx-promo-kicker{display:inline-flex;align-items:center;gap:10px;padding:10px 14px;border-radius:999px;border:1px solid rgba(190,120,255,.26);background:rgba(255,255,255,.045);color:#d8cae9;font-size:12px;font-weight:850;letter-spacing:.13em;text-transform:uppercase}
+  .afx-promo-dot{width:8px;height:8px;border-radius:50%;background:#57ebff;box-shadow:0 0 15px rgba(87,235,255,.7)}
+  .afx-promo-grid{position:relative;z-index:1;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,.95fr);gap:26px;align-items:center;margin-top:18px}
+  .afx-promo-title{margin:0 0 10px;font-size:clamp(34px,5vw,58px);line-height:.98;letter-spacing:-.05em}
+  .afx-promo-sub{max-width:580px;margin:0;color:#b6a8c6;font-size:16px;line-height:1.65}
+  .afx-promo-badges{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+  .afx-promo-badges span{padding:9px 12px;border-radius:999px;border:1px solid rgba(255,255,255,.09);background:rgba(255,255,255,.04);color:#ded5e6;font-size:12px;font-weight:760}
+  .afx-promo-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:20px;align-items:center}
+  .afx-promo-btn,.afx-promo-ghost{appearance:none;border:0;cursor:pointer;text-decoration:none;color:#fff;font:inherit;font-size:15px;font-weight:900;padding:15px 18px;border-radius:17px;transition:transform .18s ease,box-shadow .2s ease,opacity .2s ease}
+  .afx-promo-btn{background:linear-gradient(135deg,#bb59ff,#6b2bee);box-shadow:0 16px 38px rgba(122,53,238,.34)}
+  .afx-promo-ghost{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.09);color:#d9d1e3}
+  .afx-promo-btn:active,.afx-promo-ghost:active{transform:scale(.98)}
+  .afx-promo-note{min-height:22px;color:#8de6c8;font-size:13px;line-height:1.5}
+  .afx-promo-preview{display:flex;justify-content:center}
+  .afx-promo-mini{position:relative;width:min(360px,100%);aspect-ratio:1/1;border-radius:28px;border:1px solid rgba(255,255,255,.08);background:radial-gradient(circle at 50% 50%,rgba(172,92,255,.15),rgba(11,6,18,.14) 55%,rgba(11,6,18,.05) 72%,transparent 74%);display:flex;align-items:center;justify-content:center}
+  .afx-promo-wheel-wrap{position:relative;width:290px;height:290px}
+  .afx-promo-pointer{position:absolute;left:50%;top:-6px;transform:translateX(-50%);width:0;height:0;border-left:18px solid transparent;border-right:18px solid transparent;border-bottom:28px solid #fff;filter:drop-shadow(0 0 10px rgba(255,255,255,.35));z-index:3}
+  .afx-promo-wheel{position:absolute;inset:0;border-radius:50%;border:8px solid rgba(255,255,255,.12);box-shadow:0 24px 70px rgba(0,0,0,.34),inset 0 0 0 10px rgba(255,255,255,.03);background:conic-gradient(from -90deg,#b95dff 0 51.43deg,#302049 51.43deg 102.86deg,#44d7ff 102.86deg 154.29deg,#25183a 154.29deg 205.71deg,#ff7ee3 205.71deg 257.14deg,#6e32ff 257.14deg 308.57deg,#ffd66b 308.57deg 360deg);transition:transform 6.4s cubic-bezier(.08,.96,.14,1),filter .4s ease,box-shadow .4s ease}
+  .afx-promo-wheel:before{content:"";position:absolute;inset:14px;border-radius:50%;border:1px solid rgba(255,255,255,.08)}
+  .afx-promo-wheel:after{content:"";position:absolute;left:50%;top:50%;width:30px;height:30px;border-radius:50%;transform:translate(-50%,-50%);background:#fff;box-shadow:0 0 0 7px rgba(173,95,255,.22),0 0 18px rgba(255,255,255,.25)}
+  .afx-promo-labels{position:absolute;inset:0;pointer-events:none}
+  .afx-promo-label{position:absolute;left:50%;top:50%;width:88px;margin-left:-44px;margin-top:-14px;text-align:center;font-size:15px;font-weight:900;color:#fff;text-shadow:0 3px 12px rgba(0,0,0,.34)}
+  .afx-promo-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;gap:8px;justify-items:center;z-index:2}
+  .afx-promo-center small{color:#cabbe0;font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+  .afx-promo-open-inline{display:none}
+  .afx-promo-modal{position:fixed;inset:0;display:none;align-items:center;justify-content:center;padding:20px;background:rgba(7,4,12,.72);backdrop-filter:blur(10px);z-index:70}
+  .afx-promo-modal.open{display:flex}
+  .afx-promo-dialog{position:relative;width:min(940px,100%);border:1px solid rgba(255,255,255,.1);border-radius:34px;padding:32px;background:linear-gradient(145deg,rgba(20,10,33,.98),rgba(12,7,21,.98));box-shadow:0 26px 90px rgba(0,0,0,.42)}
+  .afx-promo-close{position:absolute;right:16px;top:16px;width:42px;height:42px;border-radius:50%;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.05);color:#fff;font-size:24px;cursor:pointer}
+  .afx-promo-modal-grid{display:grid;grid-template-columns:minmax(290px,.9fr) minmax(0,1.1fr);gap:26px;align-items:center}
+  .afx-promo-copy h3{margin:0;font-size:clamp(32px,5vw,52px);line-height:.98;letter-spacing:-.045em}
+  .afx-promo-copy p{margin:12px 0 0;color:#ab9eb8;line-height:1.65}
+  .afx-promo-state{display:grid;gap:12px;margin-top:18px}
+  .afx-promo-card{padding:16px 18px;border-radius:20px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035)}
+  .afx-promo-card strong{display:block;font-size:14px;color:#fff}
+  .afx-promo-card span{display:block;margin-top:7px;color:#b4a7c2;font-size:13px;line-height:1.55}
+  .afx-promo-result{padding:18px 20px;border-radius:22px;border:1px solid rgba(137,80,255,.3);background:linear-gradient(135deg,rgba(182,85,255,.14),rgba(81,30,159,.18));display:none}
+  .afx-promo-result.show{display:block}
+  .afx-promo-result b{display:block;font-size:26px;letter-spacing:-.03em}
+  .afx-promo-result code{display:inline-flex;margin-top:12px;padding:10px 12px;border-radius:12px;background:rgba(8,4,16,.56);border:1px solid rgba(255,255,255,.09);font:800 14px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff}
+  .afx-promo-status{min-height:24px;color:#88ecc1;font-size:13px;line-height:1.5}
+  .afx-promo-muted{color:#a999b8}
+  .afx-promo-actions-2{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+  .afx-promo-countdown{margin-top:12px;padding:10px 12px;border-radius:13px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035);font-size:12px;font-weight:800;color:#cdbde0;letter-spacing:.02em}
+  .afx-promo-result.super{border-color:rgba(255,215,112,.4);background:linear-gradient(135deg,rgba(255,198,72,.16),rgba(150,67,255,.2));box-shadow:0 0 34px rgba(255,206,84,.12)}
+  .afx-promo-result.super b{background:linear-gradient(90deg,#fff0a8,#fff,#db9cff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .afx-promo-wheel.is-spinning{filter:saturate(1.25) brightness(1.12);box-shadow:0 26px 82px rgba(98,49,210,.4),0 0 46px rgba(172,82,255,.24),inset 0 0 0 10px rgba(255,255,255,.05)}
+  .afx-promo-dialog.is-spinning:before{content:"";position:absolute;inset:-2px;border-radius:36px;padding:1px;background:conic-gradient(from 0deg,transparent,#a75cff,#55e9ff,transparent,#ff87dc,transparent);-webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;animation:afxPromoBorder 1.2s linear infinite;pointer-events:none}
+  .afx-promo-dialog.is-spinning .afx-promo-pointer{animation:afxPromoPointer .18s ease-in-out infinite alternate}
+  .afx-promo-confetti{position:fixed;left:50%;top:50%;width:9px;height:14px;border-radius:3px;z-index:100;pointer-events:none;animation:afxPromoConfetti 1.45s cubic-bezier(.17,.67,.27,1) forwards;transform:translate(-50%,-50%)}
+  @keyframes afxPromoBorder{to{transform:rotate(360deg)}}
+  @keyframes afxPromoPointer{from{transform:translateX(-50%) rotate(-8deg)}to{transform:translateX(-50%) rotate(8deg)}}
+  @keyframes afxPromoConfetti{0%{opacity:1;transform:translate(-50%,-50%) rotate(0deg) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(var(--r)) scale(.65)}}
+  @media(max-width:900px){.afx-promo-grid,.afx-promo-modal-grid{grid-template-columns:1fr}.afx-promo-preview{order:-1}.afx-promo-dialog{padding:28px 18px}.afx-promo-mini{margin:auto}.afx-promo-panel{padding:24px 20px}}
+  @media(max-width:480px){#afx-promo-lab{padding-left:18px;padding-right:18px}.afx-promo-title{font-size:40px}.afx-promo-wheel-wrap{width:250px;height:250px}.afx-promo-label{font-size:13px;width:76px;margin-left:-38px}.afx-promo-btn,.afx-promo-ghost{width:100%;justify-content:center}}
+</style>
+<section id="afx-promo-lab" aria-labelledby="afx-promo-title">
+  <div class="afx-promo-wrap">
+    <div class="afx-promo-panel">
+      <div class="afx-promo-kicker"><span class="afx-promo-dot"></span>Бонус для клиента</div>
+      <div class="afx-promo-grid">
+        <div>
+          <h2 class="afx-promo-title" id="afx-promo-title">Колесо скидок,<br>которое реально даёт бонус</h2>
+          <p class="afx-promo-sub">Можно выбить персональную скидку на заказ. Крутить колесо можно раз в 7 дней — выигрыш сохраняется, а промокод можно сразу применить в заявке.</p>
+          <div class="afx-promo-badges"><span>1 попытка / 7 дней</span><span>до 20% скидки</span><span>редкий SUPER BONUS</span><span>промокод сохраняется</span></div>
+          <div class="afx-promo-actions">
+            <button class="afx-promo-btn" id="afx-open-wheel" type="button">🎡 Крутить колесо</button>
+            <button class="afx-promo-ghost" id="afx-apply-wheel-code" type="button">Вставить код в заявку</button>
+          </div>
+          <div class="afx-promo-note" id="afx-promo-inline-note">Проверяю доступ к колесу…</div>
+        </div>
+        <div class="afx-promo-preview">
+          <div class="afx-promo-mini">
+            <div class="afx-promo-wheel-wrap">
+              <div class="afx-promo-pointer"></div>
+              <div class="afx-promo-wheel" id="afx-promo-wheel-preview"></div>
+              <div class="afx-promo-labels" id="afx-promo-labels-preview"></div>
+              <div class="afx-promo-center"><small>AuraFX</small></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<div class="afx-promo-modal" id="afx-promo-modal" aria-hidden="true">
+  <div class="afx-promo-dialog" role="dialog" aria-modal="true" aria-label="Колесо скидок AuraFX">
+    <button class="afx-promo-close" id="afx-promo-close" type="button" aria-label="Закрыть">×</button>
+    <div class="afx-promo-modal-grid">
+      <div class="afx-promo-preview">
+        <div class="afx-promo-mini">
+          <div class="afx-promo-wheel-wrap">
+            <div class="afx-promo-pointer"></div>
+            <div class="afx-promo-wheel" id="afx-promo-wheel"></div>
+            <div class="afx-promo-labels" id="afx-promo-labels"></div>
+          </div>
+        </div>
+      </div>
+      <div class="afx-promo-copy">
+        <h3>Выбей себе<br>скидку на AuraFX</h3>
+        <p>Крути колесо и получай персональный промокод. Если бонус уже выпадал в последние 7 дней, сайт покажет твой текущий выигрыш и дату новой попытки.</p>
+        <div class="afx-promo-state">
+          <div class="afx-promo-card"><strong>Что можно выиграть</strong><span>Скидки 3%, 5%, 7%, 10%, 12%, 15% и редкий SUPER BONUS 20% на заказ карточек.</span></div>
+          <div class="afx-promo-card"><strong>Как использовать</strong><span>Промокод автоматически можно подставить в заявку или просто написать его в Telegram.</span></div>
+        </div>
+        <div class="afx-promo-result" id="afx-promo-result">
+          <b id="afx-promo-win">Ты выбил скидку</b>
+          <div class="afx-promo-muted" id="afx-promo-win-copy">Промокод уже ждёт тебя.</div>
+          <code id="afx-promo-code">AURAFX-00-XXXX</code><div class="afx-promo-countdown" id="afx-promo-countdown">Следующая попытка: после получения бонуса</div>
+          <div class="afx-promo-actions-2">
+            <button class="afx-promo-btn" id="afx-promo-spin" type="button">Крутить сейчас</button>
+            <button class="afx-promo-ghost" id="afx-promo-use" type="button">Применить в заявке</button>
+            <button class="afx-promo-ghost" id="afx-promo-copy" type="button">Скопировать код</button>
+          </div>
+        </div>
+        <div class="afx-promo-status" id="afx-promo-status">Подгружаю состояние колеса…</div>
+      </div>
+    </div>
+  </div>
+</div>
+<script>
+(()=>{
+  const prizes=[{label:'3%',discount:3},{label:'5%',discount:5},{label:'7%',discount:7},{label:'10%',discount:10},{label:'12%',discount:12},{label:'15%',discount:15},{label:'SUPER 20%',discount:20}];
+  const section=document.getElementById('afx-promo-lab'); if(!section)return;
+  const modal=document.getElementById('afx-promo-modal');
+  const openBtns=[document.getElementById('afx-open-wheel')].filter(Boolean);
+  const closeBtn=document.getElementById('afx-promo-close');
+  const spinBtn=document.getElementById('afx-promo-spin');
+  const useBtn=document.getElementById('afx-promo-use');
+  const copyBtn=document.getElementById('afx-promo-copy');
+  const inlineUseBtn=document.getElementById('afx-apply-wheel-code');
+  const previewWheel=document.getElementById('afx-promo-wheel-preview');
+  const mainWheel=document.getElementById('afx-promo-wheel');
+  const result=document.getElementById('afx-promo-result');
+  const status=document.getElementById('afx-promo-status');
+  const inlineNote=document.getElementById('afx-promo-inline-note');
+  const codeEl=document.getElementById('afx-promo-code');
+  const winEl=document.getElementById('afx-promo-win');
+  const winCopy=document.getElementById('afx-promo-win-copy');
+  const countdownEl=document.getElementById('afx-promo-countdown');
+  const dialog=modal&&modal.querySelector('.afx-promo-dialog');
+  let currentState={can_spin:true}, spinning=false, rotation=0, countdownTimer=null;
+  function renderLabels(host, radius){ if(!host) return; host.innerHTML=''; const step=360/prizes.length; prizes.forEach((prize,index)=>{ const angle=(-90)+(index*step)+(step/2); const label=document.createElement('div'); label.className='afx-promo-label'; label.textContent=prize.label; label.style.transform='rotate('+angle+'deg) translateY(-'+radius+'px) rotate('+(-angle)+'deg)'; host.appendChild(label); }); }
+  renderLabels(document.getElementById('afx-promo-labels-preview'),102); renderLabels(document.getElementById('afx-promo-labels'),102); if(previewWheel) previewWheel.style.transform='rotate(-14deg)';
+  function fmtDate(v){ if(!v) return ''; const d=new Date(v); if(isNaN(d)) return ''; return d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
+  function openModal(){ modal.classList.add('open'); modal.setAttribute('aria-hidden','false'); document.body.style.overflow='hidden'; }
+  function closeModal(){ modal.classList.remove('open'); modal.setAttribute('aria-hidden','true'); document.body.style.overflow=''; }
+  function setPromoStorage(data){ try{ localStorage.setItem('afx_promo',JSON.stringify(data||{})); }catch(e){} }
+  function getPromoStorage(){ try{ return JSON.parse(localStorage.getItem('afx_promo')||'null')||{}; }catch(e){ return {}; } }
+  function injectPromoIntoBrief(){ const saved=getPromoStorage(); if(!saved.code) return false; const form=document.getElementById('afx-brief-form'); if(!form) return false; const field=form.elements.comment; if(!field) return false; const line='Промокод на скидку: '+saved.code+' ('+saved.label+'). '; if(String(field.value||'').indexOf(saved.code)===-1){ field.value=line+(field.value||''); } return true; }
+  function startCountdown(nextAt){
+    if(countdownTimer)clearInterval(countdownTimer);
+    function tick(){
+      if(!nextAt){countdownEl.textContent='Следующая попытка появится через 7 дней';return;}
+      const left=new Date(nextAt).getTime()-Date.now();
+      if(left<=0){countdownEl.textContent='Новая попытка уже доступна ✨';currentState.can_spin=true;spinBtn.disabled=false;spinBtn.textContent='Крутить снова';clearInterval(countdownTimer);return;}
+      const days=Math.floor(left/86400000), hrs=Math.floor((left%86400000)/3600000), mins=Math.floor((left%3600000)/60000), secs=Math.floor((left%60000)/1000);
+      countdownEl.textContent='До следующей попытки: '+days+'д '+String(hrs).padStart(2,'0')+'ч '+String(mins).padStart(2,'0')+'м '+String(secs).padStart(2,'0')+'с';
+    }
+    tick();countdownTimer=setInterval(tick,1000);
+  }
+  function burst(superBonus){
+    if(window.matchMedia&&window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    const count=superBonus?54:34;
+    const colors=superBonus?['#ffd66b','#fff3b0','#c87aff','#59e8ff']:['#b85cff','#5be5ff','#ff87d9','#ffffff'];
+    for(let i=0;i<count;i++){
+      const p=document.createElement('i');p.className='afx-promo-confetti';p.style.background=colors[i%colors.length];
+      const a=(Math.PI*2*i/count)+(Math.random()*.35),dist=(superBonus?230:180)+Math.random()*150;
+      p.style.setProperty('--x',(Math.cos(a)*dist).toFixed(0)+'px');p.style.setProperty('--y',(Math.sin(a)*dist+70).toFixed(0)+'px');p.style.setProperty('--r',((Math.random()*900)-450).toFixed(0)+'deg');
+      p.style.animationDelay=(Math.random()*.12).toFixed(2)+'s';document.body.appendChild(p);setTimeout(()=>p.remove(),1800);
+    }
+  }
+  function showResult(data,already){ if(!data) return; const superBonus=Number(data.discount)>=20; result.classList.toggle('super',superBonus); winEl.textContent=superBonus?(already?'Твой SUPER BONUS — 20%':'SUPER BONUS — 20% 🔥'):(already?('Твоя активная скидка — '+data.label):('Ты выбил скидку '+data.label)); winCopy.textContent=already?('Следующая попытка будет доступна: '+fmtDate(data.next_at)):(superBonus?'Редкий бонус пойман. Промокод уже сохранён за тобой.':'Промокод уже сохранён. Можешь использовать его в заявке.'); codeEl.textContent=data.code||'AURAFX'; result.classList.add('show'); setPromoStorage(data); startCountdown(data.next_at); inlineNote.textContent=already?('Активен бонус '+data.label+' до '+fmtDate(data.next_at)):('Есть свежий бонус: '+data.label+' — можно сразу применить'); }
+  function setState(data){ currentState=data||{can_spin:true}; if(data && data.can_spin){ status.textContent='Колесо готово. Жми и выбивай скидку ✨'; inlineNote.textContent='Колесо готово. Попытка доступна прямо сейчас.'; result.classList.remove('show'); spinBtn.textContent='Крутить сейчас'; spinBtn.disabled=false; } else if(data){ status.textContent='Новая попытка будет доступна '+fmtDate(data.next_at)+'. Но бонус уже зафиксирован за тобой.'; spinBtn.textContent='Попытка на перезарядке'; spinBtn.disabled=true; showResult({label:data.label||((data.discount||0)+'%'),discount:data.discount,code:data.code,next_at:data.next_at},true); } }
+  async function loadState(){ try{ const res=await fetch('/api/promo',{headers:{accept:'application/json'},cache:'no-store'}); const data=await res.json(); if(!res.ok) throw new Error(data.error||'Не удалось загрузить колесо'); setState(data); }catch(err){ status.textContent=err.message||'Колесо временно недоступно'; inlineNote.textContent='Колесо временно недоступно'; spinBtn.disabled=true; } }
+  function animateTo(index){ const step=360/prizes.length; const sectorCenter=(index*step)+(step/2); const finalRotation=rotation + 360*7 + (360 - sectorCenter); rotation=finalRotation%360; mainWheel.style.transform='rotate('+finalRotation+'deg)'; }
+  async function spin(){ if(spinning||!currentState.can_spin) return; spinning=true; spinBtn.disabled=true; spinBtn.textContent='Кручу…'; status.textContent='Колесо разгоняется — ловим бонус ✨'; mainWheel.classList.add('is-spinning'); if(dialog)dialog.classList.add('is-spinning'); try{ const res=await fetch('/api/promo',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:'{}'}); const data=await res.json(); if(!res.ok) throw new Error(data.error||'Не удалось прокрутить колесо'); if(data.already){ setState(data); return; } const index=Math.max(0,prizes.findIndex(p=>Number(p.discount)===Number(data.discount))); animateTo(index); setTimeout(()=>{ const payload={label:data.label||data.discount+'%',discount:data.discount,code:data.code,next_at:data.next_at}; mainWheel.classList.remove('is-spinning'); if(dialog)dialog.classList.remove('is-spinning'); showResult(payload,false); burst(Number(data.discount)>=20); status.textContent=Number(data.discount)>=20?'Редкий SUPER BONUS пойман 🔥 Скидка зафиксирована.':'Готово. Скидка зафиксирована — можешь использовать код.'; currentState=Object.assign({can_spin:false},payload); spinBtn.textContent='Скидка получена'; spinBtn.disabled=true; },6500); }catch(err){ mainWheel.classList.remove('is-spinning'); if(dialog)dialog.classList.remove('is-spinning'); status.textContent=err.message||'Не удалось прокрутить колесо'; spinBtn.disabled=false; spinBtn.textContent='Крутить сейчас'; } finally{ setTimeout(()=>{spinning=false},6600); } }
+  async function copyCode(){ const saved=getPromoStorage(); if(!saved.code) return; try{ await navigator.clipboard.writeText(saved.code); status.textContent='Промокод скопирован ✔'; inlineNote.textContent='Промокод скопирован — можно отправлять в заявку'; }catch(e){ status.textContent='Не удалось скопировать, но код виден на экране.'; } }
+  async function useCode(){ injectPromoIntoBrief(); await copyCode(); closeModal(); const openBriefBtn=document.getElementById('afx-open-brief'); if(openBriefBtn) openBriefBtn.click(); inlineNote.textContent='Промокод готов. Он уже подставлен в заявку.'; }
+  setTimeout(()=>{try{const cta=document.getElementById('afx-premium-cta');const reviews=document.getElementById('aurafx-reviews');if(cta&&cta.parentNode){cta.parentNode.insertBefore(section,cta)}else if(reviews&&reviews.parentNode){reviews.parentNode.insertBefore(section,reviews)}}catch(e){}},0);
+  openBtns.forEach(btn=>btn.addEventListener('click',openModal)); if(closeBtn) closeBtn.addEventListener('click',closeModal); if(modal) modal.addEventListener('click',e=>{ if(e.target===modal) closeModal(); }); document.addEventListener('keydown',e=>{ if(e.key==='Escape' && modal.classList.contains('open')) closeModal(); }); if(spinBtn) spinBtn.addEventListener('click',spin); if(copyBtn) copyBtn.addEventListener('click',copyCode); if(useBtn) useBtn.addEventListener('click',useCode); if(inlineUseBtn) inlineUseBtn.addEventListener('click',useCode); document.addEventListener('focusin',e=>{ if(e.target && e.target.form && e.target.form.id==='afx-brief-form') injectPromoIntoBrief(); }); loadState();
+})();
+</script>`;
+
+
+const PRIVACY_HTML = String.raw`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>AuraFX — конфиденциальность</title><style>*{box-sizing:border-box}body{margin:0;background:#0b0612;color:#eee7f5;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:820px;margin:auto;padding:54px 20px 80px}a{color:#b77cff}h1{font-size:clamp(38px,7vw,64px);letter-spacing:-.05em;margin:0 0 12px}.sub{color:#91849f;margin-bottom:38px}.card{padding:26px;border:1px solid rgba(255,255,255,.09);border-radius:24px;background:rgba(255,255,255,.035);line-height:1.65;color:#c6bacf}.card h2{color:#fff;margin:26px 0 8px;font-size:20px}.card h2:first-child{margin-top:0}.back{display:inline-flex;margin-top:20px;text-decoration:none;padding:11px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}</style></head><body><main class="wrap"><h1>Конфиденциальность</h1><div class="sub">Коротко и понятным языком.</div><div class="card"><h2>Какие данные использует сайт</h2><p>AuraFX хранит технический анонимный идентификатор браузера для счётчика посещений и аналитики действий на сайте. При отправке брифа сохраняются данные, которые посетитель вводит сам: информация о проекте и контакт для связи.</p><h2>Для чего это нужно</h2><p>Чтобы показать статистику посещений, понять эффективность рекламы, обработать заявку и связаться по проекту.</p><h2>Что не делаем</h2><p>Данные не продаются и не публикуются. Пароль администратора хранится отдельно в Cloudflare Secrets.</p><h2>Реклама и UTM</h2><p>При переходе по рекламной ссылке сайт может сохранять UTM-метки и адрес источника перехода, чтобы определить, какая рекламная кампания привела посетителя или заявку. Для ограничения промо-колеса одной попыткой в 7 дней используется технический хэш сетевого адреса — исходный адрес в таблицу промо не записывается.</p><h2>Удаление данных</h2><p>Если нужно удалить отправленную заявку или связанные с ней контактные данные, напиши владельцу AuraFX через Telegram.</p><p>Политика может обновляться вместе с функционалом сайта.</p></div><a class="back" href="/">← Вернуться на AuraFX</a></main></body></html>`;
 
 const HEADER_EXCLUSIVE_LOGO_HTML = String.raw`
 <style>
@@ -1610,6 +1804,15 @@ async function ensureDb(env) {
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`).run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_leads_status_created ON leads(status, created_at DESC)").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS promo_spins (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    ip_hash TEXT NOT NULL,
+    discount_percent INTEGER NOT NULL,
+    prize_label TEXT NOT NULL,
+    promo_code TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_promo_spins_ip_created ON promo_spins(ip_hash, created_at DESC)").run();
 }
 
 function normalize(value) {
@@ -1769,6 +1972,45 @@ async function handleSiteEvent(request, env) {
 }
 
 
+async function handlePromo(request, env) {
+  try { await ensureDb(env); }
+  catch { return json({ error: "Колесо временно недоступно." }, 503); }
+  if (!["GET","POST"].includes(request.method)) return json({ error: "Метод не поддерживается." }, 405);
+  if (request.method === "POST" && !sameOrigin(request)) return json({ error: "Запрос отклонён." }, 403);
+
+  const ipHash = await hashIp(request);
+  const recent = await env.DB.prepare("SELECT discount_percent, prize_label, promo_code, created_at FROM promo_spins WHERE ip_hash = ? AND datetime(created_at) > datetime('now', '-7 days') ORDER BY datetime(created_at) DESC, id DESC LIMIT 1").bind(ipHash).first();
+  const nextAt = createdAt => {
+    const d = new Date(String(createdAt || '') + 'Z');
+    if (Number.isNaN(d.getTime())) return null;
+    d.setUTCDate(d.getUTCDate() + 7);
+    return d.toISOString();
+  };
+
+  if (recent) {
+    return json({
+      can_spin: false,
+      discount: Number(recent.discount_percent || 0),
+      label: String(recent.prize_label || (String(recent.discount_percent || 0) + '%')),
+      code: String(recent.promo_code || ''),
+      next_at: nextAt(recent.created_at),
+      already: true
+    });
+  }
+
+  if (request.method === "GET") return json({ can_spin: true });
+
+  const weighted = [3,3,3,3,3,3,3,3,5,5,5,5,5,5,5,7,7,7,7,7,7,10,10,10,10,12,12,15,15,20];
+  const discount = weighted[Math.floor(Math.random() * weighted.length)] || 5;
+  const label = `${discount}%`;
+  const stamp = Math.random().toString(36).slice(2, 6).toUpperCase();
+  const promoCode = discount === 20 ? `AURAFX-SUPER20-${stamp}` : `AURAFX-${discount}-${stamp}`;
+  await env.DB.prepare("INSERT INTO promo_spins (ip_hash, discount_percent, prize_label, promo_code) VALUES (?, ?, ?, ?)").bind(ipHash, discount, label, promoCode).run();
+  const row = await env.DB.prepare("SELECT created_at FROM promo_spins WHERE ip_hash = ? ORDER BY id DESC LIMIT 1").bind(ipHash).first();
+  return json({ ok: true, can_spin: false, discount, label, code: promoCode, next_at: nextAt(row?.created_at) }, 201);
+}
+
+
 async function handleLead(request, env) {
   try { await ensureDb(env); } catch { return json({ error:"База данных недоступна." },503); }
   if (request.method !== "POST") return json({ error:"Метод не поддерживается." },405);
@@ -1911,6 +2153,7 @@ export default {
     if (url.pathname === "/api/reviews") return handlePublicReviews(request, env);
     if (url.pathname === "/api/online") return handleOnline(request, env);
     if (url.pathname === "/api/event") return handleSiteEvent(request, env);
+    if (url.pathname === "/api/promo") return handlePromo(request, env);
     if (url.pathname === "/api/lead") return handleLead(request, env);
     if (url.pathname.startsWith("/api/admin/")) return handleAdminApi(request, env, url);
 
@@ -1926,7 +2169,7 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta property="og:site_name" content="AuraFX"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2358e6ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a53cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%230b0612%22/%3E%3Cpath d=%22M16 46 29 16h6l13 30h-8l-2.5-6H26L23.5 46zm12.5-13h6.4L31.7 24z%22 fill=%22url(%23g)%22/%3E%3C/svg%3E"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
