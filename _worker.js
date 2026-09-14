@@ -303,7 +303,7 @@ const SITE_TOOLS_HTML = String.raw`
     box-shadow:0 0 0 4px rgba(86,244,173,.08),0 0 16px rgba(86,244,173,.72);
     animation:afxOnlinePulse 2s ease-in-out infinite;
   }
-  #afx-pricing-jump, #afx-channel-jump, #afx-cases-jump{
+  #afx-pricing-jump, #afx-channel-jump, #afx-cases-jump, #afx-fortune-jump{
     appearance:none;border:1px solid rgba(162,85,255,.30);cursor:pointer;text-decoration:none;
     background:linear-gradient(135deg,rgba(151,61,255,.88),rgba(90,42,214,.9));
     box-shadow:0 10px 34px rgba(106,43,224,.28),inset 0 1px rgba(255,255,255,.12);
@@ -320,17 +320,19 @@ const SITE_TOOLS_HTML = String.raw`
     background:linear-gradient(135deg,rgba(255,132,62,.82),rgba(158,61,231,.86));
     box-shadow:0 10px 34px rgba(212,90,66,.18),inset 0 1px rgba(255,255,255,.12);
   }
-  #afx-pricing-jump:active, #afx-channel-jump:active, #afx-cases-jump:active{transform:scale(.97)}
+  #afx-pricing-jump:active, #afx-channel-jump:active, #afx-cases-jump:active, #afx-fortune-jump:active{transform:scale(.97)}
   #afx-pricing-jump:hover{box-shadow:0 12px 40px rgba(122,54,239,.38),inset 0 1px rgba(255,255,255,.14)}
   #afx-channel-jump:hover{box-shadow:0 12px 40px rgba(77,132,255,.34),inset 0 1px rgba(255,255,255,.14)}
   #afx-cases-jump:hover{box-shadow:0 12px 40px rgba(222,103,75,.28),inset 0 1px rgba(255,255,255,.14)}
+  #afx-fortune-jump{border-color:rgba(255,216,120,.26);background:linear-gradient(135deg,rgba(255,192,81,.88),rgba(163,74,255,.88));box-shadow:0 10px 34px rgba(201,123,48,.24),inset 0 1px rgba(255,255,255,.12)}
+  #afx-fortune-jump:hover{box-shadow:0 12px 42px rgba(214,146,65,.34),inset 0 1px rgba(255,255,255,.14)}
   @keyframes afxOnlinePulse{0%,100%{transform:scale(.9);opacity:.72}50%{transform:scale(1.12);opacity:1}}
   @media(max-width:640px){
     #afx-site-tools{bottom:12px;gap:6px;width:calc(100% - 18px);justify-content:flex-start;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px}
     #afx-site-tools::-webkit-scrollbar{display:none}
     .afx-tool-pill{min-height:40px;padding:9px 12px;font-size:12px;flex:0 0 auto}
     #afx-online-pill{min-width:max-content;max-width:none}
-    #afx-pricing-jump,#afx-channel-jump,#afx-cases-jump{padding-left:12px;padding-right:12px}
+    #afx-pricing-jump,#afx-channel-jump,#afx-cases-jump,#afx-fortune-jump{padding-left:12px;padding-right:12px}
   }
   @media(prefers-reduced-motion:reduce){.afx-online-dot{animation:none}}
 </style>
@@ -344,6 +346,7 @@ const SITE_TOOLS_HTML = String.raw`
   <button class="afx-tool-pill" id="afx-pricing-jump" type="button">⚡ Тарифы</button>
   <a class="afx-tool-pill" id="afx-channel-jump" href="https://t.me/AuraFX_design" target="_blank" rel="noopener">✈ Канал</a>
   <button class="afx-tool-pill" id="afx-cases-jump" type="button">🔥 Кейсы</button>
+  <button class="afx-tool-pill" id="afx-fortune-jump" type="button">🎡 Фортуна</button>
 </div>
 <script>
 (function(){
@@ -352,7 +355,8 @@ const SITE_TOOLS_HTML = String.raw`
   var jump=document.getElementById('afx-pricing-jump');
   var channel=document.getElementById('afx-channel-jump');
   var casesJump=document.getElementById('afx-cases-jump');
-  if(!onlineText||!totalText||!jump||!channel||!casesJump)return;
+  var fortuneJump=document.getElementById('afx-fortune-jump');
+  if(!onlineText||!totalText||!jump||!channel||!casesJump||!fortuneJump)return;
 
   function makeVisitorId(){
     try{
