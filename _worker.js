@@ -1527,6 +1527,122 @@ const PROMO_WHEEL_HTML = String.raw`
 </script>`;
 
 
+
+const DIRECT_ORDER_HTML = String.raw`
+<style>
+  .afx-direct-order-btn{position:relative!important;overflow:hidden!important;box-shadow:0 18px 44px rgba(137,63,242,.32)!important}
+  .afx-direct-order-btn:before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 22%,rgba(255,255,255,.16) 45%,transparent 68%);transform:translateX(-120%);transition:transform .55s ease;pointer-events:none}
+  .afx-direct-order-btn:hover:before{transform:translateX(120%)}
+  .afx-direct-order-status{min-height:20px;margin:10px 0 2px;font-size:13px;line-height:1.45;color:#a99bb6;text-align:center}
+  .afx-direct-order-status.ok{color:#7ff1be}.afx-direct-order-status.bad{color:#ff9aaa}
+</style>
+<script>
+(function(){
+  function textOf(el){return String(el&&el.textContent||'').replace(/\s+/g,' ').trim()}
+  function commonRoot(a,b){
+    if(!a||!b)return null;
+    var p=a.parentElement;
+    while(p&&p!==document.body){if(p.contains(b))return p;p=p.parentElement}
+    return null;
+  }
+  function findFormRoot(avito,tg){
+    var root=commonRoot(avito,tg)||avito.parentElement;
+    var p=root;
+    while(p&&p!==document.body){
+      if(p.querySelector('textarea')&&p.querySelectorAll('select').length>=2&&p.querySelector('input'))return p;
+      p=p.parentElement;
+    }
+    return root;
+  }
+  function getVisibleTextInput(root){
+    var arr=[].slice.call(root.querySelectorAll('input'));
+    return arr.find(function(i){var t=(i.type||'text').toLowerCase();return !['hidden','submit','button','checkbox','radio'].includes(t)&&!i.id.includes('afx-direct-contact')})||null;
+  }
+  function cloneContactField(root,nameInput,actions){
+    var existing=document.getElementById('afx-direct-contact');if(existing)return existing;
+    var wrap=nameInput?nameInput.parentElement:null;
+    var tries=0;
+    while(wrap&&wrap!==root&&tries<3){
+      var s=textOf(wrap).toLowerCase();
+      if(s.includes('как вас зовут')||s.includes('имя'))break;
+      wrap=wrap.parentElement;tries++;
+    }
+    var input;
+    if(wrap&&wrap!==root){
+      var clone=wrap.cloneNode(true);
+      input=clone.querySelector('input');
+      if(input){
+        input.id='afx-direct-contact';input.name='afx_direct_contact';input.value='';input.required=false;input.autocomplete='contact';input.placeholder='Telegram @username / телефон';
+        var walker=document.createTreeWalker(clone,NodeFilter.SHOW_TEXT);var n;
+        while(n=walker.nextNode()){
+          var v=String(n.nodeValue||'');
+          if(/как вас зовут|имя/i.test(v)){n.nodeValue=v.replace(/как вас зовут|имя/i,'Как с вами связаться?');break}
+        }
+        actions.parentNode.insertBefore(clone,actions);
+        return input;
+      }
+    }
+    var box=document.createElement('div');box.style.margin='18px 0';
+    var label=document.createElement('div');label.textContent='Как с вами связаться?';label.style.cssText='margin:0 0 10px;color:#cfc4d6;font-size:16px';
+    input=document.createElement('input');input.id='afx-direct-contact';input.placeholder='Telegram @username / телефон';input.autocomplete='contact';
+    if(nameInput)input.className=nameInput.className;
+    if(nameInput&&nameInput.getAttribute('style'))input.setAttribute('style',nameInput.getAttribute('style'));
+    box.append(label,input);actions.parentNode.insertBefore(box,actions);return input;
+  }
+  function promoLine(){
+    try{var p=JSON.parse(localStorage.getItem('afx_promo')||'null');return p&&p.code?'Промокод на скидку: '+p.code+' ('+(p.label||p.discount+'%')+'). ':''}catch(e){return ''}
+  }
+  function visitorId(){try{return localStorage.getItem('afx_visitor_id')||''}catch(e){return ''}}
+  function attribution(){try{return JSON.parse(localStorage.getItem('afx_attribution')||'{}')||{}}catch(e){return {}}}
+  function init(){
+    if(document.getElementById('afx-direct-order-btn'))return true;
+    var nodes=[].slice.call(document.querySelectorAll('a,button'));
+    var avito=nodes.find(function(el){return /написать\s+в\s+avito/i.test(textOf(el))});
+    var tg=nodes.find(function(el){return /написать\s+в\s+telegram/i.test(textOf(el))});
+    if(!avito||!tg)return false;
+    var root=findFormRoot(avito,tg);if(!root)return false;
+    var actions=commonRoot(avito,tg)||avito.parentElement;if(!actions)return false;
+    var nameInput=getVisibleTextInput(root);
+    var contactInput=cloneContactField(root,nameInput,actions);
+    var btn=document.createElement('button');
+    btn.type='button';btn.id='afx-direct-order-btn';btn.className=(avito.className||'')+' afx-direct-order-btn';
+    if(avito.getAttribute('style'))btn.setAttribute('style',avito.getAttribute('style'));
+    btn.style.width='100%';btn.style.cursor='pointer';btn.style.marginBottom='14px';
+    btn.textContent='Отправить заявку →';
+    actions.insertBefore(btn,actions.firstChild);
+    var status=document.createElement('div');status.className='afx-direct-order-status';status.id='afx-direct-order-status';actions.appendChild(status);
+    btn.addEventListener('click',async function(){
+      var selects=[].slice.call(root.querySelectorAll('select'));
+      var productEl=root.querySelector('textarea');
+      var name=String(nameInput&&nameInput.value||'').trim();
+      var contact=String(contactInput&&contactInput.value||'').trim();
+      var marketplace=String(selects[0]&&selects[0].value||'').trim();
+      var tariff=String(selects[1]&&selects[1].value||'').trim();
+      var product=String(productEl&&productEl.value||'').trim();
+      status.className='afx-direct-order-status';
+      if(!name){status.className+=' bad';status.textContent='Напиши, как тебя зовут.';nameInput&&nameInput.focus();return}
+      if(!product||product.length<2){status.className+=' bad';status.textContent='Напиши, что за товар и что нужно показать.';productEl&&productEl.focus();return}
+      if(!contact||contact.length<3){status.className+=' bad';status.textContent='Оставь Telegram или телефон, чтобы AuraFX мог ответить.';contactInput&&contactInput.focus();return}
+      var m=tariff.match(/(\d+)\s*(?:карточ|шт)/i)||tariff.match(/\d+/);var count=m?Math.max(1,Math.min(50,Number(m[1]||m[0])||1)):1;
+      var at=attribution();
+      var payload={visitor_id:visitorId(),marketplace:marketplace||'Другое',count:count,product:product.slice(0,100),style:tariff.slice(0,80),deadline:'',contact:contact.slice(0,100),comment:(promoLine()+'Имя: '+name+'. Заявка отправлена через основную форму сайта.').slice(0,600),source:at.source||'',medium:at.medium||'',campaign:at.campaign||'',content:at.content||'',term:at.term||'',referrer:document.referrer||'',landing:location.href};
+      btn.disabled=true;btn.textContent='Отправляю…';status.textContent='Сохраняю заявку и отправляю уведомление…';
+      try{
+        var res=await fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify(payload)});
+        var data=await res.json();if(!res.ok)throw new Error(data.error||'Не удалось отправить заявку');
+        status.className='afx-direct-order-status ok';status.textContent='Заявка №'+(data.id||'')+' отправлена ✓ AuraFX получил уведомление.';
+        btn.textContent='✓ Заявка отправлена';
+        setTimeout(function(){btn.disabled=false;btn.textContent='Отправить ещё заявку →'},3200);
+      }catch(err){status.className='afx-direct-order-status bad';status.textContent=err.message||'Не удалось отправить заявку';btn.disabled=false;btn.textContent='Отправить заявку →'}
+    });
+    return true;
+  }
+  if(!init()){
+    var tries=0,t=setInterval(function(){tries++;if(init()||tries>20)clearInterval(t)},350);
+  }
+})();
+</script>`;
+
 const PRIVACY_HTML = String.raw`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>AuraFX — конфиденциальность</title><style>*{box-sizing:border-box}body{margin:0;background:#0b0612;color:#eee7f5;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:820px;margin:auto;padding:54px 20px 80px}a{color:#b77cff}h1{font-size:clamp(38px,7vw,64px);letter-spacing:-.05em;margin:0 0 12px}.sub{color:#91849f;margin-bottom:38px}.card{padding:26px;border:1px solid rgba(255,255,255,.09);border-radius:24px;background:rgba(255,255,255,.035);line-height:1.65;color:#c6bacf}.card h2{color:#fff;margin:26px 0 8px;font-size:20px}.card h2:first-child{margin-top:0}.back{display:inline-flex;margin-top:20px;text-decoration:none;padding:11px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}</style></head><body><main class="wrap"><h1>Конфиденциальность</h1><div class="sub">Коротко и понятным языком.</div><div class="card"><h2>Какие данные использует сайт</h2><p>AuraFX хранит технический анонимный идентификатор браузера для счётчика посещений и аналитики действий на сайте. При отправке брифа сохраняются данные, которые посетитель вводит сам: информация о проекте и контакт для связи.</p><h2>Для чего это нужно</h2><p>Чтобы показать статистику посещений, понять эффективность рекламы, обработать заявку и связаться по проекту.</p><h2>Что не делаем</h2><p>Данные не продаются и не публикуются. Пароль администратора хранится отдельно в Cloudflare Secrets.</p><h2>Реклама и UTM</h2><p>При переходе по рекламной ссылке сайт может сохранять UTM-метки и адрес источника перехода, чтобы определить, какая рекламная кампания привела посетителя или заявку. Для ограничения промо-колеса одной попыткой в 7 дней используется технический хэш сетевого адреса — исходный адрес в таблицу промо не записывается.</p><h2>Удаление данных</h2><p>Если нужно удалить отправленную заявку или связанные с ней контактные данные, напиши владельцу AuraFX через Telegram.</p><p>Политика может обновляться вместе с функционалом сайта.</p></div><a class="back" href="/">← Вернуться на AuraFX</a></main></body></html>`;
 
 const HEADER_EXCLUSIVE_LOGO_HTML = String.raw`
@@ -2461,12 +2577,11 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta property="og:site_name" content="AuraFX"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2358e6ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a53cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%230b0612%22/%3E%3Cpath d=%22M16 46 29 16h6l13 30h-8l-2.5-6H26L23.5 46zm12.5-13h6.4L31.7 24z%22 fill=%22url(%23g)%22/%3E%3C/svg%3E"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
   }
-  
 };
 
-// redeploy telegram secret
+// direct order button upgrade
