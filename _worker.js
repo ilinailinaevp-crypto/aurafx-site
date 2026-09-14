@@ -428,6 +428,19 @@ const SITE_TOOLS_HTML = String.raw`
     if(section)section.scrollIntoView({behavior:'smooth',block:'start'});
   });
 
+  fortuneJump.addEventListener('click',function(){
+    var section=document.getElementById('afx-promo-lab');
+    if(!section){
+      var heads=[].slice.call(document.querySelectorAll('h1,h2,h3,h4'));
+      var head=heads.find(function(el){return /выбей себе|скидк.*aurafx|фортуна/i.test((el.textContent||'').trim())});
+      section=head&&head.closest('section,article,div');
+    }
+    if(section){
+      var y=section.getBoundingClientRect().top+window.scrollY-18;
+      window.scrollTo({top:Math.max(0,y),behavior:'smooth'});
+    }
+  });
+
   heartbeat();
   setInterval(heartbeat,25000);
   document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible')heartbeat()});
@@ -1526,9 +1539,33 @@ const PROMO_WHEEL_HTML = String.raw`
     }
   }
   function showResult(data,already){ if(!data) return; const superBonus=Number(data.discount)>=20; result.classList.toggle('super',superBonus); winEl.textContent=superBonus?(already?'Твой SUPER BONUS — 20%':'SUPER BONUS — 20% 🔥'):(already?('Твоя активная скидка — '+data.label):('Ты выбил скидку '+data.label)); winCopy.textContent=already?('Следующая попытка будет доступна: '+fmtDate(data.next_at)):(superBonus?'Редкий бонус пойман. Промокод уже сохранён за тобой.':'Промокод уже сохранён. Можешь использовать его в заявке.'); codeEl.textContent=data.code||'AURAFX'; result.classList.add('show'); setPromoStorage(data); startCountdown(data.next_at); inlineNote.textContent=already?('Активен бонус '+data.label+' до '+fmtDate(data.next_at)):('Есть свежий бонус: '+data.label+' — можно сразу применить'); }
-  function setState(data){ currentState=data||{can_spin:true}; if(data && data.can_spin){ status.textContent='Колесо готово. Жми кнопку под ним ✨'; inlineNote.textContent='Попытка доступна прямо сейчас.'; result.classList.remove('show'); spinBtn.textContent='🎡 Крутить колесо'; spinBtn.disabled=false; } else if(data){ status.textContent='Новая попытка будет доступна '+fmtDate(data.next_at)+'. Бонус уже зафиксирован за тобой.'; spinBtn.textContent='⏳ Попытка на перезарядке'; spinBtn.disabled=true; showResult({label:data.label||((data.discount||0)+'%'),discount:data.discount,code:data.code,next_at:data.next_at},true); } }
+  function normalizeDeg(v){ return ((Number(v)||0)%360+360)%360; }
+  function prizeRotation(index){
+    const step=360/prizes.length;
+    const sectorCenter=(index*step)+(step/2);
+    // The wheel artwork/labels start at -90deg. Bring the selected sector center to the fixed top pointer (0deg).
+    return normalizeDeg(90-sectorCenter);
+  }
+  function alignWheelTo(index,animate){
+    if(!wheel||index<0)return;
+    const target=prizeRotation(index);
+    if(!animate){
+      wheel.style.transition='none';
+      rotation=target;
+      wheel.style.transform='rotate('+target+'deg)';
+      void wheel.offsetWidth;
+      wheel.style.transition='';
+      return;
+    }
+    const current=normalizeDeg(rotation);
+    const delta=normalizeDeg(target-current);
+    const finalRotation=rotation+(360*7)+delta;
+    rotation=finalRotation;
+    wheel.style.transform='rotate('+finalRotation+'deg)';
+  }
+  function setState(data){ currentState=data||{can_spin:true}; if(data && data.can_spin){ status.textContent='Колесо готово. Жми кнопку под ним ✨'; inlineNote.textContent='Попытка доступна прямо сейчас.'; result.classList.remove('show'); spinBtn.textContent='🎡 Крутить колесо'; spinBtn.disabled=false; } else if(data){ const idx=prizes.findIndex(p=>Number(p.discount)===Number(data.discount)); if(idx>=0) alignWheelTo(idx,false); status.textContent='Новая попытка будет доступна '+fmtDate(data.next_at)+'. Бонус уже зафиксирован за тобой.'; spinBtn.textContent='⏳ Попытка на перезарядке'; spinBtn.disabled=true; showResult({label:data.label||((data.discount||0)+'%'),discount:data.discount,code:data.code,next_at:data.next_at},true); } }
   async function loadState(){ try{ const res=await fetch('/api/promo',{headers:{accept:'application/json'},cache:'no-store'}); const data=await res.json(); if(!res.ok) throw new Error(data.error||'Не удалось загрузить колесо'); setState(data); }catch(err){ status.textContent=err.message||'Колесо временно недоступно'; inlineNote.textContent='Колесо временно недоступно'; spinBtn.disabled=true; } }
-  function animateTo(index){ const step=360/prizes.length; const sectorCenter=(index*step)+(step/2); const finalRotation=rotation + 360*7 + (360 - sectorCenter); rotation=finalRotation%360; wheel.style.transform='rotate('+finalRotation+'deg)'; }
+  function animateTo(index){ alignWheelTo(index,true); }
   async function spin(){ if(spinning||!currentState.can_spin) return; spinning=true; spinBtn.disabled=true; spinBtn.textContent='Кручу…'; status.textContent='Колесо разгоняется — ловим бонус ✨'; wheel.classList.add('is-spinning'); if(wheelWrap) wheelWrap.classList.add('is-spinning'); try{ const res=await fetch('/api/promo',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:'{}'}); const data=await res.json(); if(!res.ok) throw new Error(data.error||'Не удалось прокрутить колесо'); if(data.already){ wheel.classList.remove('is-spinning'); if(wheelWrap) wheelWrap.classList.remove('is-spinning'); setState(data); return; } const index=Math.max(0,prizes.findIndex(p=>Number(p.discount)===Number(data.discount))); animateTo(index); setTimeout(()=>{ const payload={label:data.label||data.discount+'%',discount:data.discount,code:data.code,next_at:data.next_at}; wheel.classList.remove('is-spinning'); if(wheelWrap) wheelWrap.classList.remove('is-spinning'); showResult(payload,false); burst(Number(data.discount)>=20); status.textContent=Number(data.discount)>=20?'Редкий SUPER BONUS пойман 🔥 Скидка зафиксирована.':'Готово. Скидка зафиксирована — можешь использовать код.'; currentState=Object.assign({can_spin:false},payload); spinBtn.textContent='✅ Скидка получена'; spinBtn.disabled=true; },6900); }catch(err){ wheel.classList.remove('is-spinning'); if(wheelWrap) wheelWrap.classList.remove('is-spinning'); status.textContent=err.message||'Не удалось прокрутить колесо'; spinBtn.disabled=false; spinBtn.textContent='🎡 Крутить колесо'; } finally{ setTimeout(()=>{spinning=false},7000); } }
   async function copyCode(){ const saved=getPromoStorage(); if(!saved.code) { status.textContent='Сначала получи бонус на колесе'; return; } try{ await navigator.clipboard.writeText(saved.code); status.textContent='Промокод скопирован ✔'; inlineNote.textContent='Промокод скопирован — можно отправлять в заявку'; }catch(e){ status.textContent='Не удалось скопировать, но код виден на экране.'; } }
   async function useCode(){ const saved=getPromoStorage(); if(!saved.code){ status.textContent='Сначала выбей скидку'; return; } injectPromoIntoBrief(); await copyCode(); const openBriefBtn=document.getElementById('afx-open-brief'); if(openBriefBtn) openBriefBtn.click(); inlineNote.textContent='Промокод готов. Он уже подставлен в заявку.'; }
@@ -2596,3 +2633,5 @@ export default {
 };
 
 // direct order button upgrade
+
+// AuraFX Fortune V3.1: exact prize alignment + Fortune quick-jump fix
