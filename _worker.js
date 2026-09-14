@@ -1378,31 +1378,40 @@ const PROMO_WHEEL_HTML = String.raw`
   .afx-promo-preview{display:flex;justify-content:center}
   .afx-promo-mini{position:relative;width:min(420px,100%);padding:22px 20px 18px;border-radius:30px;border:1px solid rgba(255,255,255,.08);background:linear-gradient(180deg,rgba(255,255,255,.045),rgba(255,255,255,.02));box-shadow:inset 0 1px 0 rgba(255,255,255,.05),0 22px 60px rgba(0,0,0,.22);display:grid;justify-items:center;gap:16px}
   .afx-promo-mini:before{content:"";position:absolute;inset:18px;border-radius:24px;border:1px solid rgba(255,255,255,.05);pointer-events:none}
-  .afx-promo-wheel-wrap{position:relative;width:320px;height:320px;display:grid;place-items:center;animation:afxPromoLevitate 5.6s ease-in-out infinite}
+  .afx-promo-wheel-wrap{position:relative;width:332px;height:332px;display:grid;place-items:center;animation:afxPromoLevitate 5.6s ease-in-out infinite}
   .afx-promo-wheel-wrap.is-spinning{animation:none}
-  .afx-promo-wheel-shadow{position:absolute;inset:30px;border-radius:50%;background:radial-gradient(circle at 50% 55%,rgba(102,43,255,.28),rgba(31,12,54,.15) 55%,transparent 70%);filter:blur(18px)}
-  .afx-promo-pointer{position:absolute;left:50%;top:-2px;transform:translateX(-50%);width:0;height:0;border-left:17px solid transparent;border-right:17px solid transparent;border-bottom:28px solid #f7f4ff;filter:drop-shadow(0 0 14px rgba(255,255,255,.35));z-index:4}
-  .afx-promo-pointer:after{content:"";position:absolute;left:-7px;top:8px;width:14px;height:8px;border-radius:0 0 10px 10px;background:rgba(255,255,255,.28);filter:blur(1px)}
-  .afx-promo-wheel{position:absolute;inset:0;border-radius:50%;border:1px solid rgba(255,255,255,.08);background:
-    radial-gradient(circle at 50% 50%,transparent 0 14%,rgba(255,255,255,.03) 14% 15%,transparent 15% 68%,rgba(255,255,255,.03) 68% 69%,transparent 69%),
+  .afx-promo-wheel-shadow{position:absolute;inset:26px;border-radius:50%;background:radial-gradient(circle at 50% 58%,rgba(126,55,255,.38),rgba(57,20,104,.18) 52%,transparent 72%);filter:blur(23px);transform:translateY(16px)}
+  .afx-promo-rim{position:absolute;inset:-1px;border-radius:50%;z-index:1;pointer-events:none;background:linear-gradient(145deg,rgba(255,255,255,.44),rgba(133,74,222,.2) 22%,rgba(25,14,41,.62) 52%,rgba(92,226,255,.22) 78%,rgba(255,255,255,.36));box-shadow:0 28px 72px rgba(0,0,0,.44),0 0 40px rgba(139,72,255,.25),inset 0 1px 2px rgba(255,255,255,.55);padding:7px}
+  .afx-promo-rim:before{content:"";position:absolute;inset:7px;border-radius:50%;background:#0d0716;box-shadow:inset 0 0 0 1px rgba(255,255,255,.1),inset 0 0 32px rgba(153,79,255,.1)}
+  .afx-promo-rim:after{content:"";position:absolute;inset:13px;border-radius:50%;border:1px solid rgba(255,255,255,.12);box-shadow:0 0 18px rgba(91,229,255,.08),inset 0 0 20px rgba(0,0,0,.35)}
+  .afx-promo-pointer{position:absolute;left:50%;top:-9px;transform:translateX(-50%);width:44px;height:50px;z-index:7;filter:drop-shadow(0 8px 14px rgba(0,0,0,.45)) drop-shadow(0 0 18px rgba(180,103,255,.32))}
+  .afx-promo-pointer:before{content:"";position:absolute;left:50%;top:4px;transform:translateX(-50%);width:30px;height:38px;clip-path:polygon(50% 100%,0 18%,18% 0,82% 0,100% 18%);background:linear-gradient(160deg,#ffffff 0%,#e4d7ff 38%,#a96cff 68%,#5f2ad6 100%);border-radius:9px;box-shadow:inset 0 1px rgba(255,255,255,.7)}
+  .afx-promo-pointer:after{content:"";position:absolute;left:50%;top:0;transform:translateX(-50%);width:15px;height:15px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#d9c9ff 44%,#8b51f6 100%);box-shadow:0 0 0 5px rgba(129,68,229,.22),0 0 18px rgba(255,255,255,.25)}
+  .afx-promo-wheel{position:absolute;inset:14px;border-radius:50%;overflow:hidden;z-index:2;border:1px solid rgba(255,255,255,.12);background:
+    radial-gradient(circle at 50% 50%,rgba(9,4,17,.02) 0 18%,transparent 18% 64%,rgba(255,255,255,.055) 64% 65%,transparent 65%),
+    repeating-conic-gradient(from -90deg,rgba(255,255,255,.24) 0deg .75deg,transparent .75deg 51.4286deg),
     conic-gradient(from -90deg,
-      #a960ff 0 51.43deg,
-      #211632 51.43deg 102.86deg,
-      #55ddff 102.86deg 154.29deg,
-      #271941 154.29deg 205.71deg,
-      #ff7ddb 205.71deg 257.14deg,
-      #6c36ff 257.14deg 308.57deg,
-      #ffd36a 308.57deg 360deg);
-    box-shadow:0 24px 70px rgba(0,0,0,.34),0 0 38px rgba(139,72,255,.18),inset 0 0 0 14px rgba(8,4,16,.24),inset 0 0 0 28px rgba(255,255,255,.025);
-    transition:transform 6.8s cubic-bezier(.06,.98,.14,1),filter .4s ease,box-shadow .4s ease}
-  .afx-promo-wheel:before{content:"";position:absolute;inset:10px;border-radius:50%;border:1px solid rgba(255,255,255,.09);box-shadow:inset 0 1px 0 rgba(255,255,255,.08)}
-  .afx-promo-wheel:after{content:"";position:absolute;left:50%;top:50%;width:42px;height:42px;border-radius:50%;transform:translate(-50%,-50%);background:radial-gradient(circle at 35% 30%,#ffffff,#ddd3ff 48%,#b58cff 100%);box-shadow:0 0 0 8px rgba(122,61,239,.2),0 0 24px rgba(255,255,255,.28);z-index:3}
-  .afx-promo-wheel.is-spinning{filter:saturate(1.15) brightness(1.08);box-shadow:0 28px 92px rgba(87,43,207,.48),0 0 48px rgba(172,82,255,.24),inset 0 0 0 14px rgba(8,4,16,.22),inset 0 0 0 28px rgba(255,255,255,.04)}
-  .afx-promo-labels{position:absolute;inset:0;pointer-events:none;z-index:2}
-  .afx-promo-label{position:absolute;left:50%;top:50%;width:86px;margin-left:-43px;margin-top:-14px;text-align:center;font-size:15px;font-weight:900;letter-spacing:-.02em;color:#fff;text-shadow:0 3px 14px rgba(0,0,0,.42)}
-  .afx-promo-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:grid;gap:6px;justify-items:center;z-index:3;text-align:center}
-  .afx-promo-center b{font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:#fff}
-  .afx-promo-center small{color:#cdbde0;font-size:10px;letter-spacing:.15em;text-transform:uppercase}
+      #9b4dff 0 51.4286deg,
+      #1d1230 51.4286deg 102.8572deg,
+      #39cfff 102.8572deg 154.2858deg,
+      #2a1747 154.2858deg 205.7144deg,
+      #f56bd8 205.7144deg 257.143deg,
+      #6230ee 257.143deg 308.5716deg,
+      #f6c85d 308.5716deg 360deg);
+    box-shadow:inset 0 0 0 12px rgba(7,3,14,.22),inset 0 0 0 13px rgba(255,255,255,.055),inset 0 0 48px rgba(7,3,16,.26);
+    will-change:transform;transform:translateZ(0);transition:transform 6.8s cubic-bezier(.055,.985,.12,1),filter .35s ease,box-shadow .35s ease}
+  .afx-promo-wheel:before{content:"";position:absolute;inset:7px;border-radius:50%;border:1px solid rgba(255,255,255,.14);box-shadow:inset 0 1px rgba(255,255,255,.12),0 0 0 1px rgba(8,4,15,.22);pointer-events:none;z-index:3}
+  .afx-promo-wheel:after{content:"";position:absolute;inset:0;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.13),transparent 28%,transparent 64%,rgba(255,255,255,.035));mix-blend-mode:screen;pointer-events:none;z-index:1}
+  .afx-promo-wheel.is-spinning{filter:saturate(1.18) brightness(1.08);box-shadow:inset 0 0 0 12px rgba(7,3,14,.2),inset 0 0 0 13px rgba(255,255,255,.07),inset 0 0 50px rgba(77,25,143,.18)}
+  .afx-promo-labels{position:absolute;inset:0;pointer-events:none;z-index:4}
+  .afx-promo-label{position:absolute;left:50%;top:50%;width:82px;margin-left:-41px;margin-top:-18px;display:grid;justify-items:center;gap:1px;text-align:center;color:#fff;text-shadow:0 3px 10px rgba(0,0,0,.5);backface-visibility:hidden}
+  .afx-promo-label strong{font-size:16px;line-height:1;font-weight:1000;letter-spacing:-.035em}
+  .afx-promo-label small{font-size:8px;line-height:1;font-weight:1000;letter-spacing:.13em;color:#fff4c4;text-transform:uppercase}
+  .afx-promo-label.super strong{color:#fff8d8;text-shadow:0 0 11px rgba(255,220,111,.28),0 3px 10px rgba(0,0,0,.5)}
+  .afx-promo-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:92px;height:92px;border-radius:50%;display:grid;align-content:center;gap:5px;justify-items:center;z-index:6;text-align:center;background:radial-gradient(circle at 34% 27%,#33214a 0,#171020 48%,#0b0612 100%);border:1px solid rgba(255,255,255,.18);box-shadow:0 0 0 7px rgba(11,6,18,.78),0 0 0 9px rgba(171,91,255,.24),0 14px 30px rgba(0,0,0,.4),inset 0 1px rgba(255,255,255,.12)}
+  .afx-promo-center:before{content:"";position:absolute;inset:8px;border-radius:50%;border:1px solid rgba(255,255,255,.07);pointer-events:none}
+  .afx-promo-center b{font-size:14px;letter-spacing:.16em;text-transform:uppercase;color:#fff;text-shadow:0 0 16px rgba(179,103,255,.25)}
+  .afx-promo-center small{color:#bdaecb;font-size:9px;letter-spacing:.14em;text-transform:uppercase}
   .afx-promo-actions{display:grid;gap:10px;width:min(320px,100%)}
   .afx-promo-btn,.afx-promo-ghost{appearance:none;border:0;cursor:pointer;text-decoration:none;color:#fff;font:inherit;font-size:15px;font-weight:900;padding:16px 18px;border-radius:18px;transition:transform .18s ease,box-shadow .22s ease,opacity .2s ease;display:inline-flex;align-items:center;justify-content:center;gap:10px}
   .afx-promo-btn{background:linear-gradient(135deg,#bb59ff,#6b2bee);box-shadow:0 16px 38px rgba(122,53,238,.34)}
@@ -1425,7 +1434,7 @@ const PROMO_WHEEL_HTML = String.raw`
   @keyframes afxPromoConfetti{0%{opacity:1;transform:translate(-50%,-50%) rotate(0deg) scale(1)}100%{opacity:0;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) rotate(var(--r)) scale(.65)}}
   @keyframes afxPromoLevitate{0%,100%{transform:translateY(0px)}50%{transform:translateY(-8px)}}
   @media(max-width:900px){.afx-promo-grid{grid-template-columns:1fr}.afx-promo-preview{order:-1}.afx-promo-panel{padding:24px 20px}.afx-promo-mini{margin:auto}}
-  @media(max-width:480px){#afx-promo-lab{padding-left:18px;padding-right:18px}.afx-promo-title{font-size:40px}.afx-promo-wheel-wrap{width:286px;height:286px}.afx-promo-label{font-size:13px;width:76px;margin-left:-38px}.afx-promo-actions,.afx-promo-actions-2{width:100%}.afx-promo-btn,.afx-promo-ghost{width:100%}.afx-promo-mini{padding:18px 16px 16px}}
+  @media(max-width:480px){#afx-promo-lab{padding-left:18px;padding-right:18px}.afx-promo-title{font-size:40px}.afx-promo-wheel-wrap{width:292px;height:292px}.afx-promo-wheel{inset:13px}.afx-promo-label{width:72px;margin-left:-36px;margin-top:-16px}.afx-promo-label strong{font-size:14px}.afx-promo-label small{font-size:7px}.afx-promo-center{width:80px;height:80px}.afx-promo-center b{font-size:12px}.afx-promo-actions,.afx-promo-actions-2{width:100%}.afx-promo-btn,.afx-promo-ghost{width:100%}.afx-promo-mini{padding:18px 12px 16px}}
 </style>
 <section id="afx-promo-lab" aria-labelledby="afx-promo-title">
   <div class="afx-promo-wrap">
@@ -1442,10 +1451,12 @@ const PROMO_WHEEL_HTML = String.raw`
           <div class="afx-promo-mini">
             <div class="afx-promo-wheel-wrap" id="afx-promo-wheel-wrap">
               <div class="afx-promo-wheel-shadow"></div>
+              <div class="afx-promo-rim"></div>
               <div class="afx-promo-pointer"></div>
-              <div class="afx-promo-wheel" id="afx-promo-wheel"></div>
-              <div class="afx-promo-labels" id="afx-promo-labels"></div>
-              <div class="afx-promo-center"><b>AuraFX</b><small>spin bonus</small></div>
+              <div class="afx-promo-wheel" id="afx-promo-wheel">
+                <div class="afx-promo-labels" id="afx-promo-labels"></div>
+              </div>
+              <div class="afx-promo-center"><b>AuraFX</b><small>FORTUNE</small></div>
             </div>
             <div class="afx-promo-actions">
               <button class="afx-promo-btn" id="afx-promo-spin" type="button">🎡 Крутить колесо</button>
@@ -1486,8 +1497,8 @@ const PROMO_WHEEL_HTML = String.raw`
   const winCopy=document.getElementById('afx-promo-win-copy');
   const countdownEl=document.getElementById('afx-promo-countdown');
   let currentState={can_spin:true}, spinning=false, rotation=-12, countdownTimer=null;
-  function renderLabels(host, radius){ if(!host) return; host.innerHTML=''; const step=360/prizes.length; prizes.forEach((prize,index)=>{ const angle=(-90)+(index*step)+(step/2); const label=document.createElement('div'); label.className='afx-promo-label'; label.textContent=prize.label; label.style.transform='rotate('+angle+'deg) translateY(-'+radius+'px) rotate('+(-angle)+'deg)'; host.appendChild(label); }); }
-  renderLabels(document.getElementById('afx-promo-labels'),118); if(wheel) wheel.style.transform='rotate('+rotation+'deg)';
+  function renderLabels(){ const host=document.getElementById('afx-promo-labels'); if(!host) return; host.innerHTML=''; const step=360/prizes.length; const size=wheel?wheel.getBoundingClientRect().width:304; const radius=Math.max(94,Math.round(size*.365)); prizes.forEach((prize,index)=>{ const angle=(-90)+(index*step)+(step/2); const label=document.createElement('div'); label.className='afx-promo-label'+(Number(prize.discount)>=20?' super':''); label.innerHTML=Number(prize.discount)>=20?'<small>SUPER</small><strong>20%</strong>':'<strong>'+prize.label+'</strong>'; label.style.transform='rotate('+angle+'deg) translateY(-'+radius+'px) rotate('+(-angle)+'deg)'; host.appendChild(label); }); }
+  renderLabels(); if(wheel) wheel.style.transform='rotate('+rotation+'deg)'; let labelResizeTimer=null; window.addEventListener('resize',()=>{clearTimeout(labelResizeTimer);labelResizeTimer=setTimeout(renderLabels,120)},{passive:true});
   function fmtDate(v){ if(!v) return ''; const d=new Date(v); if(isNaN(d)) return ''; return d.toLocaleDateString('ru-RU',{day:'numeric',month:'long'})+' '+d.toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'}); }
   function setPromoStorage(data){ try{ localStorage.setItem('afx_promo',JSON.stringify(data||{})); }catch(e){} }
   function getPromoStorage(){ try{ return JSON.parse(localStorage.getItem('afx_promo')||'null')||{}; }catch(e){ return {}; } }
