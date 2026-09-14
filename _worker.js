@@ -1618,7 +1618,9 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
 .msg{min-height:20px;margin:12px 0 0;color:#ff9aaa;font-size:13px}.section-title{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:30px 0 12px}.section-title h2{margin:0;font-size:22px}.section-title p{margin:0;color:#81758e;font-size:12px}.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.metric{padding:16px}.metric small{color:#92869e;font-size:11px}.metric b{display:block;font-size:27px;margin-top:6px;letter-spacing:-.03em}.metric em{display:block;color:#746b7f;font-style:normal;font-size:11px;margin-top:3px}
 .overview-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:12px}.chart{padding:18px}.bars{height:150px;display:flex;align-items:end;gap:8px;margin-top:18px}.bar-wrap{flex:1;min-width:0;text-align:center}.bar{width:100%;min-height:4px;border-radius:9px 9px 3px 3px;background:linear-gradient(180deg,#b14cff,#6330de);box-shadow:0 0 18px rgba(135,59,240,.18)}.bar-wrap span{display:block;color:#746a80;font-size:10px;margin-top:7px}.quick{padding:18px}.quick h3{margin:0 0 12px}.quick .actions{display:grid;grid-template-columns:1fr 1fr}.system{margin-top:12px;padding:14px;display:flex;justify-content:space-between;align-items:center;color:#9f93aa;font-size:12px}.status-dot{width:8px;height:8px;border-radius:50%;background:#59eeb2;box-shadow:0 0 14px rgba(89,238,178,.7);display:inline-block;margin-right:7px}
 .toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;margin:0 0 12px;flex-wrap:wrap}.filters button.active{background:#7629ee}.review-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.review-stat{padding:14px}.review-stat b{display:block;font-size:22px;margin-top:4px}.review-stat small{color:#8f839b}.list{display:grid;gap:10px}.card{padding:18px}.cardtop{display:flex;justify-content:space-between;gap:14px;align-items:start}.name{font-weight:900;font-size:17px}.stars{color:#ffd45c;letter-spacing:1px}.text{color:#ddd5e4;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:#786e82;font-size:11px}.badge{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:850}.approved{background:rgba(55,220,151,.12);color:#82f0be}.pending{background:rgba(255,188,61,.12);color:#ffd06f}.hidden{background:rgba(255,103,128,.12);color:#ff9bac}.new{background:rgba(102,213,255,.12);color:#83e7ff}.contacted{background:rgba(177,91,255,.14);color:#d3a6ff}.done{background:rgba(55,220,151,.12);color:#82f0be}.spam{background:rgba(255,103,128,.12);color:#ff9bac}.empty{text-align:center;padding:40px 20px;color:#8f829c}.hidden-ui{display:none!important}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#171020;border:1px solid rgba(255,255,255,.1);padding:11px 15px;border-radius:999px;opacity:0;pointer-events:none;transition:.22s;z-index:20;font-size:12px}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
-@media(max-width:860px){.metrics{grid-template-columns:repeat(2,1fr)}.overview-grid{grid-template-columns:1fr}.review-stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.wrap{padding:20px 14px 60px}.top{align-items:flex-start}.top-actions{justify-content:flex-end}.metrics{grid-template-columns:repeat(2,1fr)}.quick .actions{grid-template-columns:1fr}.cardtop{display:block}.stars{margin-top:6px}}
+.promo-check{padding:18px}.promo-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}.promo-note{margin-top:10px}.promo-result{margin-top:12px;padding:16px;border-radius:17px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}.promo-result.empty{color:#8f829c}.promo-code{font:900 16px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.03em;overflow-wrap:anywhere}.promo-main{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.promo-info{margin-top:10px;color:#b7aabd;font-size:12px;line-height:1.65}.promo-history{display:grid;gap:8px;margin-top:12px}.promo-row{display:grid;grid-template-columns:minmax(0,1.25fr) 80px 110px minmax(0,.8fr);gap:10px;align-items:center;padding:12px 14px;border:1px solid rgba(255,255,255,.075);border-radius:15px;background:rgba(255,255,255,.025);font-size:12px}.promo-row .promo-code{font-size:12px}.promo-status-active{background:rgba(55,220,151,.12);color:#82f0be}.promo-status-redeemed{background:rgba(102,213,255,.12);color:#83e7ff}.promo-status-expired{background:rgba(255,103,128,.12);color:#ff9bac}.promo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.promo-actions button{flex:0 0 auto}
+.tg-panel{padding:18px}.tg-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:14px}.tg-box{padding:16px;border:1px solid rgba(255,255,255,.075);border-radius:17px;background:rgba(255,255,255,.025)}.tg-box h3{margin:0 0 7px;font-size:16px}.tg-box p{margin:0;color:#9e92a8;font-size:12px;line-height:1.65}.tg-state{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tg-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.tg-step{display:flex;gap:10px;margin-top:10px;color:#bcb1c5;font-size:12px;line-height:1.55}.tg-step b{width:22px;height:22px;flex:0 0 22px;display:grid;place-items:center;border-radius:50%;background:rgba(166,75,255,.14);color:#d5b6ff}.tg-command{font:800 12px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff;background:#100819;border:1px solid rgba(255,255,255,.09);padding:8px 10px;border-radius:10px;display:inline-block;margin-top:8px}
+@media(max-width:860px){.tg-grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.overview-grid{grid-template-columns:1fr}.review-stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.wrap{padding:20px 14px 60px}.top{align-items:flex-start}.top-actions{justify-content:flex-end}.metrics{grid-template-columns:repeat(2,1fr)}.quick .actions{grid-template-columns:1fr}.cardtop{display:block}.stars{margin-top:6px}.promo-form{grid-template-columns:1fr}.promo-row{grid-template-columns:1fr 70px}.promo-row>*:nth-child(3),.promo-row>*:nth-child(4){grid-column:1/-1}.promo-main{display:block}.promo-main .badge{margin-top:8px}}
 </style></head><body><div class="wrap">
 <div class="top"><div><div class="brand"><span>AuraFX</span> Admin Pro</div><div class="sub">Аналитика, отзывы и управление сайтом</div></div><div class="top-actions"><a class="btn ghost hidden-ui" id="openSite" href="/" target="_blank">↗ Сайт</a><button id="logout" class="ghost hidden-ui">Выйти</button></div></div>
 <section id="loginBox" class="panel login"><h1>Вход</h1><p>Панель доступна только владельцу. Пароль хранится в Cloudflare Secrets.</p><form id="loginForm"><input id="password" type="password" autocomplete="current-password" placeholder="Пароль администратора" required><button class="primary" style="width:100%;margin-top:12px">Войти →</button><div class="msg" id="loginMsg"></div></form></section>
@@ -1643,6 +1645,35 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
     <div class="panel quick"><h3>Быстрые действия</h3><div class="actions"><button id="copyLink" class="ghost">⧉ Скопировать ссылку</button><button id="motionToggle" class="primary">✨ Полные анимации</button><button id="clearOnline" class="warn">Очистить онлайн</button><button id="resetTraffic" class="danger">Сбросить статистику</button><button id="exportReviews" class="ghost">↓ Экспорт отзывов CSV</button><button id="exportLeads" class="ghost">↓ Экспорт заявок CSV</button></div><div class="panel system"><span><span class="status-dot"></span>D1 и API</span><b id="sysStatus">OK</b></div></div>
   </div>
 
+  <div class="section-title"><div><h2>Telegram-уведомления</h2><p>Новые заявки и важные события сразу в личку</p></div><button id="tgRefresh" class="ghost">Проверить статус</button></div>
+  <div class="panel tg-panel">
+    <div class="tg-grid">
+      <div class="tg-box">
+        <h3>Состояние подключения</h3>
+        <p id="tgStatusText">Проверяю настройки Telegram…</p>
+        <div class="tg-state"><span id="tgTokenBadge" class="badge pending">BOT TOKEN: …</span><span id="tgChatBadge" class="badge pending">Чат: …</span></div>
+        <div class="tg-actions"><button id="tgConnect" class="primary">🔗 Подключить мой Telegram</button><button id="tgTest" class="ok">✉ Тест</button><button id="tgDisconnect" class="danger">Отключить чат</button></div>
+      </div>
+      <div class="tg-box">
+        <h3>Настройка один раз</h3>
+        <div class="tg-step"><b>1</b><span>Создай бота через <a href="https://t.me/BotFather" target="_blank" rel="noopener" style="color:#c899ff">@BotFather</a> и добавь его токен в Cloudflare Secret с именем <strong>TELEGRAM_BOT_TOKEN</strong>.</span></div>
+        <div class="tg-step"><b>2</b><span>Открой своего нового бота и отправь ему команду:<br><span class="tg-command">/start aurafx_setup</span></span></div>
+        <div class="tg-step"><b>3</b><span>Вернись сюда и нажми «Подключить мой Telegram». Chat ID сохранится только на сервере.</span></div>
+        <div class="tg-actions"><button id="tgCopyCommand" class="ghost">⧉ Скопировать команду</button></div>
+      </div>
+    </div>
+    <div class="sub" style="margin-top:12px">Будут приходить: 🔥 новые заявки, ⭐ отзывы, 🎁 SUPER 20% и ✅ погашение промокода. Заявка сохраняется в D1 даже если Telegram временно недоступен.</div>
+  </div>
+
+  <div class="section-title"><div><h2>Промокоды</h2><p>Проверка скидок из колеса Фортуны</p></div><button id="refreshPromos" class="ghost">Обновить историю</button></div>
+  <div class="panel promo-check">
+    <div class="promo-form"><input id="promoInput" autocomplete="off" spellcheck="false" placeholder="Например: AURAFX-10-ABCD"><button id="promoCheckBtn" class="primary" type="button">Проверить код</button></div>
+    <input class="promo-note" id="promoRedeemNote" maxlength="120" placeholder="Заметка при погашении — например: Заказ #12 / Иван (необязательно)">
+    <div id="promoCheckResult" class="promo-result empty">Введи промокод клиента — я проверю его по базе AuraFX.</div>
+    <div class="promo-actions"><button id="promoRedeemBtn" class="ok hidden-ui" type="button">✓ Погасить промокод</button></div>
+    <div class="sub" style="margin-top:18px">Последние выданные промокоды</div>
+    <div id="promoHistory" class="promo-history"><div class="empty">Загружаем промокоды…</div></div>
+  </div>
 
   <div class="section-title"><div><h2>Заявки</h2><p>Лиды с сайта и источник рекламы</p></div><button id="refreshLeads" class="ghost">Обновить заявки</button></div>
   <div id="leadList" class="list"></div>
@@ -1654,7 +1685,7 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
 </section></div><div id="toast" class="toast"></div>
 <script>
 (function(){
-  var $=function(s){return document.querySelector(s)},reviews=[],leads=[],filter='all';
+  var $=function(s){return document.querySelector(s)},reviews=[],leads=[],promos=[],checkedPromo=null,filter='all';
   var esc=function(s){return String(s).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})};
   var labels={approved:'Опубликован',pending:'На проверке',hidden:'Скрыт'};
   function toast(t){var el=$('#toast');el.textContent=t;el.classList.add('show');setTimeout(function(){el.classList.remove('show')},1800)}
@@ -1663,6 +1694,40 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
   async function api(url,opt){opt=opt||{};var headers=Object.assign({accept:'application/json','content-type':'application/json'},opt.headers||{});var r=await fetch(url,Object.assign({},opt,{headers:headers}));var d={};try{d=await r.json()}catch(e){}if(r.status===401){showLogin('Сессия закончилась. Войди снова.');throw new Error('AUTH')}if(!r.ok)throw new Error(d.error||'Ошибка');return d}
   function renderBars(days){var max=1;(days||[]).forEach(function(d){max=Math.max(max,Number(d.n||0))});$('#bars').innerHTML=(days||[]).map(function(d){var h=Math.max(4,Math.round((Number(d.n||0)/max)*132));return '<div class="bar-wrap"><div class="bar" style="height:'+h+'px" title="'+d.n+'"></div><span>'+esc(d.label)+'</span></div>'}).join('')||'<div class="empty">Данных пока нет</div>'}
   async function loadDashboard(){var d=await api('/api/admin/dashboard');var m=d.metrics||{};$('#mOnline').textContent=m.online||0;$('#mTotal').textContent=m.total||0;$('#mToday').textContent=m.today_unique||0;$('#mViews').textContent=m.views_today||0;$('#mContact').textContent=m.contact_today||0;$('#mPricing').textContent=m.pricing_today||0;$('#mRating').textContent=m.avg_rating?Number(m.avg_rating).toFixed(1):'—';$('#mPending').textContent=m.pending_reviews||0;$('#mCases').textContent=m.case_opens_today||0;$('#mBriefs').textContent=m.briefs_today||0;$('#mLeads').textContent=m.leads_today||0;$('#mSource').textContent=m.top_source||'—';renderBars(d.days||[]);$('#sysStatus').textContent='OK'}
+  function renderTelegramStatus(d){
+    d=d||{};var token=$('#tgTokenBadge'),chat=$('#tgChatBadge'),txt=$('#tgStatusText'),test=$('#tgTest'),disc=$('#tgDisconnect');
+    token.textContent=d.token_configured?'BOT TOKEN: готов':'BOT TOKEN: не задан';token.className='badge '+(d.token_configured?'approved':'pending');
+    chat.textContent=d.chat_connected?('Чат: '+(d.chat_label||'подключён')):'Чат: не подключён';chat.className='badge '+(d.chat_connected?'approved':'pending');
+    txt.textContent=d.ready?'Всё готово — уведомления включены ✅':(!d.token_configured?'Сначала добавь TELEGRAM_BOT_TOKEN в Cloudflare Secrets.':'Токен найден. Отправь боту /start aurafx_setup и подключи чат.');
+    test.disabled=!d.ready;disc.disabled=!d.chat_connected;
+  }
+  async function loadTelegramStatus(){var d=await api('/api/admin/telegram/status');renderTelegramStatus(d);return d}
+  function promoStatusLabel(status){return status==='active'?'Активен':status==='redeemed'?'Погашен':'Истёк'}
+  function promoStatusClass(status){return status==='active'?'promo-status-active':status==='redeemed'?'promo-status-redeemed':'promo-status-expired'}
+  function renderPromoHistory(){
+    var host=$('#promoHistory');if(!host)return;
+    if(!promos.length){host.innerHTML='<div class="empty">Промокодов пока нет.</div>';return}
+    host.innerHTML=promos.map(function(p){
+      return '<div class="promo-row"><div class="promo-code">'+esc(p.code)+'</div><b>'+esc(String(p.discount))+'%</b><span class="badge '+promoStatusClass(p.status)+'">'+promoStatusLabel(p.status)+'</span><span>'+new Date(p.created_at+'Z').toLocaleString('ru-RU')+'</span></div>'
+    }).join('')
+  }
+  async function loadPromos(){var d=await api('/api/admin/promos');promos=d.promos||[];renderPromoHistory()}
+  function renderPromoCheck(p){
+    checkedPromo=p||null;var box=$('#promoCheckResult'),redeem=$('#promoRedeemBtn');
+    if(!p){box.className='promo-result empty';box.textContent='Промокод не найден в базе AuraFX. Скорее всего, клиент придумал его сам.';redeem.classList.add('hidden-ui');return}
+    var status=p.status||'expired',badge='<span class="badge '+promoStatusClass(status)+'">'+promoStatusLabel(status)+'</span>';
+    var html='<div class="promo-main"><div><div class="promo-code">'+esc(p.code)+'</div><div class="promo-info">Скидка: <b>'+esc(String(p.discount))+'%</b><br>Выдан: '+new Date(p.created_at+'Z').toLocaleString('ru-RU')+'<br>Действует до: '+new Date(p.expires_at+'Z').toLocaleString('ru-RU');
+    if(p.redeemed_at)html+='<br>Погашен: '+new Date(p.redeemed_at+'Z').toLocaleString('ru-RU');
+    if(p.redeemed_note)html+='<br>Заметка: '+esc(p.redeemed_note);
+    html+='</div></div>'+badge+'</div>';
+    box.className='promo-result';box.innerHTML=html;
+    redeem.classList.toggle('hidden-ui',status!=='active');
+  }
+  async function checkPromo(){
+    var code=String($('#promoInput').value||'').trim().toUpperCase();if(!code){renderPromoCheck(null);$('#promoCheckResult').textContent='Сначала введи промокод.';return}
+    $('#promoCheckBtn').disabled=true;$('#promoCheckResult').className='promo-result empty';$('#promoCheckResult').textContent='Проверяю по базе…';
+    try{var d=await api('/api/admin/promo/check?code='+encodeURIComponent(code));renderPromoCheck(d.promo||null)}catch(err){if(err.message!=='AUTH'){renderPromoCheck(null);$('#promoCheckResult').textContent=err.message}}finally{$('#promoCheckBtn').disabled=false}
+  }
   function renderLeads(){
     if(!leads.length){$('#leadList').innerHTML='<div class="panel empty">Заявок пока нет.</div>';return}
     $('#leadList').innerHTML=leads.map(function(l){
@@ -1676,12 +1741,26 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
   async function loadLeads(){var d=await api('/api/admin/leads');leads=d.leads||[];renderLeads()}
   function renderReviews(){var c={all:reviews.length,approved:0,pending:0,hidden:0};reviews.forEach(function(r){c[r.status]=(c[r.status]||0)+1});$('#sAll').textContent=c.all;$('#sApproved').textContent=c.approved;$('#sPending').textContent=c.pending;$('#sHidden').textContent=c.hidden;var data=filter==='all'?reviews:reviews.filter(function(r){return r.status===filter});if(!data.length){$('#list').innerHTML='<div class="panel empty">Здесь пока пусто.</div>';return}$('#list').innerHTML=data.map(function(r){var html='<article class="card" data-id="'+r.id+'"><div class="cardtop"><div><div class="name">'+esc(r.name)+'</div><div class="meta"><span class="badge '+esc(r.status)+'">'+(labels[r.status]||esc(r.status))+'</span><span>'+new Date(r.created_at+'Z').toLocaleString('ru-RU')+'</span><span>#'+r.id+'</span></div></div><div class="stars">'+'★'.repeat(r.rating)+'</div></div><p class="text">'+esc(r.text)+'</p><div class="actions">';if(r.status!=='approved')html+='<button class="ok" data-action="approved">Опубликовать</button>';if(r.status!=='hidden')html+='<button class="ghost" data-action="hidden">Скрыть</button>';html+='<button class="danger" data-action="delete">Удалить</button></div></article>';return html}).join('')}
   async function loadReviews(){var d=await api('/api/admin/reviews');reviews=d.reviews||[];renderReviews()}
-  async function loadAll(){await Promise.all([loadDashboard(),loadReviews(),loadLeads()]);showDash()}
+  async function loadAll(){await Promise.all([loadDashboard(),loadReviews(),loadLeads(),loadPromos(),loadTelegramStatus()]);showDash()}
   $('#loginForm').addEventListener('submit',async function(e){e.preventDefault();$('#loginMsg').textContent='Проверяем…';try{await api('/api/admin/login',{method:'POST',body:JSON.stringify({password:$('#password').value})});$('#password').value='';await loadAll()}catch(err){if(err.message!=='AUTH')$('#loginMsg').textContent=err.message}});
   $('#logout').addEventListener('click',async function(){try{await api('/api/admin/logout',{method:'POST',body:'{}'})}catch(e){}showLogin('Ты вышел из панели.')});
   $('#refreshAll').addEventListener('click',async function(){await loadAll();toast('Обновлено')});$('#refreshReviews').addEventListener('click',async function(){await loadReviews();toast('Отзывы обновлены')});
   $('#filters').addEventListener('click',function(e){var b=e.target.closest('button[data-filter]');if(!b)return;filter=b.dataset.filter;document.querySelectorAll('#filters button').forEach(function(x){x.classList.toggle('active',x===b)});renderReviews()});
   $('#refreshLeads').addEventListener('click',async function(){await loadLeads();toast('Заявки обновлены')});
+  $('#tgRefresh').addEventListener('click',async function(){await loadTelegramStatus();toast('Статус Telegram обновлён')});
+  $('#tgCopyCommand').addEventListener('click',async function(){try{await navigator.clipboard.writeText('/start aurafx_setup');toast('Команда скопирована')}catch(e){toast('/start aurafx_setup')}});
+  $('#tgConnect').addEventListener('click',async function(){var b=this;b.disabled=true;try{var d=await api('/api/admin/telegram/connect',{method:'POST',body:'{}'});await loadTelegramStatus();toast(d.test_sent?'Telegram подключён — сообщение уже отправлено':'Telegram подключён')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
+  $('#tgTest').addEventListener('click',async function(){var b=this;b.disabled=true;try{await api('/api/admin/telegram/test',{method:'POST',body:'{}'});toast('Тест отправлен в Telegram')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
+  $('#tgDisconnect').addEventListener('click',async function(){if(!confirm('Отключить Telegram-уведомления для этого чата?'))return;var b=this;b.disabled=true;try{await api('/api/admin/telegram/disconnect',{method:'POST',body:'{}'});await loadTelegramStatus();toast('Telegram отключён')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
+  $('#refreshPromos').addEventListener('click',async function(){await loadPromos();toast('Промокоды обновлены')});
+  $('#promoCheckBtn').addEventListener('click',checkPromo);
+  $('#promoInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();checkPromo()}});
+  $('#promoRedeemBtn').addEventListener('click',async function(){
+    if(!checkedPromo||checkedPromo.status!=='active')return;
+    if(!confirm('Погасить '+checkedPromo.code+' на '+checkedPromo.discount+'%? После этого код нельзя будет использовать повторно.'))return;
+    var b=this;b.disabled=true;
+    try{var d=await api('/api/admin/promo/redeem',{method:'POST',body:JSON.stringify({code:checkedPromo.code,note:$('#promoRedeemNote').value})});renderPromoCheck(d.promo);await loadPromos();toast('Промокод погашен')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}
+  });
   $('#leadList').addEventListener('click',async function(e){var b=e.target.closest('button[data-lead-status]');if(!b)return;var card=b.closest('[data-lead-id]');b.disabled=true;try{await api('/api/admin/leads/'+card.dataset.leadId,{method:'PATCH',body:JSON.stringify({status:b.dataset.leadStatus})});await Promise.all([loadLeads(),loadDashboard()]);toast('Статус обновлён')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#list').addEventListener('click',async function(e){var b=e.target.closest('button[data-action]');if(!b)return;var card=b.closest('[data-id]'),id=card.dataset.id,action=b.dataset.action;if(action==='delete'&&!confirm('Удалить отзыв навсегда?'))return;b.disabled=true;try{if(action==='delete')await api('/api/admin/reviews/'+id,{method:'DELETE'});else await api('/api/admin/reviews/'+id,{method:'PATCH',body:JSON.stringify({status:action})});await Promise.all([loadReviews(),loadDashboard()])}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#copyLink').addEventListener('click',async function(){try{await navigator.clipboard.writeText(location.origin+'/');toast('Ссылка скопирована')}catch(e){toast(location.origin+'/')}});
@@ -1792,10 +1871,96 @@ async function ensureDb(env) {
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`).run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_promo_spins_ip_created ON promo_spins(ip_hash, created_at DESC)").run();
+  await env.DB.prepare("CREATE UNIQUE INDEX IF NOT EXISTS idx_promo_spins_code ON promo_spins(promo_code)").run();
+  const promoInfo = await env.DB.prepare("PRAGMA table_info(promo_spins)").all();
+  const promoCols = new Set((promoInfo.results || []).map(c => String(c.name)));
+  if (!promoCols.has("redeemed_at")) await env.DB.prepare("ALTER TABLE promo_spins ADD COLUMN redeemed_at TEXT").run();
+  if (!promoCols.has("redeemed_note")) await env.DB.prepare("ALTER TABLE promo_spins ADD COLUMN redeemed_note TEXT").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS app_settings (
+    key TEXT PRIMARY KEY,
+    value TEXT,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`).run();
 }
 
 function normalize(value) {
   return String(value ?? "").trim().replace(/\s+/g, " ");
+}
+
+async function getAppSetting(env, key) {
+  if (!env.DB) return "";
+  const row = await env.DB.prepare("SELECT value FROM app_settings WHERE key = ? LIMIT 1").bind(String(key)).first();
+  return String(row?.value || "");
+}
+
+async function setAppSetting(env, key, value) {
+  await env.DB.prepare(`INSERT INTO app_settings (key, value, updated_at) VALUES (?, ?, datetime('now'))
+    ON CONFLICT(key) DO UPDATE SET value=excluded.value, updated_at=datetime('now')`).bind(String(key), String(value ?? "")).run();
+}
+
+async function deleteAppSetting(env, key) {
+  await env.DB.prepare("DELETE FROM app_settings WHERE key = ?").bind(String(key)).run();
+}
+
+async function telegramChatId(env) {
+  const secretChat = String(env.TELEGRAM_CHAT_ID || "").trim();
+  if (secretChat) return secretChat;
+  return (await getAppSetting(env, "telegram_chat_id")).trim();
+}
+
+async function telegramApi(env, method, payload = {}) {
+  const token = String(env.TELEGRAM_BOT_TOKEN || "").trim();
+  if (!token) throw new Error("TELEGRAM_TOKEN_MISSING");
+  const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+  let data = {};
+  try { data = await response.json(); } catch {}
+  if (!response.ok || data.ok !== true) throw new Error("TELEGRAM_API_ERROR");
+  return data.result;
+}
+
+async function sendTelegram(env, text, chatIdOverride = "") {
+  const chatId = String(chatIdOverride || await telegramChatId(env)).trim();
+  if (!String(env.TELEGRAM_BOT_TOKEN || "").trim() || !chatId) return { sent: false, reason: "not_configured" };
+  const safeText = String(text || "").slice(0, 3900);
+  try {
+    await telegramApi(env, "sendMessage", {
+      chat_id: chatId,
+      text: safeText,
+      disable_web_page_preview: true
+    });
+    return { sent: true };
+  } catch {
+    return { sent: false, reason: "telegram_error" };
+  }
+}
+
+function queueTelegram(ctx, env, text) {
+  const job = sendTelegram(env, text).catch(() => ({ sent:false }));
+  if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(job);
+  return job;
+}
+
+function adminLink(request) {
+  try { return new URL("/admin", request.url).toString(); }
+  catch { return "https://aurafx-site.pages.dev/admin"; }
+}
+
+function extractPromoCode(value) {
+  const match = String(value || "").toUpperCase().match(/\bAURAFX-(?:SUPER20|\d{1,2})-[A-Z0-9]{4,12}\b/);
+  return match ? match[0] : "";
+}
+
+async function promoCheckForNotification(env, code) {
+  if (!code) return null;
+  return await env.DB.prepare(`SELECT promo_code AS code, discount_percent AS discount, created_at, redeemed_at,
+    CASE WHEN redeemed_at IS NOT NULL THEN 'redeemed'
+         WHEN datetime(created_at, '+7 days') <= datetime('now') THEN 'expired'
+         ELSE 'active' END AS status
+    FROM promo_spins WHERE upper(promo_code)=? LIMIT 1`).bind(String(code).toUpperCase()).first();
 }
 
 function moderationReason(name, text) {
@@ -1857,7 +2022,7 @@ function sameOrigin(request) {
   return origin === new URL(request.url).origin;
 }
 
-async function handlePublicReviews(request, env) {
+async function handlePublicReviews(request, env, ctx) {
   try { await ensureDb(env); }
   catch { return json({ error: "База отзывов ещё не подключена." }, 503); }
 
@@ -1889,7 +2054,19 @@ async function handlePublicReviews(request, env) {
   if (recent) return json({ error: "Слишком быстро 🙂 Подожди минуту перед следующим отзывом." }, 429);
 
   const status = flagged ? "pending" : "approved";
-  await env.DB.prepare("INSERT INTO reviews (name, rating, text, status, ip_hash) VALUES (?, ?, ?, ?, ?)").bind(name, rating, text, status, ipHash).run();
+  const inserted = await env.DB.prepare("INSERT INTO reviews (name, rating, text, status, ip_hash) VALUES (?, ?, ?, ?, ?)").bind(name, rating, text, status, ipHash).run();
+  const reviewId = Number(inserted.meta?.last_row_id || 0);
+  const reviewText = [
+    "⭐ Новый отзыв AuraFX" + (reviewId ? " #" + reviewId : ""),
+    "Имя: " + name,
+    "Оценка: " + "★".repeat(rating) + " (" + rating + "/5)",
+    "Статус: " + (status === "pending" ? "на модерации" : "опубликован"),
+    "",
+    text,
+    "",
+    "Админка: " + adminLink(request)
+  ].join("\n");
+  queueTelegram(ctx, env, reviewText);
   return json({ ok: true, status }, 201);
 }
 
@@ -1951,7 +2128,7 @@ async function handleSiteEvent(request, env) {
 }
 
 
-async function handlePromo(request, env) {
+async function handlePromo(request, env, ctx) {
   try { await ensureDb(env); }
   catch { return json({ error: "Колесо временно недоступно." }, 503); }
   if (!["GET","POST"].includes(request.method)) return json({ error: "Метод не поддерживается." }, 405);
@@ -1986,11 +2163,20 @@ async function handlePromo(request, env) {
   const promoCode = discount === 20 ? `AURAFX-SUPER20-${stamp}` : `AURAFX-${discount}-${stamp}`;
   await env.DB.prepare("INSERT INTO promo_spins (ip_hash, discount_percent, prize_label, promo_code) VALUES (?, ?, ?, ?)").bind(ipHash, discount, label, promoCode).run();
   const row = await env.DB.prepare("SELECT created_at FROM promo_spins WHERE ip_hash = ? ORDER BY id DESC LIMIT 1").bind(ipHash).first();
+  if (discount >= 20) {
+    queueTelegram(ctx, env, [
+      "🔥 SUPER BONUS 20% выпал на AuraFX",
+      "Промокод: " + promoCode,
+      "Срок действия: 7 дней",
+      "",
+      "Проверить код: " + adminLink(request)
+    ].join("\n"));
+  }
   return json({ ok: true, can_spin: false, discount, label, code: promoCode, next_at: nextAt(row?.created_at) }, 201);
 }
 
 
-async function handleLead(request, env) {
+async function handleLead(request, env, ctx) {
   try { await ensureDb(env); } catch { return json({ error:"База данных недоступна." },503); }
   if (request.method !== "POST") return json({ error:"Метод не поддерживается." },405);
   if (!sameOrigin(request)) return json({ error:"Запрос отклонён." },403);
@@ -2008,10 +2194,36 @@ async function handleLead(request, env) {
   const referrer=String(b.referrer||"").trim().slice(0,300), landing=String(b.landing||"").trim().slice(0,300);
   const result=await env.DB.prepare(`INSERT INTO leads (visitor_id,marketplace,count,product,style,deadline,contact,comment,status,source,medium,campaign,content,term,referrer,landing,ip_hash)
     VALUES (?,?,?,?,?,?,?,?, 'new',?,?,?,?,?,?,?,?)`).bind(visitorId||null,marketplace,count,product,style,deadline,contact,comment,...fields,referrer,landing,ipHash).run();
-  return json({ok:true,id:Number(result.meta?.last_row_id||0)},201);
+  const leadId = Number(result.meta?.last_row_id || 0);
+  const promoCode = extractPromoCode(comment);
+  const promo = promoCode ? await promoCheckForNotification(env, promoCode) : null;
+  let promoLine = "Промокод: —";
+  if (promoCode && !promo) promoLine = "Промокод: " + promoCode + " ❌ НЕ НАЙДЕН в базе";
+  if (promo) {
+    const promoState = promo.status === "active" ? "✅ активен" : promo.status === "redeemed" ? "⚠️ уже погашен" : "⌛ истёк";
+    promoLine = "Промокод: " + promo.code + " · " + promo.discount + "% · " + promoState;
+  }
+  const sourceLine = fields[0] ? (fields[0] + (fields[2] ? " / " + fields[2] : "")) : "прямой переход";
+  const leadMessage = [
+    "🔥 Новая заявка AuraFX" + (leadId ? " #" + leadId : ""),
+    "Маркетплейс: " + marketplace,
+    "Карточек: " + count,
+    "Товар: " + product,
+    "Стиль: " + (style || "—"),
+    "Срок: " + (deadline || "—"),
+    "Контакт: " + contact,
+    promoLine,
+    "Источник: " + sourceLine,
+    "",
+    "Комментарий: " + (comment || "—"),
+    "",
+    "Админка: " + adminLink(request)
+  ].join("\n");
+  queueTelegram(ctx, env, leadMessage);
+  return json({ok:true,id:leadId},201);
 }
 
-async function handleAdminApi(request, env, url) {
+async function handleAdminApi(request, env, url, ctx) {
   try { await ensureDb(env); }
   catch { return json({ error: "База данных недоступна." }, 503); }
 
@@ -2046,6 +2258,66 @@ async function handleAdminApi(request, env, url) {
 
   if (!(await validAdmin(request, env))) return json({ error: "Требуется вход." }, 401);
   if (["POST","PATCH","PUT","DELETE"].includes(request.method) && !sameOrigin(request)) return json({ error: "Запрос отклонён." }, 403);
+
+  if (url.pathname === "/api/admin/telegram/status" && request.method === "GET") {
+    const tokenConfigured = Boolean(String(env.TELEGRAM_BOT_TOKEN || "").trim());
+    const envChat = String(env.TELEGRAM_CHAT_ID || "").trim();
+    const savedChat = envChat || (await getAppSetting(env, "telegram_chat_id")).trim();
+    const label = envChat ? "Chat ID из Cloudflare Secret" : (await getAppSetting(env, "telegram_chat_label")).trim();
+    return json({
+      token_configured: tokenConfigured,
+      chat_connected: Boolean(savedChat),
+      ready: tokenConfigured && Boolean(savedChat),
+      chat_label: label || "",
+      chat_source: envChat ? "secret" : (savedChat ? "connected" : "none")
+    });
+  }
+
+  if (url.pathname === "/api/admin/telegram/connect" && request.method === "POST") {
+    if (!String(env.TELEGRAM_BOT_TOKEN || "").trim()) return json({ error:"Сначала добавь TELEGRAM_BOT_TOKEN в Cloudflare Secrets." },503);
+    if (String(env.TELEGRAM_CHAT_ID || "").trim()) return json({ error:"TELEGRAM_CHAT_ID уже задан через Cloudflare Secret — подключение не требуется." },409);
+    let updates;
+    try { updates = await telegramApi(env, "getUpdates", { limit:100, timeout:0, allowed_updates:["message"] }); }
+    catch { return json({ error:"Не удалось связаться с Telegram. Проверь токен бота в Cloudflare Secret." },502); }
+    const list = Array.isArray(updates) ? updates.slice().reverse() : [];
+    const setup = list.find(u => {
+      const m = u && u.message;
+      const txt = String(m?.text || "").trim();
+      return m?.chat?.type === "private" && /^\/start(?:@\w+)?\s+aurafx[_-]setup$/i.test(txt);
+    });
+    if (!setup) return json({ error:"Не вижу команду /start aurafx_setup. Отправь её своему боту в Telegram и нажми подключить ещё раз." },404);
+    const chat = setup.message.chat;
+    const chatId = String(chat.id || "").trim();
+    if (!chatId) return json({ error:"Не удалось определить Telegram chat_id." },500);
+    const label = chat.username ? "@" + chat.username : [chat.first_name, chat.last_name].filter(Boolean).join(" ") || "Личный Telegram";
+    await setAppSetting(env, "telegram_chat_id", chatId);
+    await setAppSetting(env, "telegram_chat_label", label);
+    const sent = await sendTelegram(env, [
+      "✅ AuraFX подключён к Telegram",
+      "Теперь сюда будут приходить новые заявки и важные события сайта.",
+      "",
+      "Админка: " + adminLink(request)
+    ].join("\n"), chatId);
+    return json({ ok:true, connected:true, chat_label:label, test_sent:Boolean(sent.sent) });
+  }
+
+  if (url.pathname === "/api/admin/telegram/test" && request.method === "POST") {
+    const result = await sendTelegram(env, [
+      "🟣 Тест AuraFX",
+      "Telegram-уведомления работают ✅",
+      "",
+      "Админка: " + adminLink(request)
+    ].join("\n"));
+    if (!result.sent) return json({ error: result.reason === "not_configured" ? "Telegram ещё не подключён." : "Telegram не принял сообщение. Проверь настройки бота." },502);
+    return json({ ok:true });
+  }
+
+  if (url.pathname === "/api/admin/telegram/disconnect" && request.method === "POST") {
+    if (String(env.TELEGRAM_CHAT_ID || "").trim()) return json({ error:"Chat ID задан через Cloudflare Secret. Удали TELEGRAM_CHAT_ID в настройках Cloudflare, чтобы отключить его." },409);
+    await deleteAppSetting(env, "telegram_chat_id");
+    await deleteAppSetting(env, "telegram_chat_label");
+    return json({ ok:true });
+  }
 
   if (url.pathname === "/api/admin/dashboard" && request.method === "GET") {
     const online = await env.DB.prepare("SELECT COUNT(*) AS n FROM online_visitors WHERE datetime(last_seen) >= datetime('now', '-70 seconds')").first();
@@ -2088,6 +2360,47 @@ async function handleAdminApi(request, env, url) {
     return json({ error:"Неизвестный тип сброса." }, 400);
   }
 
+  if (url.pathname === "/api/admin/promos" && request.method === "GET") {
+    const result = await env.DB.prepare(`SELECT id, promo_code AS code, discount_percent AS discount, prize_label AS label, created_at,
+      datetime(created_at, '+7 days') AS expires_at, redeemed_at, redeemed_note,
+      CASE WHEN redeemed_at IS NOT NULL THEN 'redeemed' WHEN datetime(created_at, '+7 days') <= datetime('now') THEN 'expired' ELSE 'active' END AS status
+      FROM promo_spins ORDER BY datetime(created_at) DESC, id DESC LIMIT 50`).all();
+    return json({ promos: result.results || [] });
+  }
+
+  if (url.pathname === "/api/admin/promo/check" && request.method === "GET") {
+    const code = String(url.searchParams.get("code") || "").trim().toUpperCase();
+    if (!code || code.length > 80) return json({ error:"Введи корректный промокод." },400);
+    const promo = await env.DB.prepare(`SELECT id, promo_code AS code, discount_percent AS discount, prize_label AS label, created_at,
+      datetime(created_at, '+7 days') AS expires_at, redeemed_at, redeemed_note,
+      CASE WHEN redeemed_at IS NOT NULL THEN 'redeemed' WHEN datetime(created_at, '+7 days') <= datetime('now') THEN 'expired' ELSE 'active' END AS status
+      FROM promo_spins WHERE upper(promo_code)=? LIMIT 1`).bind(code).first();
+    return json({ promo: promo || null });
+  }
+
+  if (url.pathname === "/api/admin/promo/redeem" && request.method === "POST") {
+    let body={};try{body=await request.json()}catch{}
+    const code=String(body.code||"").trim().toUpperCase();
+    const note=normalize(body.note).slice(0,120);
+    if(!code||code.length>80)return json({error:"Некорректный промокод."},400);
+    const row=await env.DB.prepare(`SELECT id,promo_code,discount_percent,created_at,redeemed_at FROM promo_spins WHERE upper(promo_code)=? LIMIT 1`).bind(code).first();
+    if(!row)return json({error:"Промокод не существует."},404);
+    if(row.redeemed_at)return json({error:"Этот промокод уже был погашен."},409);
+    const expired=await env.DB.prepare("SELECT CASE WHEN datetime(?, '+7 days') <= datetime('now') THEN 1 ELSE 0 END AS expired").bind(row.created_at).first();
+    if(Number(expired?.expired||0)===1)return json({error:"Срок действия этого промокода уже истёк."},409);
+    await env.DB.prepare("UPDATE promo_spins SET redeemed_at=datetime('now'), redeemed_note=? WHERE id=? AND redeemed_at IS NULL").bind(note||null,Number(row.id)).run();
+    const promo=await env.DB.prepare(`SELECT id,promo_code AS code,discount_percent AS discount,prize_label AS label,created_at,datetime(created_at,'+7 days') AS expires_at,redeemed_at,redeemed_note,'redeemed' AS status FROM promo_spins WHERE id=?`).bind(Number(row.id)).first();
+    queueTelegram(ctx, env, [
+      "✅ Промокод погашен",
+      "Код: " + promo.code,
+      "Скидка: " + promo.discount + "%",
+      "Заметка: " + (promo.redeemed_note || "—"),
+      "",
+      "Админка: " + adminLink(request)
+    ].join("\n"));
+    return json({ok:true,promo});
+  }
+
   if (url.pathname === "/api/admin/leads" && request.method === "GET") {
     const result=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,contact,comment,status,source,medium,campaign,content,referrer,landing,created_at FROM leads ORDER BY datetime(created_at) DESC,id DESC LIMIT 300").all();
     return json({leads:result.results||[]});
@@ -2126,15 +2439,15 @@ async function handleAdminApi(request, env, url) {
 }
 
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
-    if (url.pathname === "/api/reviews") return handlePublicReviews(request, env);
+    if (url.pathname === "/api/reviews") return handlePublicReviews(request, env, ctx);
     if (url.pathname === "/api/online") return handleOnline(request, env);
     if (url.pathname === "/api/event") return handleSiteEvent(request, env);
-    if (url.pathname === "/api/promo") return handlePromo(request, env);
-    if (url.pathname === "/api/lead") return handleLead(request, env);
-    if (url.pathname.startsWith("/api/admin/")) return handleAdminApi(request, env, url);
+    if (url.pathname === "/api/promo") return handlePromo(request, env, ctx);
+    if (url.pathname === "/api/lead") return handleLead(request, env, ctx);
+    if (url.pathname.startsWith("/api/admin/")) return handleAdminApi(request, env, url, ctx);
 
     if (url.pathname === "/privacy" || url.pathname === "/privacy/") {
       return new Response(PRIVACY_HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "public, max-age=3600" } });
