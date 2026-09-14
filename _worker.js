@@ -1038,6 +1038,11 @@ const PREMIUM_STUDIO_HTML = String.raw`
   .afx-brief-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:17px}
   .afx-brief-status{min-height:20px;margin:12px 0 0;color:#83eec2;font-size:12px;line-height:1.45}
 
+  #afx-telegram-channel{padding:20px 24px 8px;color:#fff;font-family:inherit}
+  .afx-channel-wrap{max-width:1100px;margin:auto;display:flex;align-items:center;justify-content:space-between;gap:22px;padding:24px 26px;border:1px solid rgba(125,92,255,.22);border-radius:24px;background:linear-gradient(135deg,rgba(103,47,223,.11),rgba(30,12,54,.32))}
+  .afx-channel-copy{min-width:0}.afx-channel-kicker{font-size:11px;font-weight:900;letter-spacing:.16em;text-transform:uppercase;color:#9e8cac}.afx-channel-title{margin:7px 0 5px;font-size:24px;font-weight:950;letter-spacing:-.035em}.afx-channel-sub{margin:0;color:#9e92a8;font-size:13px;line-height:1.5}
+  .afx-channel-btn{flex:0 0 auto;display:inline-flex;align-items:center;justify-content:center;text-decoration:none;color:#fff;font-size:13px;font-weight:900;padding:13px 17px;border-radius:15px;background:linear-gradient(135deg,#9e46ff,#6d2be9);box-shadow:0 10px 28px rgba(112,43,233,.22)}
+
   #afx-premium-footer{padding:42px 24px 112px;color:#fff;font-family:inherit}
   .afx-footer-inner{max-width:1100px;margin:auto;padding-top:28px;border-top:1px solid rgba(255,255,255,.08);display:flex;justify-content:space-between;gap:24px;align-items:flex-end}
   .afx-footer-brand{font-size:30px;font-weight:950;letter-spacing:-.04em}
@@ -1053,6 +1058,7 @@ const PREMIUM_STUDIO_HTML = String.raw`
     .afx-case-grid{grid-template-columns:1fr;min-height:0}.afx-case-media{min-height:380px;padding:22px}
     .afx-case-info{padding:30px 24px 34px;border-left:0;border-top:1px solid rgba(255,255,255,.08)}
     .afx-brief-dialog{padding:42px 20px 28px}.afx-brief-grid{grid-template-columns:1fr}.afx-field.full{grid-column:auto}
+    .afx-channel-wrap{display:block;padding:22px 20px}.afx-channel-btn{margin-top:16px;width:100%;box-sizing:border-box}.afx-channel-title{font-size:22px}
     .afx-footer-inner{display:block}.afx-footer-links{margin-top:20px}
   }
 
@@ -1132,10 +1138,21 @@ const PREMIUM_STUDIO_HTML = String.raw`
   </div>
 </div>
 
+<section id="afx-telegram-channel" aria-label="Telegram-канал AuraFX">
+  <div class="afx-channel-wrap">
+    <div class="afx-channel-copy">
+      <div class="afx-channel-kicker">AuraFX / Telegram</div>
+      <div class="afx-channel-title">Наш Telegram-канал</div>
+      <p class="afx-channel-sub">Новые работы, кейсы и обновления AuraFX — в одном месте.</p>
+    </div>
+    <a class="afx-channel-btn" href="https://t.me/AuraFX_design" target="_blank" rel="noopener">Открыть канал ↗</a>
+  </div>
+</section>
+
 <footer id="afx-premium-footer">
   <div class="afx-footer-inner">
     <div><div class="afx-footer-brand"><span>AuraFX</span></div><div class="afx-footer-copy">Дизайн карточек товаров • 2026</div></div>
-    <div class="afx-footer-links"><a href="https://t.me/AuraFX_marketplace" target="_blank" rel="noopener">Telegram ↗</a><a href="https://www.avito.ru/brands/9dc551ff2d81a0ee55cfe8690760f5ca" target="_blank" rel="noopener">Avito ↗</a><a href="/privacy">Конфиденциальность</a><a href="/admin">Admin</a></div>
+    <div class="afx-footer-links"><a href="https://t.me/AuraFX_marketplace" target="_blank" rel="noopener">Написать ↗</a><a href="https://t.me/AuraFX_design" target="_blank" rel="noopener">Telegram-канал ↗</a><a href="https://www.avito.ru/brands/9dc551ff2d81a0ee55cfe8690760f5ca" target="_blank" rel="noopener">Avito ↗</a><a href="/privacy">Конфиденциальность</a><a href="/admin">Admin</a></div>
   </div>
 </footer>
 
