@@ -303,19 +303,40 @@ const SITE_TOOLS_HTML = String.raw`
     box-shadow:0 0 0 4px rgba(86,244,173,.08),0 0 16px rgba(86,244,173,.72);
     animation:afxOnlinePulse 2s ease-in-out infinite;
   }
-  #afx-pricing-jump{
-    appearance:none;border:1px solid rgba(162,85,255,.30);cursor:pointer;
+  #afx-pricing-jump, #afx-channel-jump, #afx-news-jump, #afx-cases-jump{
+    appearance:none;border:1px solid rgba(162,85,255,.30);cursor:pointer;text-decoration:none;
     background:linear-gradient(135deg,rgba(151,61,255,.88),rgba(90,42,214,.9));
     box-shadow:0 10px 34px rgba(106,43,224,.28),inset 0 1px rgba(255,255,255,.12);
     transition:transform .2s ease,box-shadow .2s ease;
+    justify-content:center;
   }
-  #afx-pricing-jump:active{transform:scale(.97)}
+  #afx-channel-jump{
+    border-color:rgba(104,205,255,.28);
+    background:linear-gradient(135deg,rgba(71,163,255,.85),rgba(126,60,255,.86));
+    box-shadow:0 10px 34px rgba(63,110,240,.24),inset 0 1px rgba(255,255,255,.12);
+  }
+  #afx-news-jump{
+    border-color:rgba(255,122,196,.24);
+    background:linear-gradient(135deg,rgba(219,71,185,.78),rgba(116,50,224,.88));
+    box-shadow:0 10px 34px rgba(185,50,168,.20),inset 0 1px rgba(255,255,255,.12);
+  }
+  #afx-cases-jump{
+    border-color:rgba(255,176,88,.22);
+    background:linear-gradient(135deg,rgba(255,132,62,.82),rgba(158,61,231,.86));
+    box-shadow:0 10px 34px rgba(212,90,66,.18),inset 0 1px rgba(255,255,255,.12);
+  }
+  #afx-pricing-jump:active, #afx-channel-jump:active, #afx-news-jump:active, #afx-cases-jump:active{transform:scale(.97)}
   #afx-pricing-jump:hover{box-shadow:0 12px 40px rgba(122,54,239,.38),inset 0 1px rgba(255,255,255,.14)}
+  #afx-channel-jump:hover{box-shadow:0 12px 40px rgba(77,132,255,.34),inset 0 1px rgba(255,255,255,.14)}
+  #afx-news-jump:hover{box-shadow:0 12px 40px rgba(204,68,185,.30),inset 0 1px rgba(255,255,255,.14)}
+  #afx-cases-jump:hover{box-shadow:0 12px 40px rgba(222,103,75,.28),inset 0 1px rgba(255,255,255,.14)}
   @keyframes afxOnlinePulse{0%,100%{transform:scale(.9);opacity:.72}50%{transform:scale(1.12);opacity:1}}
-  @media(max-width:520px){
-    #afx-site-tools{bottom:12px;gap:6px;width:calc(100% - 24px)}
-    .afx-tool-pill{min-height:40px;padding:9px 12px;font-size:12px}
-    #afx-online-pill{max-width:46vw;overflow:hidden;text-overflow:ellipsis}
+  @media(max-width:640px){
+    #afx-site-tools{bottom:12px;gap:6px;width:calc(100% - 18px);justify-content:flex-start;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding:2px}
+    #afx-site-tools::-webkit-scrollbar{display:none}
+    .afx-tool-pill{min-height:40px;padding:9px 12px;font-size:12px;flex:0 0 auto}
+    #afx-online-pill{min-width:max-content;max-width:none}
+    #afx-pricing-jump,#afx-channel-jump,#afx-news-jump,#afx-cases-jump{padding-left:12px;padding-right:12px}
   }
   @media(prefers-reduced-motion:reduce){.afx-online-dot{animation:none}}
 </style>
@@ -327,13 +348,19 @@ const SITE_TOOLS_HTML = String.raw`
     <span id="afx-total-text">👥 … всего</span>
   </div>
   <button class="afx-tool-pill" id="afx-pricing-jump" type="button">⚡ Тарифы</button>
+  <a class="afx-tool-pill" id="afx-channel-jump" href="https://t.me/AuraFX_design" target="_blank" rel="noopener">✈ Канал</a>
+  <a class="afx-tool-pill" id="afx-news-jump" href="https://t.me/AuraFX_design" target="_blank" rel="noopener">📣 Новости</a>
+  <button class="afx-tool-pill" id="afx-cases-jump" type="button">🔥 Кейсы</button>
 </div>
 <script>
 (function(){
   var onlineText=document.getElementById('afx-online-text');
   var totalText=document.getElementById('afx-total-text');
   var jump=document.getElementById('afx-pricing-jump');
-  if(!onlineText||!totalText||!jump)return;
+  var channel=document.getElementById('afx-channel-jump');
+  var news=document.getElementById('afx-news-jump');
+  var casesJump=document.getElementById('afx-cases-jump');
+  if(!onlineText||!totalText||!jump||!channel||!news||!casesJump)return;
 
   function makeVisitorId(){
     try{
@@ -383,6 +410,25 @@ const SITE_TOOLS_HTML = String.raw`
 
   jump.addEventListener('click',function(){
     var section=findPricingSection();
+    if(section)section.scrollIntoView({behavior:'smooth',block:'start'});
+  });
+
+  function findCasesSection(){
+    var heads=[].slice.call(document.querySelectorAll('h1,h2,h3,h4,strong,.title,.section-title'));
+    for(var i=0;i<heads.length;i++){
+      var txt=(heads[i].textContent||'').trim().toLowerCase();
+      if(/каталог дизайна|детали решают|рассмотри поближе|портфолио|работы|кейсы/i.test(txt)){
+        var section=heads[i].closest('section,article,div');
+        if(!section)continue;
+        var hops=0;
+        while(section&&section.parentElement&&section.clientHeight<320&&hops<4){section=section.parentElement;hops++;}
+        return section;
+      }
+    }
+    return document.querySelector('[id*="portfolio"],[class*="portfolio"],[id*="case"],[class*="case"]');
+  }
+  casesJump.addEventListener('click',function(){
+    var section=findCasesSection();
     if(section)section.scrollIntoView({behavior:'smooth',block:'start'});
   });
 
