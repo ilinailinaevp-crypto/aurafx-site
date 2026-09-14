@@ -1834,7 +1834,7 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
     <div class="promo-form"><input id="promoInput" autocomplete="off" spellcheck="false" placeholder="Например: AURAFX-10-ABCD"><button id="promoCheckBtn" class="primary" type="button">Проверить код</button></div>
     <input class="promo-note" id="promoRedeemNote" maxlength="120" placeholder="Заметка при погашении — например: Заказ #12 / Иван (необязательно)">
     <div id="promoCheckResult" class="promo-result empty">Введи промокод клиента — я проверю его по базе AuraFX.</div>
-    <div class="promo-actions"><button id="promoRedeemBtn" class="ok hidden-ui" type="button">✓ Погасить промокод</button></div>
+    <div class="promo-actions"><button id="promoRedeemBtn" class="ok hidden-ui" type="button">✓ Погасить промокод</button><button id="promoResetMineBtn" class="warn" type="button">♻️ Сбросить мою Фортуну</button><button id="promoResetCodeBtn" class="danger hidden-ui" type="button">Сбросить по промокоду</button></div>
     <div class="sub" style="margin-top:18px">Последние выданные промокоды</div>
     <div id="promoHistory" class="promo-history"><div class="empty">Загружаем промокоды…</div></div>
   </div>
@@ -1877,8 +1877,8 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
   }
   async function loadPromos(){var d=await api('/api/admin/promos');promos=d.promos||[];renderPromoHistory()}
   function renderPromoCheck(p){
-    checkedPromo=p||null;var box=$('#promoCheckResult'),redeem=$('#promoRedeemBtn');
-    if(!p){box.className='promo-result empty';box.textContent='Промокод не найден в базе AuraFX. Скорее всего, клиент придумал его сам.';redeem.classList.add('hidden-ui');return}
+    checkedPromo=p||null;var box=$('#promoCheckResult'),redeem=$('#promoRedeemBtn'),resetCode=$('#promoResetCodeBtn');
+    if(!p){box.className='promo-result empty';box.textContent='Промокод не найден в базе AuraFX. Скорее всего, клиент придумал его сам.';redeem.classList.add('hidden-ui');resetCode&&resetCode.classList.add('hidden-ui');return}
     var status=p.status||'expired',badge='<span class="badge '+promoStatusClass(status)+'">'+promoStatusLabel(status)+'</span>';
     var html='<div class="promo-main"><div><div class="promo-code">'+esc(p.code)+'</div><div class="promo-info">Скидка: <b>'+esc(String(p.discount))+'%</b><br>Выдан: '+new Date(p.created_at+'Z').toLocaleString('ru-RU')+'<br>Действует до: '+new Date(p.expires_at+'Z').toLocaleString('ru-RU');
     if(p.redeemed_at)html+='<br>Погашен: '+new Date(p.redeemed_at+'Z').toLocaleString('ru-RU');
@@ -1886,6 +1886,7 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
     html+='</div></div>'+badge+'</div>';
     box.className='promo-result';box.innerHTML=html;
     redeem.classList.toggle('hidden-ui',status!=='active');
+    if(resetCode)resetCode.classList.remove('hidden-ui');
   }
   async function checkPromo(){
     var code=String($('#promoInput').value||'').trim().toUpperCase();if(!code){renderPromoCheck(null);$('#promoCheckResult').textContent='Сначала введи промокод.';return}
@@ -1924,6 +1925,33 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
     if(!confirm('Погасить '+checkedPromo.code+' на '+checkedPromo.discount+'%? После этого код нельзя будет использовать повторно.'))return;
     var b=this;b.disabled=true;
     try{var d=await api('/api/admin/promo/redeem',{method:'POST',body:JSON.stringify({code:checkedPromo.code,note:$('#promoRedeemNote').value})});renderPromoCheck(d.promo);await loadPromos();toast('Промокод погашен')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}
+  });
+  $('#promoResetMineBtn').addEventListener('click',async function(){
+    if(!confirm('Сбросить твою текущую попытку Фортуны? Активные тестовые промокоды с этого подключения за последние 7 дней будут удалены, и колесо можно будет крутить снова.'))return;
+    var b=this;b.disabled=true;
+    try{
+      var d=await api('/api/admin/promo/reset-mine',{method:'POST',body:'{}'});
+      try{localStorage.removeItem('afx_promo')}catch(e){}
+      checkedPromo=null;$('#promoInput').value='';$('#promoRedeemNote').value='';
+      $('#promoCheckResult').className='promo-result empty';
+      $('#promoCheckResult').textContent=d.removed?('Готово. Удалено тестовых попыток: '+d.removed+'. Колесо снова доступно.'):'Для текущего подключения активной попытки не найдено. Если крутил колесо с другого IP, используй «Сбросить по промокоду».';
+      $('#promoRedeemBtn').classList.add('hidden-ui');$('#promoResetCodeBtn').classList.add('hidden-ui');
+      await loadPromos();toast(d.removed?'Фортуна сброшена':'Активная попытка не найдена');
+    }catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}
+  });
+  $('#promoResetCodeBtn').addEventListener('click',async function(){
+    if(!checkedPromo||!checkedPromo.code)return;
+    var code=checkedPromo.code;
+    if(!confirm('Удалить '+code+' из тестовой истории и снять связанную с ним перезарядку? Это действие нельзя отменить.'))return;
+    var b=this;b.disabled=true;
+    try{
+      var d=await api('/api/admin/promo/reset-code',{method:'POST',body:JSON.stringify({code:code})});
+      try{var p=JSON.parse(localStorage.getItem('afx_promo')||'null');if(p&&String(p.code||'').toUpperCase()===String(code).toUpperCase())localStorage.removeItem('afx_promo')}catch(e){}
+      checkedPromo=null;$('#promoInput').value='';$('#promoRedeemNote').value='';
+      $('#promoCheckResult').className='promo-result empty';$('#promoCheckResult').textContent='Промокод '+code+' удалён. Связанная попытка Фортуны снова доступна.';
+      $('#promoRedeemBtn').classList.add('hidden-ui');b.classList.add('hidden-ui');
+      await loadPromos();toast('Промокод сброшен');
+    }catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}
   });
   $('#leadList').addEventListener('click',async function(e){var b=e.target.closest('button[data-lead-status]');if(!b)return;var card=b.closest('[data-lead-id]');b.disabled=true;try{await api('/api/admin/leads/'+card.dataset.leadId,{method:'PATCH',body:JSON.stringify({status:b.dataset.leadStatus})});await Promise.all([loadLeads(),loadDashboard()]);toast('Статус обновлён')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#list').addEventListener('click',async function(e){var b=e.target.closest('button[data-action]');if(!b)return;var card=b.closest('[data-id]'),id=card.dataset.id,action=b.dataset.action;if(action==='delete'&&!confirm('Удалить отзыв навсегда?'))return;b.disabled=true;try{if(action==='delete')await api('/api/admin/reviews/'+id,{method:'DELETE'});else await api('/api/admin/reviews/'+id,{method:'PATCH',body:JSON.stringify({status:action})});await Promise.all([loadReviews(),loadDashboard()])}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
@@ -2565,6 +2593,24 @@ async function handleAdminApi(request, env, url, ctx) {
     return json({ok:true,promo});
   }
 
+  if (url.pathname === "/api/admin/promo/reset-mine" && request.method === "POST") {
+    const ipHash = await hashIp(request);
+    const rows = await env.DB.prepare(`SELECT id,promo_code FROM promo_spins WHERE ip_hash=? AND datetime(created_at) > datetime('now','-7 days') ORDER BY datetime(created_at) DESC,id DESC`).bind(ipHash).all();
+    const items = rows.results || [];
+    if (items.length) await env.DB.prepare("DELETE FROM promo_spins WHERE ip_hash=? AND datetime(created_at) > datetime('now','-7 days')").bind(ipHash).run();
+    return json({ok:true,removed:items.length,codes:items.map(x=>x.promo_code)});
+  }
+
+  if (url.pathname === "/api/admin/promo/reset-code" && request.method === "POST") {
+    let body={};try{body=await request.json()}catch{}
+    const code=String(body.code||"").trim().toUpperCase();
+    if(!code||code.length>80)return json({error:"Некорректный промокод."},400);
+    const row=await env.DB.prepare("SELECT id,promo_code,ip_hash FROM promo_spins WHERE upper(promo_code)=? LIMIT 1").bind(code).first();
+    if(!row)return json({error:"Промокод не найден."},404);
+    await env.DB.prepare("DELETE FROM promo_spins WHERE id=?").bind(Number(row.id)).run();
+    return json({ok:true,removed:1,code:String(row.promo_code||code)});
+  }
+
   if (url.pathname === "/api/admin/leads" && request.method === "GET") {
     const result=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,contact,comment,status,source,medium,campaign,content,referrer,landing,created_at FROM leads ORDER BY datetime(created_at) DESC,id DESC LIMIT 300").all();
     return json({leads:result.results||[]});
@@ -2635,3 +2681,5 @@ export default {
 // direct order button upgrade
 
 // AuraFX Fortune V3.1: exact prize alignment + Fortune quick-jump fix
+
+// AuraFX Admin Fortune Reset: reset current IP cooldown + reset by promo code
