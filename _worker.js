@@ -2250,10 +2250,10 @@ const PRIVACY_HTML = String.raw`<!doctype html><html lang="ru"><head><meta chars
 
 const HEADER_EXCLUSIVE_LOGO_HTML = String.raw`
 <style>
-  .afx-logo-safe-target{position:relative!important;overflow:hidden!important;color:transparent!important;font-size:0!important;}
-  .afx-logo-safe-target::before,.afx-logo-safe-target::after{display:none!important;content:none!important;}
-  .afx-logo-safe-target > *:not(.afx-logo-safe-img){display:none!important;}
-  .afx-logo-safe-img{position:absolute!important;inset:2px!important;width:calc(100% - 4px)!important;height:calc(100% - 4px)!important;object-fit:contain!important;border-radius:inherit!important;display:block!important;z-index:5!important;pointer-events:none!important;}
+  /* Header logo is rendered inline in index.html: no network request, no decode delay, no DOM replacement. */
+  .brand .mark{display:block!important;flex:0 0 36px!important;width:36px!important;height:36px!important;border-radius:12px!important;overflow:hidden!important;line-height:0!important;color:inherit!important;font-size:inherit!important;position:relative!important;}
+  .brand .mark svg{display:block!important;width:100%!important;height:100%!important;}
+  .brand .mark img{display:none!important;}
 
   /* Safari/iPhone safety: never let reveal/effects keep content invisible. */
   html.afx-ios .afx-reveal-prep,
@@ -2269,99 +2269,12 @@ const HEADER_EXCLUSIVE_LOGO_HTML = String.raw`
 </style>
 <script>
 (function(){
-  var LOGO_SRC="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2064%2064%22%3E%3Cdefs%3E%3ClinearGradient%20id%3D%22g%22%20x1%3D%2210%22%20y1%3D%2254%22%20x2%3D%2254%22%20y2%3D%2210%22%20gradientUnits%3D%22userSpaceOnUse%22%3E%3Cstop%20stop-color%3D%22%2359e7ff%22%2F%3E%3Cstop%20offset%3D%22.48%22%20stop-color%3D%22%239d59ff%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ff72d7%22%2F%3E%3C%2FlinearGradient%3E%3Cfilter%20id%3D%22s%22%3E%3CfeGaussianBlur%20stdDeviation%3D%221.2%22%2F%3E%3C%2Ffilter%3E%3C%2Fdefs%3E%3Crect%20x%3D%222%22%20y%3D%222%22%20width%3D%2260%22%20height%3D%2260%22%20rx%3D%2217%22%20fill%3D%22%230a0611%22%20stroke%3D%22%238f4fff%22%20stroke-opacity%3D%22.48%22%2F%3E%3Cpath%20d%3D%22M16%2047%2029%2016h7l12%2031h-8l-2.8-7H26.4l-2.8%207Zm13.2-14h5.4L32%2025.2Z%22%20fill%3D%22url%28%23g%29%22%2F%3E%3Cpath%20d%3D%22M43%2016h6v6%22%20fill%3D%22none%22%20stroke%3D%22%2369eaff%22%20stroke-width%3D%223.5%22%20stroke-linecap%3D%22round%22%2F%3E%3Ccircle%20cx%3D%2249%22%20cy%3D%2215%22%20r%3D%222.2%22%20fill%3D%22%23fff%22%20opacity%3D%22.9%22%20filter%3D%22url%28%23s%29%22%2F%3E%3C%2Fsvg%3E";
   var ua=navigator.userAgent||'';
   var isiOS=/iP(?:hone|ad|od)/.test(ua) || (navigator.platform==='MacIntel' && navigator.maxTouchPoints>1);
   if(isiOS)document.documentElement.classList.add('afx-ios');
-
-  function favicon(){
-    try{
-      var link=document.querySelector('link[rel="icon"]')||document.createElement('link');
-      link.rel='icon';link.type='image/webp';link.href=LOGO_SRC;
-      if(!link.parentNode)document.head.appendChild(link);
-    }catch(e){}
-  }
-
-  function installLogo(){
-    try{
-      /* Prefer the real brand mark. The old heuristic searched for any exact
-         letter \"A\" near the top-left and could occasionally pick the wrong
-         node after portfolio/layout upgrades. */
-      var best=document.querySelector('header .brand .mark, nav .brand .mark, .nav .brand .mark, .brand .mark');
-
-      if(!best){
-        var nodes=document.querySelectorAll('header *, nav *');
-        var bestScore=1e9;
-        for(var i=0;i<nodes.length && i<220;i++){
-          var el=nodes[i];
-          if(el.dataset && el.dataset.afxLogoSafe==='1')return true;
-          var t=(el.textContent||'').replace(/\s+/g,' ').trim();
-          if(t!=='A')continue;
-          var r=el.getBoundingClientRect();
-          if(r.top<0||r.top>190||r.left<0||r.left>190)continue;
-          if(r.width<30||r.width>96||r.height<30||r.height>96)continue;
-          var s=Math.abs(r.width-r.height)+Math.abs(r.width-36)+r.left*.05+r.top*.05;
-          if(s<bestScore){best=el;bestScore=s}
-        }
-      }
-
-      if(!best)return false;
-      if(best.dataset && best.dataset.afxLogoSafe==='1')return true;
-
-      /* Keep the original A visible until the custom image has actually
-         decoded. If the image ever fails, the header never becomes blank. */
-      var probe=new Image();
-      probe.decoding='async';
-      probe.onload=function(){
-        try{
-          if(!best || !best.isConnected)return;
-          best.dataset.afxLogoSafe='1';
-          best.classList.add('afx-logo-safe-target');
-          best.innerHTML='';
-          var logo=document.createElement('img');
-          logo.className='afx-logo-safe-img';
-          logo.src=LOGO_SRC;
-          logo.alt='AuraFX';
-          logo.decoding='async';
-          logo.onerror=function(){
-            try{
-              best.classList.remove('afx-logo-safe-target');
-              delete best.dataset.afxLogoSafe;
-              best.innerHTML='A';
-            }catch(e){}
-          };
-          best.appendChild(logo);
-        }catch(e){}
-      };
-      probe.onerror=function(){
-        try{
-          best.classList.remove('afx-logo-safe-target');
-          delete best.dataset.afxLogoSafe;
-          if(!(best.textContent||'').trim())best.textContent='A';
-        }catch(e){}
-      };
-      probe.src=LOGO_SRC;
-      return true;
-    }catch(e){return false}
-  }
-
-  favicon();
-  function start(){
-    /* First paint wins. Logo is secondary and must never block the page. */
-    requestAnimationFrame(function(){
-      requestAnimationFrame(function(){
-        if(installLogo())return;
-        setTimeout(installLogo,900);
-      });
-    });
-    /* Absolute reveal fail-safe for Safari/WebViews. */
-    setTimeout(function(){
-      try{
-        document.querySelectorAll('.afx-reveal-prep').forEach(function(el){el.classList.remove('afx-reveal-prep')});
-      }catch(e){}
-    },1400);
-  }
-  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',start,{once:true});else start();
+  setTimeout(function(){
+    try{document.querySelectorAll('.afx-reveal-prep').forEach(function(el){el.classList.remove('afx-reveal-prep')})}catch(e){}
+  },1400);
 })();
 </script>`;
 
