@@ -920,15 +920,26 @@ const SHOWCASE_FLOAT_HTML = String.raw`
   function unique(list, el){ if(el && list.indexOf(el)===-1) list.push(el); }
 
   function findShowcaseCards(section){
+    /* The portfolio upgrade marks every real work card with afx-case-ready.
+       Prefer those markers: they survive text/layout changes and keep the
+       three hero cards animated even after the case-story UI is injected. */
+    var ready=[].slice.call(document.querySelectorAll('.afx-case-ready')).filter(function(el){
+      var r=el.getBoundingClientRect();
+      return r.width>=90 && r.height>=120;
+    });
+    if(ready.length>=3){
+      ready.sort(function(a,b){
+        var ra=a.getBoundingClientRect(), rb=b.getBoundingClientRect();
+        return (ra.top-rb.top)||(ra.left-rb.left);
+      });
+      return ready.slice(0,3);
+    }
     if(!section) return [];
     var nodes=[].slice.call(section.querySelectorAll('article,div,a,li'));
     nodes=nodes.filter(function(el){
-      var txt=(el.textContent||'').replace(/\s+/g,' ').trim();
-      if(!/карточка/i.test(txt)) return false;
       var r=el.getBoundingClientRect();
-      if(r.width < 90 || r.height < 120) return false;
-      if(el.children.length < 1) return false;
-      return true;
+      if(r.width<90 || r.height<120 || el.children.length<1) return false;
+      return !!el.querySelector('img') || /карточка|слайд|кейс/i.test((el.textContent||''));
     });
     nodes=nodes.filter(function(el){
       return !nodes.some(function(other){ return other!==el && el.contains(other); });
@@ -989,16 +1000,27 @@ const SHOWCASE_FLOAT_HTML = String.raw`
     requestAnimationFrame(frame);
   }
 
+  var started=false;
   function init(){
-    var sec=headingSection(/детали решают|рассмотри поближе|каталог дизайна/i);
-    if(!sec) return;
+    if(started)return true;
+    var sec=headingSection(/детали решают|рассмотри поближе|каталог дизайна|портфолио|работы|кейсы/i);
     var cards=findShowcaseCards(sec);
+    if(cards.length<3)return false;
+    started=true;
     cards.forEach(preloadCardAssets);
     initFloat(cards);
+    return true;
   }
 
-  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', init, {once:true});
-  else init();
+  function boot(){
+    if(init())return;
+    var tries=0,t=setInterval(function(){
+      tries++;
+      if(init()||tries>=24)clearInterval(t);
+    },250);
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', boot, {once:true});
+  else boot();
 })();
 </script>`;
 
@@ -1546,27 +1568,70 @@ const PROMO_WHEEL_HTML = String.raw`
     // The wheel artwork/labels start at -90deg. Bring the selected sector center to the fixed top pointer (0deg).
     return normalizeDeg(90-sectorCenter);
   }
+  let spinRaf=0;
   function alignWheelTo(index,animate){
-    if(!wheel||index<0)return;
+    if(!wheel||index<0)return animate?Promise.resolve():undefined;
     const target=prizeRotation(index);
     if(!animate){
+      if(spinRaf)cancelAnimationFrame(spinRaf);
+      spinRaf=0;
       wheel.style.transition='none';
       rotation=target;
       wheel.style.transform='rotate('+target+'deg)';
       void wheel.offsetWidth;
-      wheel.style.transition='';
       return;
     }
-    const current=normalizeDeg(rotation);
+    if(spinRaf)cancelAnimationFrame(spinRaf);
+    const startRotation=rotation;
+    const current=normalizeDeg(startRotation);
     const delta=normalizeDeg(target-current);
-    const finalRotation=rotation+(360*7)+delta;
-    rotation=finalRotation;
-    wheel.style.transform='rotate('+finalRotation+'deg)';
+    const finalRotation=startRotation+(360*7)+delta;
+    const duration=6600;
+    wheel.style.transition='none';
+    return new Promise(resolve=>{
+      const started=performance.now();
+      function frame(now){
+        const raw=Math.min(1,(now-started)/duration);
+        /* Smooth acceleration, long readable spin, then soft braking. */
+        const eased=raw<.18
+          ? 4.2*raw*raw
+          : 1-Math.pow(1-((raw-.18)/.82),4)*(.864);
+        const progress=Math.max(0,Math.min(1,eased));
+        const angle=startRotation+(finalRotation-startRotation)*progress;
+        wheel.style.transform='rotate('+angle.toFixed(3)+'deg)';
+        if(raw<1){spinRaf=requestAnimationFrame(frame);return;}
+        rotation=finalRotation;
+        wheel.style.transform='rotate('+finalRotation+'deg)';
+        spinRaf=0;
+        resolve();
+      }
+      spinRaf=requestAnimationFrame(frame);
+    });
   }
   function setState(data){ currentState=data||{can_spin:true}; if(data && data.can_spin){ status.textContent='Колесо готово. Жми кнопку под ним ✨'; inlineNote.textContent='Попытка доступна прямо сейчас.'; result.classList.remove('show'); spinBtn.textContent='🎡 Крутить колесо'; spinBtn.disabled=false; } else if(data){ const idx=prizes.findIndex(p=>Number(p.discount)===Number(data.discount)); if(idx>=0) alignWheelTo(idx,false); status.textContent='Новая попытка будет доступна '+fmtDate(data.next_at)+'. Бонус уже зафиксирован за тобой.'; spinBtn.textContent='⏳ Попытка на перезарядке'; spinBtn.disabled=true; showResult({label:data.label||((data.discount||0)+'%'),discount:data.discount,code:data.code,next_at:data.next_at},true); } }
   async function loadState(){ try{ const res=await fetch('/api/promo',{headers:{accept:'application/json'},cache:'no-store'}); const data=await res.json(); if(!res.ok) throw new Error(data.error||'Не удалось загрузить колесо'); setState(data); }catch(err){ status.textContent=err.message||'Колесо временно недоступно'; inlineNote.textContent='Колесо временно недоступно'; spinBtn.disabled=true; } }
-  function animateTo(index){ alignWheelTo(index,true); }
-  async function spin(){ if(spinning||!currentState.can_spin) return; spinning=true; spinBtn.disabled=true; spinBtn.textContent='Кручу…'; status.textContent='Колесо разгоняется — ловим бонус ✨'; wheel.classList.add('is-spinning'); if(wheelWrap) wheelWrap.classList.add('is-spinning'); try{ const res=await fetch('/api/promo',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:'{}'}); const data=await res.json(); if(!res.ok) throw new Error(data.error||'Не удалось прокрутить колесо'); if(data.already){ wheel.classList.remove('is-spinning'); if(wheelWrap) wheelWrap.classList.remove('is-spinning'); setState(data); return; } const index=Math.max(0,prizes.findIndex(p=>Number(p.discount)===Number(data.discount))); animateTo(index); setTimeout(()=>{ const payload={label:data.label||data.discount+'%',discount:data.discount,code:data.code,next_at:data.next_at}; wheel.classList.remove('is-spinning'); if(wheelWrap) wheelWrap.classList.remove('is-spinning'); showResult(payload,false); burst(Number(data.discount)>=20); status.textContent=Number(data.discount)>=20?'Редкий SUPER BONUS пойман 🔥 Скидка зафиксирована.':'Готово. Скидка зафиксирована — можешь использовать код.'; currentState=Object.assign({can_spin:false},payload); spinBtn.textContent='✅ Скидка получена'; spinBtn.disabled=true; },6900); }catch(err){ wheel.classList.remove('is-spinning'); if(wheelWrap) wheelWrap.classList.remove('is-spinning'); status.textContent=err.message||'Не удалось прокрутить колесо'; spinBtn.disabled=false; spinBtn.textContent='🎡 Крутить колесо'; } finally{ setTimeout(()=>{spinning=false},7000); } }
+  function animateTo(index){ return alignWheelTo(index,true); }
+  async function spin(){
+    if(spinning||!currentState.can_spin)return;
+    spinning=true;spinBtn.disabled=true;spinBtn.textContent='Кручу…';status.textContent='Колесо разгоняется — ловим бонус ✨';
+    wheel.classList.add('is-spinning');if(wheelWrap)wheelWrap.classList.add('is-spinning');
+    try{
+      const res=await fetch('/api/promo',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:'{}'});
+      const data=await res.json();
+      if(!res.ok)throw new Error(data.error||'Не удалось прокрутить колесо');
+      if(data.already){setState(data);return;}
+      const index=Math.max(0,prizes.findIndex(p=>Number(p.discount)===Number(data.discount)));
+      await animateTo(index);
+      const payload={label:data.label||data.discount+'%',discount:data.discount,code:data.code,next_at:data.next_at};
+      showResult(payload,false);burst(Number(data.discount)>=20);
+      status.textContent=Number(data.discount)>=20?'Редкий SUPER BONUS пойман 🔥 Скидка зафиксирована.':'Готово. Скидка зафиксирована — можешь использовать код.';
+      currentState=Object.assign({can_spin:false},payload);spinBtn.textContent='✅ Скидка получена';spinBtn.disabled=true;
+    }catch(err){
+      status.textContent=err.message||'Не удалось прокрутить колесо';spinBtn.disabled=false;spinBtn.textContent='🎡 Крутить колесо';
+    }finally{
+      wheel.classList.remove('is-spinning');if(wheelWrap)wheelWrap.classList.remove('is-spinning');spinning=false;
+    }
+  }
   async function copyCode(){ const saved=getPromoStorage(); if(!saved.code) { status.textContent='Сначала получи бонус на колесе'; return; } try{ await navigator.clipboard.writeText(saved.code); status.textContent='Промокод скопирован ✔'; inlineNote.textContent='Промокод скопирован — можно отправлять в заявку'; }catch(e){ status.textContent='Не удалось скопировать, но код виден на экране.'; } }
   async function useCode(){ const saved=getPromoStorage(); if(!saved.code){ status.textContent='Сначала выбей скидку'; return; } injectPromoIntoBrief(); await copyCode(); const openBriefBtn=document.getElementById('afx-open-brief'); if(openBriefBtn) openBriefBtn.click(); inlineNote.textContent='Промокод готов. Он уже подставлен в заявку.'; }
   setTimeout(()=>{try{const cta=document.getElementById('afx-premium-cta');const reviews=document.getElementById('aurafx-reviews');if(cta&&cta.parentNode){cta.parentNode.insertBefore(section,cta)}else if(reviews&&reviews.parentNode){reviews.parentNode.insertBefore(section,reviews)}}catch(e){}},0);
@@ -1752,6 +1817,91 @@ const CASE_STORY_UPGRADE_HTML = String.raw`
   }
   function addBadges(){[].slice.call(document.querySelectorAll('.afx-case-ready')).forEach(function(el){if(el.querySelector('.afx-pack-badge'))return;var b=document.createElement('span');b.className='afx-pack-badge';b.textContent='5 слайдов · открыть';el.appendChild(b)})}
   var tries=0,t=setInterval(function(){tries++;addBadges();if(initStory()&&tries>4){clearInterval(t)}else if(tries>24){clearInterval(t)}},250);setTimeout(addBadges,1400);
+})();
+</script>`;
+
+const CASE_REAL_SLIDES_HTML = String.raw`
+<style>
+  .afx-story-stage{--afx-case-accent:#a95cff;--afx-case-accent2:#55ddff}
+  .afx-story-slide.afx-realized{background:linear-gradient(145deg,#12091d,#08050d)}
+  .afx-real-art{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+  .afx-real-art:before{content:"";position:absolute;width:270px;height:270px;border-radius:50%;right:-90px;top:-80px;background:var(--afx-case-accent);filter:blur(86px);opacity:.18}
+  .afx-real-art:after{content:"";position:absolute;width:220px;height:220px;border-radius:50%;left:-90px;bottom:-90px;background:var(--afx-case-accent2);filter:blur(90px);opacity:.1}
+  .afx-real-content{position:relative;z-index:3;height:100%;box-sizing:border-box;padding:31px;display:flex;flex-direction:column}
+  .afx-real-kicker{display:flex;align-items:center;justify-content:space-between;gap:12px;color:#bdb0c9;font:900 9px/1 system-ui,sans-serif;letter-spacing:.16em;text-transform:uppercase}
+  .afx-real-kicker span:last-child{padding:7px 9px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.045);color:#fff}
+  .afx-real-title{margin:22px 0 8px;font-size:clamp(29px,4.6vw,47px);line-height:.94;letter-spacing:-.05em;font-weight:950;color:#fff}
+  .afx-real-sub{margin:0;color:#a99db5;font-size:12px;line-height:1.5;max-width:390px}
+  .afx-real-product{position:relative;margin:19px 0 0;min-height:160px;flex:1;border-radius:22px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background-position:center;background-size:cover;box-shadow:0 18px 54px rgba(0,0,0,.28)}
+  .afx-real-product:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,4,14,.02),rgba(8,4,14,.14) 46%,rgba(8,4,14,.84));z-index:1}
+  .afx-real-product:after{content:"";position:absolute;inset:0;border:1px solid rgba(255,255,255,.05);border-radius:inherit;z-index:2;pointer-events:none}
+  .afx-real-tags{position:absolute;z-index:3;left:13px;right:13px;bottom:13px;display:flex;gap:7px;flex-wrap:wrap}
+  .afx-real-tags span{padding:7px 9px;border-radius:999px;background:rgba(10,5,18,.76);border:1px solid rgba(255,255,255,.1);backdrop-filter:blur(9px);color:#eee8f4;font:850 8px/1 system-ui,sans-serif}
+  .afx-real-spec-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-top:auto;padding-top:18px}
+  .afx-real-spec{position:relative;overflow:hidden;min-height:86px;padding:14px;border-radius:17px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.024))}
+  .afx-real-spec:before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--afx-case-accent);opacity:.75}
+  .afx-real-spec b{display:block;font-size:13px;color:#fff}.afx-real-spec span{display:block;margin-top:6px;color:#92869e;font-size:9px;line-height:1.35}
+  .afx-real-benefit-list{display:grid;gap:9px;margin-top:auto;padding-top:20px}
+  .afx-real-benefit{display:grid;grid-template-columns:40px 1fr;gap:12px;align-items:center;padding:12px 13px;border-radius:17px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.035)}
+  .afx-real-benefit i{width:40px;height:40px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,var(--afx-case-accent),#402079);color:#fff;font:950 11px/1 system-ui,sans-serif;font-style:normal;box-shadow:0 8px 24px rgba(91,36,167,.25)}
+  .afx-real-benefit b{display:block;font-size:12px}.afx-real-benefit span{display:block;margin-top:3px;color:#8f8499;font-size:9px;line-height:1.35}
+  .afx-real-detail{position:relative;margin-top:19px;flex:1;min-height:218px;border-radius:22px;overflow:hidden;background-position:center;background-size:160%;border:1px solid rgba(255,255,255,.1)}
+  .afx-real-detail:before{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,4,14,.06),rgba(8,4,14,.32) 47%,rgba(8,4,14,.9))}
+  .afx-real-callouts{position:absolute;z-index:3;left:12px;right:12px;bottom:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .afx-real-callout{padding:10px;border-radius:13px;background:rgba(9,5,15,.78);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(8px)}
+  .afx-real-callout b{display:block;font-size:9px}.afx-real-callout span{display:block;margin-top:3px;color:#8e8299;font-size:7px;line-height:1.3}
+  .afx-real-pack{display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:22px}
+  .afx-real-pack-card{position:relative;aspect-ratio:4/5;border-radius:12px;overflow:hidden;border:1px solid rgba(255,255,255,.1);background-position:center;background-size:cover}
+  .afx-real-pack-card:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,4,14,.18),rgba(8,4,14,.72))}
+  .afx-real-pack-card span{position:absolute;z-index:2;left:7px;right:7px;bottom:7px;color:#f3edf7;font:850 6.5px/1.15 system-ui,sans-serif}
+  .afx-real-final{margin-top:auto;padding:17px;border-radius:19px;border:1px solid rgba(255,255,255,.09);background:linear-gradient(135deg,rgba(169,92,255,.13),rgba(85,221,255,.055))}
+  .afx-real-final b{display:block;font-size:17px}.afx-real-final span{display:block;margin-top:7px;color:#9b90a6;font-size:10px;line-height:1.45}
+  @media(max-width:760px){.afx-real-content{padding:24px}.afx-real-title{font-size:33px}.afx-real-product{min-height:145px}.afx-real-spec{min-height:74px;padding:11px}.afx-real-callouts{grid-template-columns:1fr}.afx-real-callout:nth-child(n+2){display:none}}
+</style>
+<script>
+(function(){
+  function esc(v){return String(v||'').replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+  function profileFor(name){
+    var t=String(name||'').toLowerCase();
+    var p={kind:'товар',accent:'#a95cff',accent2:'#55ddff',lead:'Показываем товар последовательно: от ключевых особенностей к деталям и сценарию использования.',specs:['Материал','Конструкция','Комплектация','Сценарий'],benefits:['Главный акцент','Понятная польза','Детали выбора'],details:['Материал','Комплектация','Особенность'],final:'Полный комплект раскрывает товар шаг за шагом.'};
+    if(/колонк|speaker|акустик/.test(t))p={kind:'аудио',accent:'#8e63ff',accent2:'#5ae5ff',lead:'В следующих карточках раскрываем звук, управление и способы подключения без перегруза текста.',specs:['Акустика','Управление','Подключение','Форм-фактор'],benefits:['Звук в центре','Сценарии использования','Удобное управление'],details:['Корпус','Органы управления','Разъёмы'],final:'Серия ведёт от эмоции на обложке к пониманию аудиосистемы.'};
+    else if(/наушник|headphone|earbud|гарнитур/.test(t))p={kind:'наушники',accent:'#9e57ff',accent2:'#52dfff',lead:'Показываем посадку, элементы управления и ключевые зоны, которые покупатель хочет рассмотреть до заказа.',specs:['Посадка','Амбушюры','Управление','Подключение'],benefits:['Комфортный образ','Понятное управление','Сценарий на каждый день'],details:['Чашки','Оголовье','Кнопки'],final:'Комплект соединяет стиль, комфорт и понятную демонстрацию деталей.'};
+    else if(/кепк|бейсбол|cap|шапк|панам/.test(t))p={kind:'аксессуар',accent:'#ff7b66',accent2:'#b26cff',lead:'Карточки показывают посадку, материал и детали отделки так, как их оценивают при выборе аксессуара.',specs:['Материал','Посадка','Форма','Детали'],benefits:['Образ целиком','Посадка на человеке','Акцент на отделке'],details:['Ткань','Застёжка','Эмблема'],final:'Серия раскрывает аксессуар от общего образа до мелких деталей.'};
+    else if(/кроссов|ботин|обув|sneaker|shoe/.test(t))p={kind:'обувь',accent:'#70d8ff',accent2:'#9e5cff',lead:'Показываем конструкцию обуви, посадку и важные зоны крупным планом.',specs:['Материал','Подошва','Посадка','Детали'],benefits:['Силуэт','Комфорт в образе','Практичные детали'],details:['Верх','Подошва','Шнуровка'],final:'Слайды раскрывают обувь от силуэта до конструктивных деталей.'};
+    else if(/час|watch|смарт/.test(t))p={kind:'гаджет',accent:'#5fdcff',accent2:'#9f59ff',lead:'Экран, корпус и управление получают отдельные акценты — покупатель быстро понимает устройство.',specs:['Экран','Управление','Корпус','Ремешок'],benefits:['Интерфейс','На руке','Быстрый доступ'],details:['Дисплей','Кнопки','Крепление'],final:'Комплект ведёт от премиальной обложки к понятному знакомству с гаджетом.'};
+    else if(/ламп|светиль|light/.test(t))p={kind:'свет',accent:'#ffd36a',accent2:'#9b62ff',lead:'Визуально раскрываем свет, управление и то, как предмет выглядит в интерьере.',specs:['Свет','Управление','Корпус','Сценарий'],benefits:['Атмосфера','Рабочая зона','Простой контроль'],details:['Плафон','Основание','Управление'],final:'История показывает не только предмет, но и его роль в пространстве.'};
+    else if(/клавиат|мыш|mouse|keyboard/.test(t))p={kind:'периферия',accent:'#61e1ff',accent2:'#a353ff',lead:'Отдельно показываем управление, подключение и эргономику — то, что важно при выборе периферии.',specs:['Управление','Подключение','Эргономика','Подсветка'],benefits:['Рабочий сценарий','Быстрый контроль','Визуальный стиль'],details:['Клавиши','Корпус','Интерфейсы'],final:'Серия объединяет техническую подачу и понятные пользовательские сценарии.'};
+    else if(/рюкзак|сумк|bag|backpack/.test(t))p={kind:'сумка',accent:'#b171ff',accent2:'#63e5d2',lead:'Показываем материал, организацию пространства и фурнитуру крупным планом.',specs:['Материал','Отделения','Фурнитура','Посадка'],benefits:['Организация вещей','Комфорт в носке','Детали конструкции'],details:['Ткань','Молнии','Карман'],final:'Комплект помогает оценить и внешний вид, и практичность.'};
+    else if(/термос|бутыл|bottle|кружк/.test(t))p={kind:'посуда',accent:'#59dcff',accent2:'#7d6cff',lead:'Карточки последовательно показывают корпус, крышку и удобство ежедневного использования.',specs:['Корпус','Крышка','Формат','Уход'],benefits:['В руке','В дороге','Понятная конструкция'],details:['Покрытие','Крышка','Горлышко'],final:'Слайды раскрывают предмет через форму, детали и повседневный сценарий.'};
+    else if(/крем|сыворот|космет|шампун|beauty/.test(t))p={kind:'beauty',accent:'#ff75b9',accent2:'#b777ff',lead:'Делаем акцент на формате продукта, текстуре, упаковке и понятной последовательности использования.',specs:['Формат','Текстура','Применение','Упаковка'],benefits:['Визуальный эффект','Понятный ритуал','Акцент на продукте'],details:['Флакон','Дозатор','Текстура'],final:'Комплект выстраивает аккуратную beauty-историю без перегруза обещаниями.'};
+    return p;
+  }
+  function setBg(el,src){if(el)el.style.backgroundImage='url('+JSON.stringify(String(src||''))+')'}
+  function cards(labels,src){return labels.map(function(x){return '<div class="afx-real-pack-card"><span>'+esc(x)+'</span></div>'}).join('')}
+  function render(){
+    var stage=document.querySelector('#afx-case-modal .afx-story-stage'),title=document.getElementById('afx-case-title'),img=document.getElementById('afx-case-image');
+    if(!stage||!title||!img)return false;
+    var specs=stage.querySelector('.afx-story-slide.specs'),benefits=stage.querySelector('.afx-story-slide.benefits'),details=stage.querySelector('.afx-story-slide.details'),finalSlide=stage.querySelector('.afx-story-slide.final');
+    if(!specs||!benefits||!details||!finalSlide)return false;
+    var name=(title.textContent||'Товар AuraFX').trim(),src=img.currentSrc||img.src||'',p=profileFor(name);
+    stage.style.setProperty('--afx-case-accent',p.accent);stage.style.setProperty('--afx-case-accent2',p.accent2);
+    specs.classList.add('afx-realized');benefits.classList.add('afx-realized');details.classList.add('afx-realized');finalSlide.classList.add('afx-realized');
+    specs.innerHTML='<div class="afx-real-art"></div><div class="afx-story-bg"></div><div class="afx-real-content"><div class="afx-real-kicker"><span>02 / 05 · '+esc(p.kind)+'</span><span>Характеристики</span></div><h4 class="afx-real-title">'+esc(name)+'</h4><p class="afx-real-sub">'+esc(p.lead)+'</p><div class="afx-real-spec-grid">'+p.specs.map(function(x){return '<div class="afx-real-spec"><b>'+esc(x)+'</b><span>Отдельный визуальный блок под реальную характеристику товара.</span></div>'}).join('')+'</div></div>';
+    benefits.innerHTML='<div class="afx-real-art"></div><div class="afx-story-bg"></div><div class="afx-real-content"><div class="afx-real-kicker"><span>03 / 05 · '+esc(p.kind)+'</span><span>Преимущества</span></div><h4 class="afx-real-title">Почему выбирают<br>'+esc(name)+'</h4><p class="afx-real-sub">Не дублируем характеристики — переводим их в понятные покупателю причины рассмотреть товар дальше.</p><div class="afx-real-benefit-list">'+p.benefits.map(function(x,i){return '<div class="afx-real-benefit"><i>0'+(i+1)+'</i><div><b>'+esc(x)+'</b><span>Смысл раскрывается коротким тезисом и визуальным акцентом.</span></div></div>'}).join('')+'</div></div>';
+    details.innerHTML='<div class="afx-real-art"></div><div class="afx-story-bg"></div><div class="afx-real-content"><div class="afx-real-kicker"><span>04 / 05 · '+esc(p.kind)+'</span><span>Детали</span></div><h4 class="afx-real-title">Рассмотреть ближе.</h4><p class="afx-real-sub">Крупный визуал товара плюс три зоны, которые стоит показать отдельно.</p><div class="afx-story-detail-visual afx-real-detail"><div class="afx-real-callouts">'+p.details.map(function(x){return '<div class="afx-real-callout"><b>'+esc(x)+'</b><span>крупный план</span></div>'}).join('')+'</div></div></div>';
+    finalSlide.innerHTML='<div class="afx-real-art"></div><div class="afx-story-bg"></div><div class="afx-real-content"><div class="afx-real-kicker"><span>05 / 05 · '+esc(p.kind)+'</span><span>Комплект</span></div><h4 class="afx-real-title">Один товар.<br>Одна цельная история.</h4><p class="afx-real-sub">Обложка цепляет, следующие карточки объясняют и закрывают вопросы покупателя.</p><div class="afx-real-pack">'+cards(['Обложка',p.specs[0],p.benefits[0],p.details[0],'Финал'],src)+'</div><div class="afx-real-final"><b>'+esc(p.final)+'</b><span>Точные цифры и факты в финальном заказе подставляются только из реальных данных клиента — без выдуманных характеристик.</span></div></div>';
+    [specs,benefits,details,finalSlide].forEach(function(slide){setBg(slide.querySelector('.afx-story-bg'),src)});
+    setBg(details.querySelector('.afx-real-detail'),src);
+    [].slice.call(finalSlide.querySelectorAll('.afx-real-pack-card')).forEach(function(el){setBg(el,src)});
+    return true;
+  }
+  function boot(){
+    var tries=0,t=setInterval(function(){tries++;if(render()||tries>30)clearInterval(t)},200);
+    var title=document.getElementById('afx-case-title'),img=document.getElementById('afx-case-image');
+    if(title)new MutationObserver(function(){setTimeout(render,0)}).observe(title,{childList:true,subtree:true});
+    if(img)new MutationObserver(function(){setTimeout(render,0)}).observe(img,{attributes:true,attributeFilter:['src']});
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',boot,{once:true});else boot();
 })();
 </script>`;
 
@@ -2735,7 +2885,7 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta property="og:site_name" content="AuraFX"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2358e6ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a53cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%230b0612%22/%3E%3Cpath d=%22M16 46 29 16h6l13 30h-8l-2.5-6H26L23.5 46zm12.5-13h6.4L31.7 24z%22 fill=%22url(%23g)%22/%3E%3C/svg%3E"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + CASE_STORY_UPGRADE_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + CASE_STORY_UPGRADE_HTML + CASE_REAL_SLIDES_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
@@ -2750,3 +2900,5 @@ export default {
 
 
 // AuraFX Case Story Upgrade: 5-slide case walkthrough with swipe/navigation
+
+// AuraFX Motion + Case Pack V2: rAF Fortune spin, restored top-card float, product-specific 5-slide stories
