@@ -2124,6 +2124,10 @@ const WOW_EXPERIENCE_HTML = String.raw`
   .afx-transform-specs span{padding:9px 11px;border-radius:999px;background:rgba(7,4,13,.72);border:1px solid rgba(255,255,255,.11);font-size:10px;font-weight:850;backdrop-filter:blur(8px)}
   .afx-transform-progress{height:4px;margin-top:18px;background:rgba(255,255,255,.06);border-radius:99px;overflow:hidden}
   .afx-transform-progress i{display:block;width:0;height:100%;background:linear-gradient(90deg,#5de7ff,#ac51ff);border-radius:99px}
+  .afx-transform-stage:after{content:'Обычное фото';position:absolute;right:14px;top:14px;z-index:8;padding:7px 9px;border-radius:999px;background:rgba(255,255,255,.82);color:#17121c;font:900 9px/1 system-ui,sans-serif;letter-spacing:.04em;box-shadow:0 7px 20px rgba(0,0,0,.08);transition:.22s ease}
+  .afx-transform-stage[data-phase='2']:after{content:'Добавляем фон';background:rgba(12,7,20,.78);color:#d9c7e9;border:1px solid rgba(255,255,255,.1)}
+  .afx-transform-stage[data-phase='3']:after{content:'Добавляем смысл';background:rgba(12,7,20,.78);color:#fff;border:1px solid rgba(255,255,255,.1)}
+  .afx-transform-stage[data-phase='4']:after{content:'Готовая карточка AuraFX';background:linear-gradient(135deg,#b054ff,#6c35e6);color:#fff}
 
   /* 2. Style Lab */
   #afx-style-lab{padding:96px 0;color:#fff}
@@ -2175,7 +2179,8 @@ const WOW_EXPERIENCE_HTML = String.raw`
 
   #afx-pointer-glow{position:fixed;z-index:2;width:260px;height:260px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,rgba(149,76,255,.11),rgba(92,226,255,.035) 38%,transparent 70%);transform:translate3d(-999px,-999px,0);will-change:transform;mix-blend-mode:screen}
   @media(pointer:coarse){#afx-pointer-glow{display:none}}
-  @media(max-width:900px){.afx-transform-grid,.afx-style-grid,.afx-bts-grid,.afx-order-shell{grid-template-columns:1fr}.afx-transform-copy{position:relative;top:auto}.afx-transform-stage-wrap{min-height:auto}.afx-transform-stage{position:relative;top:auto}.afx-why-grid{grid-template-columns:1fr 1fr}}
+  .afx-transform-step{transition:color .22s ease,transform .22s ease,background .22s ease,padding-left .22s ease;border-color .22s ease}.afx-transform-step.active{color:#fff;transform:translateX(4px);padding-left:7px;border-color:rgba(171,81,255,.24);background:linear-gradient(90deg,rgba(168,85,247,.09),transparent)}.afx-transform-step.active b{background:linear-gradient(135deg,#b25cff,#6d38e9);color:#fff;box-shadow:0 0 18px rgba(168,85,247,.28)}
+  @media(max-width:900px){.afx-transform-grid,.afx-style-grid,.afx-bts-grid,.afx-order-shell{grid-template-columns:1fr}.afx-transform-copy{position:relative;top:auto}.afx-transform-stage-wrap{min-height:215vh;position:relative;margin-top:8px}.afx-transform-stage{position:sticky;top:74px}.afx-why-grid{grid-template-columns:1fr 1fr}}
   @media(max-width:560px){.afx-wow-wrap{width:min(100% - 28px,1160px)}#afx-wow-transform,#afx-style-lab,#afx-why-studio,#afx-smart-order{padding:72px 0}.afx-wow-title{font-size:44px}.afx-why-grid,.afx-order-options{grid-template-columns:1fr}.afx-style-preview{min-height:470px;padding:10px}.afx-style-canvas{min-height:450px}.afx-order-main,.afx-order-aside{padding:20px}}
 </style>
 <div id="afx-pointer-glow" aria-hidden="true"></div>
@@ -2212,13 +2217,34 @@ const WOW_EXPERIENCE_HTML = String.raw`
   setTimeout(placeWow,350);setTimeout(placeWow,1050);setTimeout(placeWow,1800);
 
   /* Scroll transformation only runs while its section is near the viewport. */
-  var section=document.getElementById('afx-wow-transform'),stage=document.getElementById('afx-transform-stage'),bg=document.getElementById('afx-transform-bg'),lines=document.getElementById('afx-transform-lines'),copyfx=document.getElementById('afx-transform-copyfx'),specs=document.getElementById('afx-transform-specs'),bar=document.getElementById('afx-transform-bar'),product=stage&&stage.querySelector('.afx-transform-product');
+  var section=document.getElementById('afx-wow-transform'),stage=document.getElementById('afx-transform-stage'),stageWrap=stage&&stage.closest('.afx-transform-stage-wrap'),bg=document.getElementById('afx-transform-bg'),lines=document.getElementById('afx-transform-lines'),copyfx=document.getElementById('afx-transform-copyfx'),specs=document.getElementById('afx-transform-specs'),bar=document.getElementById('afx-transform-bar'),product=stage&&stage.querySelector('.afx-transform-product'),transformSteps=[].slice.call(document.querySelectorAll('#afx-wow-transform .afx-transform-step'));
   var raf=0,near=false;
   function clamp(v){return Math.max(0,Math.min(1,v))}
-  function paintTransform(){raf=0;if(!near||!section||!stage)return;var r=section.getBoundingClientRect();var p=clamp((innerHeight*.55-r.top)/(Math.max(360,r.height-innerHeight*.5)));if(bg)bg.style.opacity=String(clamp(p*1.65));if(lines)lines.style.opacity=String(clamp((p-.1)*1.25)*.35);if(product){var scale=1-(p*.16),y=p*48;product.style.transform='translate3d(0,'+y.toFixed(1)+'px,0) scale('+scale.toFixed(3)+')';product.style.filter='drop-shadow(0 26px 34px rgba(0,0,0,'+(0.12+p*.24).toFixed(2)+'))'}if(copyfx){copyfx.style.opacity=String(clamp((p-.23)*2.2));copyfx.style.transform='translateY('+(16-16*clamp((p-.23)*2.2)).toFixed(1)+'px)'}if(specs){var sp=clamp((p-.56)*2.4);specs.style.opacity=String(sp);specs.style.transform='translateY('+(14-14*sp).toFixed(1)+'px)'}if(bar)bar.style.width=(p*100).toFixed(1)+'%'}
+  function paintTransform(){
+    raf=0;if(!near||!section||!stage||!stageWrap)return;
+    var wr=stageWrap.getBoundingClientRect(),sr=stage.getBoundingClientRect();
+    /* Progress follows the long sticky showcase itself. This works on phones too. */
+    var travel=Math.max(280,wr.height-sr.height-28);
+    var start=Math.min(innerHeight*.34,170);
+    var p=clamp((start-wr.top)/travel);
+    var bgp=clamp(p/.28),titlep=clamp((p-.24)/.28),specp=clamp((p-.58)/.28);
+    if(bg)bg.style.opacity=String(bgp);
+    if(lines)lines.style.opacity=String(clamp((p-.08)/.38)*.38);
+    if(product){
+      var scale=1-(p*.17),y=p*42,rot=-2.2*p;
+      product.style.transform='translate3d(0,'+y.toFixed(1)+'px,0) scale('+scale.toFixed(3)+') rotate('+rot.toFixed(2)+'deg)';
+      product.style.filter='drop-shadow(0 '+(18+18*p).toFixed(0)+'px '+(26+18*p).toFixed(0)+'px rgba(0,0,0,'+(0.12+p*.30).toFixed(2)+'))';
+    }
+    if(copyfx){copyfx.style.opacity=String(titlep);copyfx.style.transform='translateY('+(18-18*titlep).toFixed(1)+'px) scale('+(0.97+0.03*titlep).toFixed(3)+')'}
+    if(specs){specs.style.opacity=String(specp);specs.style.transform='translateY('+(16-16*specp).toFixed(1)+'px)'}
+    if(bar)bar.style.width=(p*100).toFixed(1)+'%';
+    var active=p<.24?0:p<.52?1:p<.76?2:3;
+    transformSteps.forEach(function(el,i){el.classList.toggle('active',i===active)});
+    stage.setAttribute('data-phase',String(active+1));
+  }
   function requestPaint(){if(!raf)raf=requestAnimationFrame(paintTransform)}
-  if(section&&'IntersectionObserver' in window){new IntersectionObserver(function(entries){near=!!entries[0].isIntersecting;if(near)requestPaint()},{rootMargin:'40% 0px 40% 0px'}).observe(section)}else near=true;
-  addEventListener('scroll',requestPaint,{passive:true});addEventListener('resize',requestPaint,{passive:true});requestPaint();
+  if(section&&'IntersectionObserver' in window){new IntersectionObserver(function(entries){near=!!entries[0].isIntersecting;if(near)requestPaint()},{rootMargin:'55% 0px 55% 0px'}).observe(section)}else near=true;
+  addEventListener('scroll',requestPaint,{passive:true});addEventListener('resize',requestPaint,{passive:true});setTimeout(function(){near=true;requestPaint()},180);requestPaint();
 
   /* Style lab */
   var canvas=document.getElementById('afx-style-canvas'),head=document.getElementById('afx-style-head'),kick=document.getElementById('afx-style-kicker'),chips=document.getElementById('afx-style-chips'),hint=document.getElementById('afx-style-hint');
