@@ -2344,7 +2344,7 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
 @media(max-width:860px){.tg-grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.overview-grid{grid-template-columns:1fr}.review-stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.wrap{padding:20px 14px 60px}.top{align-items:flex-start}.top-actions{justify-content:flex-end}.metrics{grid-template-columns:repeat(2,1fr)}.quick .actions{grid-template-columns:1fr}.cardtop{display:block}.stars{margin-top:6px}.promo-form{grid-template-columns:1fr}.promo-row{grid-template-columns:1fr 70px}.promo-row>*:nth-child(3),.promo-row>*:nth-child(4){grid-column:1/-1}.promo-main{display:block}.promo-main .badge{margin-top:8px}}
 </style></head><body><div class="wrap">
 <div class="top"><div><div class="brand"><span>AuraFX</span> Admin Pro</div><div class="sub">Аналитика, отзывы и управление сайтом</div></div><div class="top-actions"><a class="btn ghost hidden-ui" id="openSite" href="/" target="_blank">↗ Сайт</a><button id="logout" class="ghost hidden-ui">Выйти</button></div></div>
-<section id="loginBox" class="panel login"><h1>Вход</h1><p>Панель доступна только владельцу. Пароль хранится в Cloudflare Secrets.</p><form id="loginForm"><input id="password" type="password" autocomplete="current-password" placeholder="Пароль администратора" required><button class="primary" style="width:100%;margin-top:12px">Войти →</button><div class="msg" id="loginMsg"></div></form></section>
+<section id="loginBox" class="panel login"><h1>Вход</h1><p>Если Telegram уже привязан к владельцу AuraFX — вход откроет админку автоматически.</p><a class="btn primary" href="/auth/telegram?next=/admin" style="width:100%;padding:14px 16px;font-size:14px">✈ Войти через Telegram</a><div style="display:flex;align-items:center;gap:10px;margin:18px 0;color:#706777;font-size:11px"><span style="height:1px;background:rgba(255,255,255,.08);flex:1"></span><span>или резервный вход</span><span style="height:1px;background:rgba(255,255,255,.08);flex:1"></span></div><form id="loginForm"><input id="password" type="password" autocomplete="current-password" placeholder="Пароль администратора" required><button class="ghost" style="width:100%;margin-top:12px">Войти по паролю →</button><div class="msg" id="loginMsg"></div></form></section>
 <section id="dash" class="hidden-ui">
   <div class="section-title"><div><h2>Обзор</h2><p>Что происходит на сайте прямо сейчас</p></div><button id="refreshAll" class="ghost">↻ Обновить</button></div>
   <div class="metrics">
@@ -2373,7 +2373,7 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
         <h3>Состояние подключения</h3>
         <p id="tgStatusText">Проверяю настройки Telegram…</p>
         <div class="tg-state"><span id="tgTokenBadge" class="badge pending">BOT TOKEN: …</span><span id="tgChatBadge" class="badge pending">Чат: …</span></div>
-        <div class="tg-actions"><button id="tgConnect" class="primary">🔗 Подключить мой Telegram</button><button id="tgTest" class="ok">✉ Тест</button><button id="tgDisconnect" class="danger">Отключить чат</button></div>
+        <div class="tg-actions"><button id="tgConnect" class="primary">🔗 Подключить мой Telegram</button><button id="tgTest" class="ok">✉ Тест</button><button id="tgDisconnect" class="danger">Отключить чат</button><a class="btn ghost" href="/auth/telegram?next=/admin&bind_admin=1">🔐 Привязать Telegram-вход</a></div>
       </div>
       <div class="tg-box">
         <h3>Настройка один раз</h3>
@@ -2540,6 +2540,31 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
 })();
 </script></body></html>`;
 
+
+
+const ACCOUNT_WIDGET_HTML = String.raw`
+<style>
+  #afx-account-shell{position:fixed;top:14px;right:14px;z-index:9998;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+  .afx-account-btn{min-height:42px;display:inline-flex;align-items:center;gap:9px;padding:7px 12px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(14,7,24,.78);backdrop-filter:blur(18px);box-shadow:0 10px 34px rgba(0,0,0,.28);color:#fff;text-decoration:none;font-size:12px;font-weight:850;cursor:pointer}
+  .afx-account-btn:hover{border-color:rgba(177,82,255,.42)}
+  .afx-account-avatar{width:28px;height:28px;border-radius:50%;object-fit:cover;background:linear-gradient(135deg,#58e6ff,#9d43ff);display:grid;place-items:center;font-size:12px;font-weight:950;overflow:hidden}
+  .afx-account-menu{position:absolute;right:0;top:50px;width:min(280px,calc(100vw - 28px));padding:10px;border:1px solid rgba(255,255,255,.1);border-radius:18px;background:rgba(12,6,22,.96);backdrop-filter:blur(22px);box-shadow:0 24px 70px rgba(0,0,0,.42);display:none}
+  .afx-account-menu.open{display:block}.afx-account-name{padding:9px 10px 11px;color:#fff;font-size:13px;font-weight:900}.afx-account-user{color:#91859e;font-size:11px;font-weight:650;margin-top:3px}
+  .afx-account-menu a,.afx-account-menu button{width:100%;border:0;background:transparent;color:#dcd3e5;text-decoration:none;text-align:left;padding:10px;border-radius:11px;font:inherit;font-size:12px;font-weight:780;cursor:pointer;display:block}.afx-account-menu a:hover,.afx-account-menu button:hover{background:rgba(255,255,255,.06)}
+  .afx-account-admin{color:#d5b3ff!important}.afx-account-dot{width:7px;height:7px;border-radius:50%;background:#58e6ff;box-shadow:0 0 12px #58e6ff}
+  @media(max-width:720px){#afx-account-shell{top:10px;right:10px}.afx-account-label{max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+</style>
+<div id="afx-account-shell"><a class="afx-account-btn" id="afx-account-login" href="/auth/telegram?next=/"><span class="afx-account-dot"></span><span class="afx-account-label">Войти через Telegram</span></a><button class="afx-account-btn" id="afx-account-user" type="button" hidden><span class="afx-account-avatar" id="afx-account-avatar">A</span><span class="afx-account-label" id="afx-account-label">Аккаунт</span></button><div class="afx-account-menu" id="afx-account-menu"><div class="afx-account-name"><div id="afx-account-fullname">AuraFX</div><div class="afx-account-user" id="afx-account-username"></div></div><a href="/account">Личный кабинет</a><a href="/admin" class="afx-account-admin" id="afx-account-admin" hidden>Админ-панель</a><button id="afx-account-logout" type="button">Выйти</button></div></div>
+<script>
+(()=>{const login=document.getElementById('afx-account-login'),user=document.getElementById('afx-account-user'),menu=document.getElementById('afx-account-menu'),label=document.getElementById('afx-account-label'),name=document.getElementById('afx-account-fullname'),username=document.getElementById('afx-account-username'),avatar=document.getElementById('afx-account-avatar'),admin=document.getElementById('afx-account-admin'),logout=document.getElementById('afx-account-logout');if(!login||!user)return;fetch('/api/auth/me',{headers:{accept:'application/json'}}).then(r=>r.json()).then(d=>{if(!d.authenticated||!d.user)return;login.hidden=true;user.hidden=false;label.textContent=d.user.name||d.user.username||'Аккаунт';name.textContent=d.user.name||'Telegram';username.textContent=d.user.username?'@'+d.user.username:'Telegram ID '+d.user.id;if(d.user.picture){const img=document.createElement('img');img.src=d.user.picture;img.alt='';img.referrerPolicy='no-referrer';img.style.cssText='width:100%;height:100%;object-fit:cover';avatar.textContent='';avatar.appendChild(img)}else avatar.textContent=(d.user.name||'A').slice(0,1).toUpperCase();admin.hidden=d.user.role!=='admin'}).catch(()=>{});user.addEventListener('click',e=>{e.stopPropagation();menu.classList.toggle('open')});document.addEventListener('click',()=>menu.classList.remove('open'));menu.addEventListener('click',e=>e.stopPropagation());logout.addEventListener('click',async()=>{try{await fetch('/api/auth/logout',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})}catch(e){}location.href='/'})})();
+</script>`;
+
+const ACCOUNT_HTML = String.raw`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>AuraFX — личный кабинет</title><style>
+*{box-sizing:border-box}body{margin:0;min-height:100vh;background:#09050f;color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}body:before{content:"";position:fixed;inset:-20%;background:radial-gradient(circle at 80% 10%,rgba(153,65,255,.18),transparent 28%),radial-gradient(circle at 15% 80%,rgba(74,225,255,.08),transparent 24%);pointer-events:none}.wrap{position:relative;max-width:980px;margin:auto;padding:30px 18px 80px}.top{display:flex;justify-content:space-between;align-items:center;gap:12px}.brand{font-size:24px;font-weight:950}.brand span{background:linear-gradient(90deg,#64e8ff,#b34cff);-webkit-background-clip:text;color:transparent}.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(255,255,255,.1);border-radius:13px;padding:11px 14px;background:rgba(255,255,255,.055);color:#fff;text-decoration:none;font-weight:850;font-size:13px;cursor:pointer}.primary{background:linear-gradient(135deg,#af48ff,#6e29ed);border:0}.grid{display:grid;grid-template-columns:.75fr 1.25fr;gap:14px;margin-top:28px}.card{border:1px solid rgba(255,255,255,.1);border-radius:24px;background:rgba(255,255,255,.045);backdrop-filter:blur(18px);padding:22px;box-shadow:0 22px 70px rgba(0,0,0,.25)}.profile{text-align:center}.avatar{width:88px;height:88px;margin:3px auto 14px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(135deg,#58e6ff,#a33cff);font-size:30px;font-weight:950;overflow:hidden}.avatar img{width:100%;height:100%;object-fit:cover}.profile h1{font-size:25px;margin:0}.muted{color:#96899f;line-height:1.55}.role{display:inline-flex;margin-top:12px;padding:6px 10px;border-radius:999px;background:rgba(164,72,255,.12);color:#d8baff;font-size:11px;font-weight:850}.orders h2{margin:0 0 4px;font-size:22px}.order-list{display:grid;gap:10px;margin-top:16px}.order{border:1px solid rgba(255,255,255,.08);border-radius:17px;padding:15px;background:rgba(255,255,255,.025)}.order-top{display:flex;justify-content:space-between;gap:10px}.order b{font-size:14px}.order small{color:#7f7489}.status{font-size:10px;font-weight:900;padding:5px 8px;border-radius:999px;background:rgba(102,213,255,.12);color:#83e7ff}.empty{padding:26px;border:1px dashed rgba(255,255,255,.1);border-radius:17px;color:#8d8197;text-align:center}.login{max-width:520px;margin:16vh auto;text-align:center}.login h1{font-size:36px;margin:0 0 10px}.login .btn{margin-top:12px}.hidden{display:none!important}@media(max-width:760px){.grid{grid-template-columns:1fr}.wrap{padding-top:20px}.top{align-items:flex-start}}
+</style></head><body><div class="wrap"><div class="top"><div><div class="brand"><span>AuraFX</span> Account</div><div class="muted" style="font-size:12px">Личный кабинет клиента</div></div><div style="display:flex;gap:8px"><a class="btn" href="/">← На сайт</a><a class="btn hidden" id="adminLink" href="/admin">Админка</a></div></div><section id="needLogin" class="card login hidden"><h1>Войди через Telegram</h1><p class="muted">Без паролей и отдельной регистрации. После входа здесь будут твои заявки и их статусы.</p><a class="btn primary" href="/auth/telegram?next=/account">✈ Войти через Telegram</a></section><section id="account" class="grid hidden"><div class="card profile"><div class="avatar" id="avatar">A</div><h1 id="name">Telegram</h1><div class="muted" id="username"></div><div class="role" id="role">Клиент AuraFX</div><div style="margin-top:18px"><button class="btn" id="logout">Выйти</button></div></div><div class="card orders"><h2>Мои заявки</h2><p class="muted" style="margin:0">Заявки, отправленные после входа через Telegram.</p><div class="order-list" id="orders"><div class="empty">Загружаем…</div></div></div></section></div><script>
+(()=>{const escStatus={new:'Новая',contacted:'Связались',done:'Готово',spam:'Закрыта'};async function init(){let me={};try{me=await fetch('/api/auth/me').then(r=>r.json())}catch(e){}if(!me.authenticated){document.getElementById('needLogin').classList.remove('hidden');return}const u=me.user;document.getElementById('account').classList.remove('hidden');document.getElementById('name').textContent=u.name||'Telegram';document.getElementById('username').textContent=u.username?'@'+u.username:'Telegram ID '+u.id;document.getElementById('role').textContent=u.role==='admin'?'Владелец · Admin':'Клиент AuraFX';if(u.role==='admin')document.getElementById('adminLink').classList.remove('hidden');if(u.picture){const img=document.createElement('img');img.src=u.picture;img.alt='';img.referrerPolicy='no-referrer';document.getElementById('avatar').textContent='';document.getElementById('avatar').appendChild(img)}let data={orders:[]};try{data=await fetch('/api/account/leads').then(r=>r.json())}catch(e){}const list=document.getElementById('orders');if(!data.orders||!data.orders.length){list.innerHTML='<div class="empty">Пока здесь нет заявок. Отправь новую заявку на сайте после входа — она появится здесь.</div>';return}list.textContent='';data.orders.forEach(o=>{const card=document.createElement('div');card.className='order';const top=document.createElement('div');top.className='order-top';const title=document.createElement('b');title.textContent='#'+o.id+' · '+o.product;const st=document.createElement('span');st.className='status';st.textContent=escStatus[o.status]||o.status||'Заявка';top.append(title,st);const meta=document.createElement('div');meta.className='muted';meta.style='font-size:12px;margin-top:7px';meta.textContent=(o.marketplace||'')+' · '+(o.count||1)+' карточ.'+(o.created_at?' · '+new Date(o.created_at+'Z').toLocaleDateString('ru-RU'):'');card.append(top,meta);list.appendChild(card)})}document.getElementById('logout').addEventListener('click',async()=>{await fetch('/api/auth/logout',{method:'POST',headers:{'content-type':'application/json'},body:'{}'}).catch(()=>{});location.href='/'});init()})();
+</script></body></html>`;
+
 const json = (data, status = 200, extraHeaders = {}) => new Response(JSON.stringify(data), {
   status,
   headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store", ...extraHeaders }
@@ -2611,6 +2636,18 @@ async function ensureDb(env) {
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`).run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_leads_status_created ON leads(status, created_at DESC)").run();
+  const leadInfo = await env.DB.prepare("PRAGMA table_info(leads)").all();
+  const leadCols = new Set((leadInfo.results || []).map(c => String(c.name)));
+  if (!leadCols.has("telegram_id")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN telegram_id TEXT").run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_leads_telegram_created ON leads(telegram_id, created_at DESC)").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_users (
+    telegram_id TEXT PRIMARY KEY,
+    name TEXT,
+    username TEXT,
+    picture TEXT,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    last_login TEXT NOT NULL DEFAULT (datetime('now'))
+  )`).run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS promo_spins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ip_hash TEXT NOT NULL,
@@ -2745,6 +2782,128 @@ async function hmacHex(secret, message) {
   return [...new Uint8Array(sig)].map(b => b.toString(16).padStart(2, "0")).join("");
 }
 
+
+function b64urlEncodeBytes(bytes) {
+  let bin = "";
+  for (const b of bytes) bin += String.fromCharCode(b);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+function b64urlEncodeText(value) { return b64urlEncodeBytes(new TextEncoder().encode(String(value))); }
+function b64urlDecodeText(value) {
+  let s = String(value || "").replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  const bin = atob(s); const out = new Uint8Array(bin.length);
+  for (let i=0;i<bin.length;i++) out[i]=bin.charCodeAt(i);
+  return new TextDecoder().decode(out);
+}
+function randomUrlSafe(size = 32) { const b = new Uint8Array(size); crypto.getRandomValues(b); return b64urlEncodeBytes(b); }
+async function sha256UrlSafe(value) { return b64urlEncodeBytes(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(value))))); }
+function authSecret(env) { return String(env.AUTH_SESSION_SECRET || env.ADMIN_SESSION_SECRET || "").trim(); }
+async function signedCompact(secret, payload) {
+  const body = b64urlEncodeText(JSON.stringify(payload));
+  const sig = await hmacHex(secret, body);
+  return body + "." + sig;
+}
+async function verifyCompact(secret, token) {
+  if (!secret || !token) return null;
+  const i = String(token).lastIndexOf("."); if (i < 1) return null;
+  const body = token.slice(0,i), sig = token.slice(i+1), expected = await hmacHex(secret, body);
+  if (expected.length !== sig.length) return null; let diff=0;
+  for (let n=0;n<expected.length;n++) diff |= expected.charCodeAt(n)^sig.charCodeAt(n);
+  if (diff) return null;
+  try { const payload=JSON.parse(b64urlDecodeText(body)); if (Number(payload.exp||0) < Math.floor(Date.now()/1000)) return null; return payload; } catch { return null; }
+}
+async function adminTelegramId(env) {
+  const fixed = String(env.ADMIN_TELEGRAM_ID || "").trim();
+  if (fixed) return fixed;
+  try { return String(await getAppSetting(env, "admin_telegram_id") || "").trim(); } catch { return ""; }
+}
+async function isAdminTelegram(env, telegramId) { const id = await adminTelegramId(env); return Boolean(id && String(telegramId) === id); }
+async function makeUserSession(env, telegramId) {
+  const secret = authSecret(env); if (!secret) throw new Error("AUTH_SECRET_MISSING");
+  return signedCompact(secret, { id:String(telegramId), exp:Math.floor(Date.now()/1000)+60*60*24*30 });
+}
+async function sessionTelegramId(request, env) {
+  const token = parseCookies(request).afx_user; const payload = await verifyCompact(authSecret(env), token); return payload ? String(payload.id||"") : "";
+}
+async function currentUser(request, env) {
+  const id = await sessionTelegramId(request, env); if (!id) return null;
+  try { await ensureDb(env); } catch { return null; }
+  const row = await env.DB.prepare("SELECT telegram_id,name,username,picture FROM telegram_users WHERE telegram_id=? LIMIT 1").bind(id).first();
+  if (!row) return null;
+  return { id:String(row.telegram_id), name:String(row.name||""), username:String(row.username||""), picture:String(row.picture||""), role:(await isAdminTelegram(env,id))?"admin":"user" };
+}
+async function sha256Bytes(value) {
+  return new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(value))));
+}
+async function hmacHexBytes(keyBytes, message) {
+  const key = await crypto.subtle.importKey("raw", keyBytes, { name:"HMAC", hash:"SHA-256" }, false, ["sign"]);
+  const sig = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(String(message)));
+  return [...new Uint8Array(sig)].map(b=>b.toString(16).padStart(2,"0")).join("");
+}
+function secureHexEqual(a,b){
+  a=String(a||"").toLowerCase(); b=String(b||"").toLowerCase();
+  if(a.length!==b.length) return false; let diff=0;
+  for(let i=0;i<a.length;i++) diff|=a.charCodeAt(i)^b.charCodeAt(i);
+  return diff===0;
+}
+function safeNext(value) { const v=String(value||""); return /^\/[A-Za-z0-9_\-\/?=&.%]*$/.test(v)&&!v.startsWith("//")?v:"/"; }
+function escAttr(value){return String(value||"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;").replace(/>/g,"&gt;");}
+async function verifyTelegramWidgetPayload(url, botToken){
+  const hash=String(url.searchParams.get("hash")||"").trim().toLowerCase();
+  const id=String(url.searchParams.get("id")||"").trim();
+  const authDate=Number(url.searchParams.get("auth_date")||0);
+  if(!hash||!/^[a-f0-9]{64}$/.test(hash)||!/^\d{3,30}$/.test(id)||!Number.isFinite(authDate)) throw new Error("TG_DATA");
+  const now=Math.floor(Date.now()/1000);
+  if(authDate>now+120 || now-authDate>900) throw new Error("TG_EXPIRED");
+  const ignored=new Set(["hash","next","bind_token"]);
+  const pairs=[];
+  for(const [k,v] of url.searchParams.entries()) if(!ignored.has(k)) pairs.push([k,v]);
+  pairs.sort((a,b)=>a[0].localeCompare(b[0]));
+  const check=pairs.map(([k,v])=>`${k}=${v}`).join("\n");
+  const secretKey=await sha256Bytes(botToken);
+  const expected=await hmacHexBytes(secretKey,check);
+  if(!secureHexEqual(expected,hash)) throw new Error("TG_SIGNATURE");
+  const first=String(url.searchParams.get("first_name")||"").slice(0,80);
+  const last=String(url.searchParams.get("last_name")||"").slice(0,80);
+  const name=(first+" "+last).trim()||"Telegram";
+  return {id,name,username:String(url.searchParams.get("username")||"").slice(0,80),picture:String(url.searchParams.get("photo_url")||"").slice(0,1000)};
+}
+async function handleTelegramAuthStart(request, env, url) {
+  const botToken=String(env.TELEGRAM_LOGIN_BOT_TOKEN||env.TELEGRAM_BOT_TOKEN||"").trim(), secret=authSecret(env);
+  const rawBot=String(env.TELEGRAM_LOGIN_BOT_USERNAME||"AuraFXAuthBot").trim().replace(/^@/,"");
+  const botUsername=/^[A-Za-z0-9_]{5,64}$/.test(rawBot)?rawBot:"AuraFXAuthBot";
+  if(!botToken||!secret) return new Response("Telegram Login ещё не настроен. Добавь TELEGRAM_LOGIN_BOT_TOKEN и ADMIN_SESSION_SECRET в Cloudflare Secrets.",{status:503,headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"}});
+  const next=safeNext(url.searchParams.get("next")||"/");
+  let bindToken="";
+  if(url.searchParams.get("bind_admin")==="1"){
+    if(!(await validAdmin(request,env))) return new Response("Для привязки Telegram сначала войди в админку по резервному паролю.",{status:403,headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"}});
+    bindToken=await signedCompact(secret,{purpose:"bind_admin",exp:Math.floor(Date.now()/1000)+600});
+  }
+  const callback=new URL("/auth/telegram/callback",request.url); callback.searchParams.set("next",next); if(bindToken) callback.searchParams.set("bind_token",bindToken);
+  const html=`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b0612"><title>Вход в AuraFX</title><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 0,#2a0f48 0,#0b0612 52%,#07040c 100%);color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.card{width:min(420px,calc(100vw - 36px));box-sizing:border-box;padding:30px;border:1px solid rgba(255,255,255,.1);border-radius:26px;background:rgba(20,10,34,.82);box-shadow:0 28px 90px rgba(0,0,0,.42);text-align:center}.brand{font-weight:950;font-size:28px;letter-spacing:-.04em}.brand span{background:linear-gradient(90deg,#5de8ff,#ba5cff);-webkit-background-clip:text;color:transparent}.muted{color:#a99db5;line-height:1.55;margin:10px 0 24px}.back{display:inline-block;margin-top:22px;color:#bbaec8;text-decoration:none;font-size:13px}</style></head><body><main class="card"><div class="brand"><span>AuraFX</span> Account</div><p class="muted">Войди через Telegram — отдельный пароль и регистрация не нужны.</p><script async src="https://telegram.org/js/telegram-widget.js?22" data-telegram-login="${escAttr(botUsername)}" data-size="large" data-radius="12" data-auth-url="${escAttr(callback.toString())}" data-request-access="write"></script><br><a class="back" href="${escAttr(next)}">← Вернуться на сайт</a></main></body></html>`;
+  return new Response(html,{headers:{"content-type":"text/html; charset=utf-8","cache-control":"no-store","content-security-policy":"default-src 'self'; script-src 'self' https://telegram.org; frame-src https://oauth.telegram.org https://t.me; style-src 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self'; base-uri 'none'; frame-ancestors 'self'"}});
+}
+async function handleTelegramAuthCallback(request, env, url) {
+  const botToken=String(env.TELEGRAM_LOGIN_BOT_TOKEN||env.TELEGRAM_BOT_TOKEN||"").trim(), secret=authSecret(env);
+  if(!botToken||!secret) return new Response("Telegram Login не настроен.",{status:503});
+  let tg; try{tg=await verifyTelegramWidgetPayload(url,botToken)}catch(e){return new Response(e&&e.message==="TG_EXPIRED"?"Ссылка Telegram устарела. Попробуй войти ещё раз.":"Подпись Telegram не прошла проверку.",{status:401,headers:{"content-type":"text/plain; charset=utf-8","cache-control":"no-store"}})}
+  await ensureDb(env);
+  await env.DB.prepare(`INSERT INTO telegram_users (telegram_id,name,username,picture,last_login) VALUES (?,?,?,?,datetime('now')) ON CONFLICT(telegram_id) DO UPDATE SET name=excluded.name,username=excluded.username,picture=excluded.picture,last_login=datetime('now')`).bind(tg.id,tg.name,tg.username||null,tg.picture||null).run();
+  const bindRaw=String(url.searchParams.get("bind_token")||"");
+  if(bindRaw){const bind=await verifyCompact(secret,bindRaw);if(bind&&bind.purpose==="bind_admin") await setAppSetting(env,"admin_telegram_id",tg.id);}
+  const session=await makeUserSession(env,tg.id), next=safeNext(url.searchParams.get("next")||"/");
+  const headers=new Headers({location:next,"cache-control":"no-store"});
+  headers.append("set-cookie",`afx_user=${session}; Path=/; Max-Age=2592000; HttpOnly; Secure; SameSite=Lax`);
+  return new Response(null,{status:302,headers});
+}
+async function handleAuthApi(request, env, url) {
+  if(url.pathname==="/api/auth/me"&&request.method==="GET"){const user=await currentUser(request,env);return json(user?{authenticated:true,user}:{authenticated:false});}
+  if(url.pathname==="/api/auth/logout"&&request.method==="POST"){const h=new Headers({"content-type":"application/json; charset=utf-8","cache-control":"no-store"});h.append("set-cookie","afx_user=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax");h.append("set-cookie","afx_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict");return new Response(JSON.stringify({ok:true}),{status:200,headers:h});}
+  return json({error:"Не найдено."},404);
+}
+async function handleAccountApi(request,env,url){const user=await currentUser(request,env);if(!user)return json({error:"Требуется вход."},401);if(url.pathname==="/api/account/leads"&&request.method==="GET"){await ensureDb(env);const r=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,status,created_at FROM leads WHERE telegram_id=? ORDER BY datetime(created_at) DESC,id DESC LIMIT 100").bind(user.id).all();return json({orders:r.results||[]});}return json({error:"Не найдено."},404);}
+
 async function makeAdminToken(env) {
   const exp = Math.floor(Date.now() / 1000) + 60 * 60 * 12;
   const sig = await hmacHex(env.ADMIN_SESSION_SECRET, `aurafx-admin:${exp}`);
@@ -2752,17 +2911,19 @@ async function makeAdminToken(env) {
 }
 
 async function validAdmin(request, env) {
-  if (!env.ADMIN_SESSION_SECRET) return false;
-  const token = parseCookies(request).afx_admin;
-  if (!token) return false;
-  const [expRaw, sig] = token.split(".");
-  const exp = Number(expRaw);
-  if (!Number.isInteger(exp) || exp < Math.floor(Date.now() / 1000) || !sig) return false;
-  const expected = await hmacHex(env.ADMIN_SESSION_SECRET, `aurafx-admin:${exp}`);
-  if (expected.length !== sig.length) return false;
-  let diff = 0;
-  for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ sig.charCodeAt(i);
-  return diff === 0;
+  if (env.ADMIN_SESSION_SECRET) {
+    const token = parseCookies(request).afx_admin;
+    if (token) {
+      const [expRaw, sig] = token.split(".");
+      const exp = Number(expRaw);
+      if (Number.isInteger(exp) && exp >= Math.floor(Date.now() / 1000) && sig) {
+        const expected = await hmacHex(env.ADMIN_SESSION_SECRET, `aurafx-admin:${exp}`);
+        if (expected.length === sig.length) { let diff = 0; for (let i = 0; i < expected.length; i++) diff |= expected.charCodeAt(i) ^ sig.charCodeAt(i); if (diff === 0) return true; }
+      }
+    }
+  }
+  const telegramId = await sessionTelegramId(request, env);
+  return telegramId ? await isAdminTelegram(env, telegramId) : false;
 }
 
 function sameOrigin(request) {
@@ -2941,8 +3102,9 @@ async function handleLead(request, env, ctx) {
   if(recent) return json({ error:"Заявка уже сохранена. Подожди пару минут перед новой." },429);
   const fields=['source','medium','campaign','content','term'].map(k=>normalize(b[k]).slice(0,120));
   const referrer=String(b.referrer||"").trim().slice(0,300), landing=String(b.landing||"").trim().slice(0,300);
-  const result=await env.DB.prepare(`INSERT INTO leads (visitor_id,marketplace,count,product,style,deadline,contact,comment,status,source,medium,campaign,content,term,referrer,landing,ip_hash)
-    VALUES (?,?,?,?,?,?,?,?, 'new',?,?,?,?,?,?,?,?)`).bind(visitorId||null,marketplace,count,product,style,deadline,contact,comment,...fields,referrer,landing,ipHash).run();
+  const loggedTelegramId = await sessionTelegramId(request, env);
+  const result=await env.DB.prepare(`INSERT INTO leads (visitor_id,marketplace,count,product,style,deadline,contact,comment,status,source,medium,campaign,content,term,referrer,landing,ip_hash,telegram_id)
+    VALUES (?,?,?,?,?,?,?,?, 'new',?,?,?,?,?,?,?,?,?)`).bind(visitorId||null,marketplace,count,product,style,deadline,contact,comment,...fields,referrer,landing,ipHash,loggedTelegramId||null).run();
   const leadId = Number(result.meta?.last_row_id || 0);
   const promoCode = extractPromoCode(comment);
   const promo = promoCode ? await promoCheckForNotification(env, promoCode) : null;
@@ -3000,9 +3162,10 @@ async function handleAdminApi(request, env, url, ctx) {
   }
 
   if (url.pathname === "/api/admin/logout" && request.method === "POST") {
-    return json({ ok: true }, 200, {
-      "set-cookie": "afx_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict"
-    });
+    const h = new Headers({"content-type":"application/json; charset=utf-8","cache-control":"no-store"});
+    h.append("set-cookie","afx_admin=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Strict");
+    h.append("set-cookie","afx_user=; Path=/; Max-Age=0; HttpOnly; Secure; SameSite=Lax");
+    return new Response(JSON.stringify({ok:true}),{status:200,headers:h});
   }
 
   if (!(await validAdmin(request, env))) return json({ error: "Требуется вход." }, 401);
@@ -3209,6 +3372,10 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    if (url.pathname === "/auth/telegram" && request.method === "GET") return handleTelegramAuthStart(request, env, url);
+    if (url.pathname === "/auth/telegram/callback" && request.method === "GET") return handleTelegramAuthCallback(request, env, url);
+    if (url.pathname.startsWith("/api/auth/")) return handleAuthApi(request, env, url);
+    if (url.pathname.startsWith("/api/account/")) return handleAccountApi(request, env, url);
     if (url.pathname === "/api/reviews") return handlePublicReviews(request, env, ctx);
     if (url.pathname === "/api/online") return handleOnline(request, env);
     if (url.pathname === "/api/event") return handleSiteEvent(request, env);
@@ -3223,12 +3390,15 @@ export default {
     if (url.pathname === "/admin" || url.pathname === "/admin/") {
       return new Response(ADMIN_HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
     }
+    if (url.pathname === "/account" || url.pathname === "/account/") {
+      return new Response(ACCOUNT_HTML, { headers: { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" } });
+    }
 
     const response = await env.ASSETS.fetch(request);
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta property="og:site_name" content="AuraFX"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2358e6ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a53cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%230b0612%22/%3E%3Cpath d=%22M16 46 29 16h6l13 30h-8l-2.5-6H26L23.5 46zm12.5-13h6.4L31.7 24z%22 fill=%22url(%23g)%22/%3E%3C/svg%3E"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + PERFORMANCE_V2_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + CASE_STORY_UPGRADE_HTML + CASE_REAL_SLIDES_HTML + BEFORE_AFTER_HTML + PREMIUM_INTERACTIVE_HTML + FUNCTION_NAV_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + PERFORMANCE_V2_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + CASE_STORY_UPGRADE_HTML + CASE_REAL_SLIDES_HTML + BEFORE_AFTER_HTML + PREMIUM_INTERACTIVE_HTML + FUNCTION_NAV_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML + ACCOUNT_WIDGET_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
