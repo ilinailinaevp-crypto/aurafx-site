@@ -2166,6 +2166,138 @@ const PREMIUM_INTERACTIVE_HTML = String.raw`
 
 const PRIVACY_HTML = String.raw`<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>AuraFX — конфиденциальность</title><style>*{box-sizing:border-box}body{margin:0;background:#0b0612;color:#eee7f5;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}.wrap{max-width:820px;margin:auto;padding:54px 20px 80px}a{color:#b77cff}h1{font-size:clamp(38px,7vw,64px);letter-spacing:-.05em;margin:0 0 12px}.sub{color:#91849f;margin-bottom:38px}.card{padding:26px;border:1px solid rgba(255,255,255,.09);border-radius:24px;background:rgba(255,255,255,.035);line-height:1.65;color:#c6bacf}.card h2{color:#fff;margin:26px 0 8px;font-size:20px}.card h2:first-child{margin-top:0}.back{display:inline-flex;margin-top:20px;text-decoration:none;padding:11px 14px;border-radius:999px;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04)}</style></head><body><main class="wrap"><h1>Конфиденциальность</h1><div class="sub">Коротко и понятным языком.</div><div class="card"><h2>Какие данные использует сайт</h2><p>AuraFX хранит технический анонимный идентификатор браузера для счётчика посещений и аналитики действий на сайте. При отправке брифа сохраняются данные, которые посетитель вводит сам: информация о проекте и контакт для связи.</p><h2>Для чего это нужно</h2><p>Чтобы показать статистику посещений, понять эффективность рекламы, обработать заявку и связаться по проекту.</p><h2>Что не делаем</h2><p>Данные не продаются и не публикуются. Пароль администратора хранится отдельно в Cloudflare Secrets.</p><h2>Реклама и UTM</h2><p>При переходе по рекламной ссылке сайт может сохранять UTM-метки и адрес источника перехода, чтобы определить, какая рекламная кампания привела посетителя или заявку. Для ограничения промо-колеса одной попыткой в 7 дней используется технический хэш сетевого адреса — исходный адрес в таблицу промо не записывается.</p><h2>Удаление данных</h2><p>Если нужно удалить отправленную заявку или связанные с ней контактные данные, напиши владельцу AuraFX через Telegram.</p><p>Политика может обновляться вместе с функционалом сайта.</p></div><a class="back" href="/">← Вернуться на AuraFX</a></main></body></html>`;
 
+const FUNCTION_NAV_HTML = String.raw`
+<style>
+  #afx-function-nav{position:fixed;left:50%;top:82px;transform:translate(-50%,-14px);width:min(1120px,calc(100% - 24px));z-index:46;opacity:0;pointer-events:none;transition:opacity .24s ease,transform .28s cubic-bezier(.2,.8,.2,1);font-family:inherit}
+  #afx-function-nav.is-visible{opacity:1;pointer-events:auto;transform:translate(-50%,0)}
+  .afx-fnav-shell{display:flex;align-items:center;gap:8px;padding:8px;border-radius:20px;border:1px solid rgba(255,255,255,.11);background:rgba(12,7,20,.80);box-shadow:0 16px 54px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.055);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2)}
+  .afx-fnav-brand{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 9px 0 7px;color:#cabbd8;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
+  .afx-fnav-brand i{width:8px;height:8px;border-radius:50%;background:#b962ff;box-shadow:0 0 18px rgba(185,98,255,.8)}
+  .afx-fnav-scroll{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;flex:1;mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);padding:1px 14px}
+  .afx-fnav-scroll::-webkit-scrollbar{display:none}
+  .afx-fnav-chip{appearance:none;border:1px solid rgba(255,255,255,.085);background:rgba(255,255,255,.04);color:#c8bdcf;border-radius:14px;padding:10px 12px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font:800 12px/1 inherit;cursor:pointer;text-decoration:none;transition:transform .16s ease,background .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease;flex:0 0 auto}
+  .afx-fnav-chip:hover{background:rgba(255,255,255,.075);border-color:rgba(190,121,255,.24);color:#fff;transform:translateY(-1px)}
+  .afx-fnav-chip.is-active{color:#fff;border-color:rgba(191,110,255,.44);background:linear-gradient(135deg,rgba(179,83,255,.25),rgba(86,45,188,.21));box-shadow:0 8px 24px rgba(112,54,217,.18),inset 0 1px rgba(255,255,255,.08)}
+  .afx-fnav-chip span{font-size:13px;line-height:1}
+  .afx-fnav-close{flex:0 0 auto;width:36px;height:36px;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);color:#9f93aa;display:grid;place-items:center;cursor:pointer;font:900 18px/1 inherit;transition:.18s ease}
+  .afx-fnav-close:hover{color:#fff;background:rgba(255,255,255,.07)}
+  #afx-function-nav.is-collapsed{width:auto;left:auto;right:12px;transform:translateY(0);opacity:1;pointer-events:auto}
+  #afx-function-nav.is-collapsed .afx-fnav-shell{padding:6px;border-radius:17px}
+  #afx-function-nav.is-collapsed .afx-fnav-brand,#afx-function-nav.is-collapsed .afx-fnav-scroll{display:none}
+  #afx-function-nav.is-collapsed .afx-fnav-close{width:auto;padding:0 12px;font-size:12px;gap:6px}
+  #afx-function-nav.is-collapsed .afx-fnav-close:before{content:'☰';font-size:15px}
+  #afx-function-nav.is-collapsed .afx-fnav-close:after{content:'Навигация'}
+  [data-afx-nav-target]{scroll-margin-top:148px}
+  @media(max-width:760px){
+    #afx-function-nav{top:68px;width:calc(100% - 16px)}
+    .afx-fnav-shell{border-radius:17px;padding:6px;gap:4px}
+    .afx-fnav-brand{display:none}
+    .afx-fnav-scroll{padding:1px 7px;gap:6px;mask-image:linear-gradient(90deg,transparent 0,#000 8px,#000 calc(100% - 8px),transparent 100%);-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8px,#000 calc(100% - 8px),transparent 100%)}
+    .afx-fnav-chip{padding:9px 10px;border-radius:12px;font-size:11px}
+    .afx-fnav-chip span{font-size:12px}
+    .afx-fnav-close{width:34px;height:34px;border-radius:11px}
+    #afx-function-nav.is-collapsed{top:70px;right:8px}
+  }
+  @media(prefers-reduced-motion:reduce){#afx-function-nav,.afx-fnav-chip{transition:none}}
+</style>
+<nav id="afx-function-nav" aria-label="Навигация по функциям AuraFX">
+  <div class="afx-fnav-shell">
+    <div class="afx-fnav-brand"><i></i>Навигатор</div>
+    <div class="afx-fnav-scroll" id="afx-fnav-scroll"></div>
+    <button class="afx-fnav-close" id="afx-fnav-toggle" type="button" aria-label="Свернуть навигацию">×</button>
+  </div>
+</nav>
+<script>
+(function(){
+  var nav=document.getElementById('afx-function-nav');
+  var strip=document.getElementById('afx-fnav-scroll');
+  var toggle=document.getElementById('afx-fnav-toggle');
+  if(!nav||!strip||!toggle)return;
+
+  function byText(rx){
+    var all=[].slice.call(document.querySelectorAll('section,main,div'));
+    for(var i=0;i<all.length;i++){
+      var el=all[i];
+      if(el.id==='afx-function-nav'||el.closest&&el.closest('#afx-function-nav'))continue;
+      var h=el.querySelector&&el.querySelector(':scope > h1,:scope > h2,:scope > h3,.section-title,.pricing-title');
+      var txt=(h?h.textContent:el.getAttribute&&el.getAttribute('aria-label')||'').trim();
+      if(txt&&rx.test(txt))return el;
+    }
+    return null;
+  }
+  function first(){for(var i=0;i<arguments.length;i++){var el=arguments[i];if(el)return el}return null}
+  var items=[
+    {icon:'⌂',label:'Главная',el:first(document.querySelector('main'),document.body.firstElementChild)},
+    {icon:'✦',label:'Услуги',el:document.getElementById('services')},
+    {icon:'▣',label:'Кейсы',el:document.getElementById('portfolio')},
+    {icon:'↔',label:'До / после',el:document.getElementById('afx-before-after')},
+    {icon:'◎',label:'Почему AuraFX',el:document.getElementById('afx-why-studio')},
+    {icon:'🎡',label:'Фортуна',el:document.getElementById('afx-promo-lab')},
+    {icon:'₽',label:'Тарифы',el:first(document.getElementById('afx-pricing-section'),byText(/тариф|цены|пакет|стоим/i))},
+    {icon:'★',label:'Отзывы',el:document.getElementById('aurafx-reviews')},
+    {icon:'?',label:'FAQ',el:document.getElementById('afx-faq')},
+    {icon:'⚡',label:'Заявка',el:document.getElementById('afx-smart-order')},
+    {icon:'✈',label:'Telegram',el:document.getElementById('afx-telegram-channel')},
+    {icon:'→',label:'Контакты',el:document.getElementById('contact')}
+  ].filter(function(x){return !!x.el});
+
+  items.forEach(function(item,idx){
+    if(!item.el.id)item.el.id='afx-nav-section-'+idx;
+    item.el.setAttribute('data-afx-nav-target','1');
+    if(item.label==='Тарифы'&&item.el.id!=='afx-pricing-section')item.el.setAttribute('data-afx-pricing-target','1');
+    var b=document.createElement('button');
+    b.type='button'; b.className='afx-fnav-chip'; b.dataset.target=item.el.id;
+    b.innerHTML='<span>'+item.icon+'</span>'+item.label;
+    b.addEventListener('click',function(){
+      var t=document.getElementById(this.dataset.target); if(!t)return;
+      t.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+    strip.appendChild(b); item.btn=b;
+  });
+
+  var collapsed=false;
+  try{collapsed=sessionStorage.getItem('afx_nav_collapsed')==='1'}catch(e){}
+  function applyCollapsed(){
+    nav.classList.toggle('is-collapsed',collapsed);
+    toggle.setAttribute('aria-label',collapsed?'Открыть навигацию':'Свернуть навигацию');
+    toggle.textContent=collapsed?'':'×';
+  }
+  applyCollapsed();
+  toggle.addEventListener('click',function(){
+    collapsed=!collapsed; applyCollapsed();
+    try{sessionStorage.setItem('afx_nav_collapsed',collapsed?'1':'0')}catch(e){}
+  });
+
+  function visibility(){
+    if(collapsed){nav.classList.add('is-visible');return}
+    nav.classList.toggle('is-visible',window.scrollY>150);
+  }
+  visibility(); window.addEventListener('scroll',visibility,{passive:true});
+
+  var active=-1, raf=0;
+  function updateActive(){
+    raf=0; var probe=Math.min(220,innerHeight*.30); var best=-1,dist=1e9;
+    items.forEach(function(item,i){
+      var r=item.el.getBoundingClientRect();
+      var inView=r.top<=probe&&r.bottom>probe;
+      var d=inView?0:Math.min(Math.abs(r.top-probe),Math.abs(r.bottom-probe));
+      if(d<dist){dist=d;best=i}
+    });
+    if(best!==active){
+      active=best;
+      items.forEach(function(x,i){x.btn.classList.toggle('is-active',i===active)});
+      var btn=items[active]&&items[active].btn;
+      if(btn&&nav.classList.contains('is-visible'))btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+    }
+  }
+  function schedule(){if(!raf)raf=requestAnimationFrame(updateActive)}
+  window.addEventListener('scroll',schedule,{passive:true});
+  window.addEventListener('resize',schedule,{passive:true});
+  setTimeout(updateActive,80);
+})();
+</script>
+`;
+
 const HEADER_EXCLUSIVE_LOGO_HTML = String.raw`
 <style>
   /* Header logo is rendered inline in index.html: no network request, no decode delay, no DOM replacement. */
@@ -3096,7 +3228,7 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta property="og:site_name" content="AuraFX"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2358e6ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a53cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%230b0612%22/%3E%3Cpath d=%22M16 46 29 16h6l13 30h-8l-2.5-6H26L23.5 46zm12.5-13h6.4L31.7 24z%22 fill=%22url(%23g)%22/%3E%3C/svg%3E"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + PERFORMANCE_V2_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + CASE_STORY_UPGRADE_HTML + CASE_REAL_SLIDES_HTML + BEFORE_AFTER_HTML + PREMIUM_INTERACTIVE_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + PERFORMANCE_V2_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + CASE_STORY_UPGRADE_HTML + CASE_REAL_SLIDES_HTML + BEFORE_AFTER_HTML + PREMIUM_INTERACTIVE_HTML + FUNCTION_NAV_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
