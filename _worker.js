@@ -1757,6 +1757,111 @@ const DIRECT_ORDER_HTML = String.raw`
 </script>`;
 
 
+const BEFORE_AFTER_HTML = String.raw`
+<style>
+  #afx-before-after{position:relative;overflow:hidden;padding:92px 24px 96px;color:#fff;background:linear-gradient(180deg,rgba(8,4,14,0),rgba(33,9,63,.52) 46%,rgba(8,4,14,0));font-family:inherit}
+  #afx-before-after:before{content:"";position:absolute;width:440px;height:440px;border-radius:50%;right:-170px;top:70px;background:rgba(158,69,255,.16);filter:blur(95px);pointer-events:none}
+  #afx-before-after:after{content:"";position:absolute;width:340px;height:340px;border-radius:50%;left:-160px;bottom:20px;background:rgba(83,226,255,.08);filter:blur(105px);pointer-events:none}
+  .afx-ba-wrap{position:relative;z-index:2;max-width:1160px;margin:0 auto}
+  .afx-ba-kicker{display:inline-flex;align-items:center;gap:9px;padding:9px 13px;border:1px solid rgba(186,103,255,.28);border-radius:999px;background:rgba(255,255,255,.035);color:#d7c5e8;font-size:12px;font-weight:900;letter-spacing:.14em;text-transform:uppercase}
+  .afx-ba-kicker i{width:7px;height:7px;border-radius:50%;background:#68e8ff;box-shadow:0 0 16px #68e8ff}
+  .afx-ba-head{display:flex;justify-content:space-between;align-items:end;gap:30px;margin:20px 0 34px}
+  .afx-ba-title{margin:0;font-size:clamp(42px,6vw,78px);line-height:.94;letter-spacing:-.055em;font-weight:950;max-width:760px}
+  .afx-ba-title em{font-style:normal;background:linear-gradient(90deg,#d493ff,#74e6ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .afx-ba-sub{margin:0;max-width:430px;color:#a99db4;font-size:16px;line-height:1.65}
+  .afx-ba-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(300px,.85fr);gap:20px;align-items:stretch}
+  .afx-ba-card{position:relative;border:1px solid rgba(255,255,255,.105);border-radius:28px;background:linear-gradient(145deg,rgba(255,255,255,.065),rgba(255,255,255,.024));box-shadow:0 24px 76px rgba(0,0,0,.27);overflow:hidden}
+  .afx-ba-main{padding:18px}
+  .afx-ba-stage{--afx-ba-pos:52%;position:relative;width:100%;aspect-ratio:4/5;max-height:660px;border-radius:22px;overflow:hidden;background:#0b0711;cursor:ew-resize;touch-action:none;user-select:none;-webkit-user-select:none;isolation:isolate}
+  .afx-ba-layer{position:absolute;inset:0;background-position:center;background-size:cover;background-repeat:no-repeat}
+  .afx-ba-before{filter:saturate(.18) contrast(.86) brightness(.68)}
+  .afx-ba-before:after{content:"";position:absolute;inset:0;background:linear-gradient(145deg,rgba(143,143,154,.24),rgba(10,8,14,.28)),linear-gradient(180deg,rgba(255,255,255,.03),rgba(0,0,0,.15));backdrop-filter:blur(.5px)}
+  .afx-ba-after{clip-path:inset(0 calc(100% - var(--afx-ba-pos)) 0 0);filter:saturate(1.06) contrast(1.03)}
+  .afx-ba-side-label{position:absolute;z-index:5;top:14px;padding:8px 11px;border-radius:999px;font-size:10px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.13)}
+  .afx-ba-label-before{left:14px;background:rgba(16,14,19,.68);color:#d5cfd9}.afx-ba-label-after{right:14px;background:linear-gradient(135deg,rgba(173,65,255,.88),rgba(82,62,221,.84));color:#fff}
+  .afx-ba-divider{position:absolute;z-index:6;top:0;bottom:0;left:var(--afx-ba-pos);width:2px;transform:translateX(-1px);background:linear-gradient(180deg,transparent,#fff 14%,#d6a8ff 50%,#fff 86%,transparent);box-shadow:0 0 18px rgba(185,103,255,.7);pointer-events:none}
+  .afx-ba-handle{position:absolute;z-index:7;left:var(--afx-ba-pos);top:50%;width:48px;height:48px;transform:translate(-50%,-50%);border-radius:50%;display:grid;place-items:center;background:rgba(13,7,21,.88);border:1px solid rgba(255,255,255,.2);box-shadow:0 12px 34px rgba(0,0,0,.35),0 0 28px rgba(166,74,255,.35);font-size:20px;font-weight:900;pointer-events:none}
+  .afx-ba-note{position:absolute;z-index:5;left:14px;bottom:14px;max-width:62%;padding:9px 11px;border-radius:13px;background:rgba(8,5,13,.72);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(10px);color:#c8bdcf;font-size:10px;line-height:1.45}
+  .afx-ba-range{width:100%;accent-color:#a94cff;margin:14px 0 0}
+  .afx-ba-thumbs{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding:12px 1px 2px}.afx-ba-thumbs::-webkit-scrollbar{display:none}
+  .afx-ba-thumb{flex:0 0 auto;width:72px;height:72px;border:1px solid rgba(255,255,255,.09);border-radius:15px;background:#120a1d center/cover no-repeat;cursor:pointer;position:relative;overflow:hidden;transition:.2s transform,.2s border-color,.2s box-shadow}
+  .afx-ba-thumb:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,transparent,rgba(5,3,9,.38))}
+  .afx-ba-thumb.active{border-color:rgba(192,112,255,.8);box-shadow:0 0 0 2px rgba(164,69,255,.12),0 10px 30px rgba(105,37,194,.25);transform:translateY(-2px)}
+  .afx-ba-side{padding:24px;display:flex;flex-direction:column}
+  .afx-ba-side h3{margin:0;font-size:28px;letter-spacing:-.035em}.afx-ba-side p{margin:9px 0 0;color:#9f93ab;line-height:1.55;font-size:14px}
+  .afx-ba-points{display:grid;gap:10px;margin:22px 0}.afx-ba-point{display:grid;grid-template-columns:42px 1fr;gap:12px;align-items:center;padding:13px;border-radius:17px;background:rgba(255,255,255,.035);border:1px solid rgba(255,255,255,.075)}
+  .afx-ba-point i{width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:linear-gradient(135deg,rgba(171,72,255,.3),rgba(76,221,255,.1));font-style:normal;font-weight:950;color:#fff}.afx-ba-point b{display:block;font-size:13px}.afx-ba-point span{display:block;margin-top:3px;color:#8f839b;font-size:10px;line-height:1.35}
+  .afx-ba-disclaimer{margin-top:auto;padding:13px 14px;border:1px dashed rgba(255,255,255,.1);border-radius:16px;color:#80748b;font-size:10px;line-height:1.5;background:rgba(255,255,255,.018)}
+  .afx-ba-cta{margin-top:14px;border:0;border-radius:16px;padding:15px 18px;background:linear-gradient(135deg,#b247ff,#6e2ae3);color:#fff;font:850 14px/1 inherit;cursor:pointer;box-shadow:0 14px 36px rgba(123,43,225,.28);transition:.2s transform,.2s box-shadow}.afx-ba-cta:hover{transform:translateY(-2px);box-shadow:0 18px 44px rgba(137,51,242,.36)}
+  @media(max-width:850px){#afx-before-after{padding:70px 20px 78px}.afx-ba-head{display:block}.afx-ba-sub{margin-top:15px}.afx-ba-grid{grid-template-columns:1fr}.afx-ba-stage{max-height:none}.afx-ba-side{padding:21px}}
+  @media(max-width:520px){#afx-before-after{padding-left:16px;padding-right:16px}.afx-ba-title{font-size:46px}.afx-ba-main{padding:10px}.afx-ba-card{border-radius:23px}.afx-ba-stage{border-radius:17px}.afx-ba-note{max-width:74%;font-size:9px}.afx-ba-thumb{width:62px;height:62px}}
+</style>
+<section id="afx-before-after" aria-labelledby="afx-ba-title">
+  <div class="afx-ba-wrap">
+    <div class="afx-ba-kicker"><i></i> До / После</div>
+    <div class="afx-ba-head">
+      <h2 class="afx-ba-title" id="afx-ba-title">Посмотри, как меняется <em>подача товара</em></h2>
+      <p class="afx-ba-sub">Передвигай ползунок. Слева — намеренно упрощённая подача без акцентов, справа — полноценный дизайн AuraFX из реального кейса сайта.</p>
+    </div>
+    <div class="afx-ba-grid">
+      <div class="afx-ba-card afx-ba-main">
+        <div class="afx-ba-stage" id="afx-ba-stage">
+          <div class="afx-ba-layer afx-ba-before" id="afx-ba-before"></div>
+          <div class="afx-ba-layer afx-ba-after" id="afx-ba-after"></div>
+          <span class="afx-ba-side-label afx-ba-label-before">Без подачи</span>
+          <span class="afx-ba-side-label afx-ba-label-after">AuraFX</span>
+          <div class="afx-ba-divider"></div><div class="afx-ba-handle">↔</div>
+          <div class="afx-ba-note">Демонстрация визуальной подачи: исходные материалы клиента в реальном заказе могут отличаться.</div>
+        </div>
+        <input class="afx-ba-range" id="afx-ba-range" type="range" min="10" max="90" value="52" aria-label="Сравнение до и после">
+        <div class="afx-ba-thumbs" id="afx-ba-thumbs" aria-label="Выбрать кейс"></div>
+      </div>
+      <aside class="afx-ba-card afx-ba-side">
+        <h3>Что меняется в дизайне</h3>
+        <p>Не просто «делаем красивее». У каждого элемента появляется понятная задача.</p>
+        <div class="afx-ba-points">
+          <div class="afx-ba-point"><i>01</i><div><b>Фокус на товаре</b><span>Композиция ведёт взгляд к главному объекту.</span></div></div>
+          <div class="afx-ba-point"><i>02</i><div><b>Считываемое УТП</b><span>Покупатель быстрее понимает ключевую мысль карточки.</span></div></div>
+          <div class="afx-ba-point"><i>03</i><div><b>Цельный стиль серии</b><span>Следующие слайды продолжают одну визуальную историю.</span></div></div>
+        </div>
+        <div class="afx-ba-disclaimer">Без выдуманных процентов и обещаний: блок показывает разницу именно в визуальной упаковке.</div>
+        <button class="afx-ba-cta" id="afx-ba-cta" type="button">Хочу так оформить товар →</button>
+      </aside>
+    </div>
+  </div>
+</section>
+<script>
+(function(){
+  var section=document.getElementById('afx-before-after');
+  if(!section)return;
+  var stage=document.getElementById('afx-ba-stage'),before=document.getElementById('afx-ba-before'),after=document.getElementById('afx-ba-after'),range=document.getElementById('afx-ba-range'),thumbs=document.getElementById('afx-ba-thumbs'),cta=document.getElementById('afx-ba-cta');
+  function setPos(v){v=Math.max(10,Math.min(90,Number(v)||52));stage.style.setProperty('--afx-ba-pos',v+'%');range.value=String(Math.round(v))}
+  function srcOf(card){var img=card&&card.querySelector('img');return img&&(img.currentSrc||img.src)||''}
+  function nameOf(card,index){var h=card&&card.querySelector('h2,h3,h4,strong');var t=String(h&&h.textContent||'').replace(/\\s+/g,' ').trim();return t||('Кейс '+(index+1))}
+  function pick(card,index,buttons){var src=srcOf(card);if(!src)return;before.style.backgroundImage='url('+JSON.stringify(src)+')';after.style.backgroundImage='url('+JSON.stringify(src)+')';buttons.forEach(function(b,i){b.classList.toggle('active',i===index)});setPos(52)}
+  function build(){
+    var cards=[].slice.call(document.querySelectorAll('.afx-case-ready')).filter(function(c){return !!srcOf(c)}).slice(0,7);
+    if(!cards.length)return false;
+    thumbs.innerHTML='';var buttons=[];
+    cards.forEach(function(card,i){var b=document.createElement('button');b.type='button';b.className='afx-ba-thumb'+(i===0?' active':'');b.style.backgroundImage='url('+JSON.stringify(srcOf(card))+')';b.title=nameOf(card,i);b.setAttribute('aria-label','Показать '+nameOf(card,i));b.addEventListener('click',function(){pick(card,i,buttons)});thumbs.appendChild(b);buttons.push(b)});
+    pick(cards[0],0,buttons);return true;
+  }
+  function place(){
+    var card=document.querySelector('.afx-case-ready');
+    var host=card&&card.closest('section');
+    if(host&&host.parentNode&&host.nextElementSibling!==section)host.parentNode.insertBefore(section,host.nextSibling);
+  }
+  var dragging=false;
+  function fromPointer(e){var r=stage.getBoundingClientRect();setPos(((e.clientX-r.left)/r.width)*100)}
+  stage.addEventListener('pointerdown',function(e){dragging=true;try{stage.setPointerCapture(e.pointerId)}catch(_){}fromPointer(e)});
+  stage.addEventListener('pointermove',function(e){if(dragging)fromPointer(e)});
+  stage.addEventListener('pointerup',function(){dragging=false});stage.addEventListener('pointercancel',function(){dragging=false});
+  range.addEventListener('input',function(){setPos(range.value)});
+  cta.addEventListener('click',function(){var target=document.getElementById('afx-direct-order-btn');if(target){(target.closest('section,article,div')||target).scrollIntoView({behavior:'smooth',block:'center'});return}var ta=document.querySelector('textarea');if(ta)(ta.closest('section')||ta).scrollIntoView({behavior:'smooth',block:'start'})});
+  var tries=0,t=setInterval(function(){tries++;place();if(build()||tries>24)clearInterval(t)},250);setTimeout(place,900);
+})();
+</script>`;
+
 const CASE_STORY_UPGRADE_HTML = String.raw`
 <style>
   .afx-case-ready .afx-pack-badge{position:absolute;left:12px;top:12px;z-index:25;padding:8px 10px;border-radius:999px;background:rgba(11,6,18,.78);border:1px solid rgba(255,255,255,.12);color:#f3edf8;font:850 10px/1 system-ui,sans-serif;letter-spacing:.04em;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);pointer-events:none;box-shadow:0 8px 24px rgba(0,0,0,.2)}
@@ -1923,7 +2028,7 @@ const HEADER_EXCLUSIVE_LOGO_HTML = String.raw`
   .afx-logo-safe-target{position:relative!important;overflow:hidden!important;color:transparent!important;font-size:0!important;}
   .afx-logo-safe-target::before,.afx-logo-safe-target::after{display:none!important;content:none!important;}
   .afx-logo-safe-target > *:not(.afx-logo-safe-img){display:none!important;}
-  .afx-logo-safe-img{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;object-fit:cover!important;border-radius:inherit!important;display:block!important;z-index:5!important;pointer-events:none!important;}
+  .afx-logo-safe-img{position:absolute!important;inset:2px!important;width:calc(100% - 4px)!important;height:calc(100% - 4px)!important;object-fit:contain!important;border-radius:inherit!important;display:block!important;z-index:5!important;pointer-events:none!important;}
 
   /* Safari/iPhone safety: never let reveal/effects keep content invisible. */
   html.afx-ios .afx-reveal-prep,
@@ -1954,24 +2059,63 @@ const HEADER_EXCLUSIVE_LOGO_HTML = String.raw`
 
   function installLogo(){
     try{
-      /* Fast bounded search: only elements near the top-left, once after first paint. */
-      var nodes=document.querySelectorAll('header *, nav *, body > *');
-      var best=null,bestScore=1e9;
-      for(var i=0;i<nodes.length && i<180;i++){
-        var el=nodes[i];
-        if(el.dataset && el.dataset.afxLogoSafe==='1')return true;
-        var t=(el.textContent||'').replace(/\s+/g,' ').trim();
-        if(t!=='A')continue;
-        var r=el.getBoundingClientRect();
-        if(r.top<0||r.top>180||r.left<0||r.left>170)continue;
-        if(r.width<34||r.width>90||r.height<34||r.height>90)continue;
-        var s=Math.abs(r.width-r.height)+Math.abs(r.width-58)+r.left*.05+r.top*.05;
-        if(s<bestScore){best=el;bestScore=s}
+      /* Prefer the real brand mark. The old heuristic searched for any exact
+         letter \"A\" near the top-left and could occasionally pick the wrong
+         node after portfolio/layout upgrades. */
+      var best=document.querySelector('header .brand .mark, nav .brand .mark, .nav .brand .mark, .brand .mark');
+
+      if(!best){
+        var nodes=document.querySelectorAll('header *, nav *');
+        var bestScore=1e9;
+        for(var i=0;i<nodes.length && i<220;i++){
+          var el=nodes[i];
+          if(el.dataset && el.dataset.afxLogoSafe==='1')return true;
+          var t=(el.textContent||'').replace(/\s+/g,' ').trim();
+          if(t!=='A')continue;
+          var r=el.getBoundingClientRect();
+          if(r.top<0||r.top>190||r.left<0||r.left>190)continue;
+          if(r.width<30||r.width>96||r.height<30||r.height>96)continue;
+          var s=Math.abs(r.width-r.height)+Math.abs(r.width-36)+r.left*.05+r.top*.05;
+          if(s<bestScore){best=el;bestScore=s}
+        }
       }
+
       if(!best)return false;
-      best.dataset.afxLogoSafe='1';
-      best.classList.add('afx-logo-safe-target');
-      best.innerHTML='<img class="afx-logo-safe-img" src="'+LOGO_SRC+'" alt="AuraFX" decoding="async">';
+      if(best.dataset && best.dataset.afxLogoSafe==='1')return true;
+
+      /* Keep the original A visible until the custom image has actually
+         decoded. If the image ever fails, the header never becomes blank. */
+      var probe=new Image();
+      probe.decoding='async';
+      probe.onload=function(){
+        try{
+          if(!best || !best.isConnected)return;
+          best.dataset.afxLogoSafe='1';
+          best.classList.add('afx-logo-safe-target');
+          best.innerHTML='';
+          var logo=document.createElement('img');
+          logo.className='afx-logo-safe-img';
+          logo.src=LOGO_SRC;
+          logo.alt='AuraFX';
+          logo.decoding='async';
+          logo.onerror=function(){
+            try{
+              best.classList.remove('afx-logo-safe-target');
+              delete best.dataset.afxLogoSafe;
+              best.innerHTML='A';
+            }catch(e){}
+          };
+          best.appendChild(logo);
+        }catch(e){}
+      };
+      probe.onerror=function(){
+        try{
+          best.classList.remove('afx-logo-safe-target');
+          delete best.dataset.afxLogoSafe;
+          if(!(best.textContent||'').trim())best.textContent='A';
+        }catch(e){}
+      };
+      probe.src=LOGO_SRC;
       return true;
     }catch(e){return false}
   }
@@ -2896,7 +3040,7 @@ export default {
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
         .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta property="og:site_name" content="AuraFX"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2358e6ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a53cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%230b0612%22/%3E%3Cpath d=%22M16 46 29 16h6l13 30h-8l-2.5-6H26L23.5 46zm12.5-13h6.4L31.7 24z%22 fill=%22url(%23g)%22/%3E%3C/svg%3E"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
-        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + CASE_STORY_UPGRADE_HTML + CASE_REAL_SLIDES_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
+        .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + CASE_STORY_UPGRADE_HTML + CASE_REAL_SLIDES_HTML + BEFORE_AFTER_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML, { html: true }); } })
         .transform(response);
     }
     return response;
