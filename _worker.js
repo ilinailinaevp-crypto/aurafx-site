@@ -303,13 +303,19 @@ const SITE_TOOLS_HTML = String.raw`
     box-shadow:0 0 0 4px rgba(86,244,173,.08),0 0 16px rgba(86,244,173,.72);
     animation:afxOnlinePulse 2s ease-in-out infinite;
   }
-  #afx-pricing-jump, #afx-channel-jump, #afx-cases-jump, #afx-fortune-jump{
+  #afx-audit-jump, #afx-pricing-jump, #afx-channel-jump, #afx-cases-jump, #afx-fortune-jump{
     appearance:none;border:1px solid rgba(162,85,255,.30);cursor:pointer;text-decoration:none;
     background:linear-gradient(135deg,rgba(151,61,255,.88),rgba(90,42,214,.9));
     box-shadow:0 10px 34px rgba(106,43,224,.28),inset 0 1px rgba(255,255,255,.12);
     transition:transform .2s ease,box-shadow .2s ease;
     justify-content:center;
   }
+  #afx-audit-jump{
+    border-color:rgba(104,238,194,.32);
+    background:linear-gradient(135deg,rgba(50,202,155,.92),rgba(121,66,238,.92));
+    box-shadow:0 10px 34px rgba(64,189,157,.22),inset 0 1px rgba(255,255,255,.14);
+  }
+  #afx-audit-jump:hover{box-shadow:0 12px 42px rgba(66,211,171,.30),inset 0 1px rgba(255,255,255,.16)}
   #afx-channel-jump{
     border-color:rgba(104,205,255,.28);
     background:linear-gradient(135deg,rgba(71,163,255,.85),rgba(126,60,255,.86));
@@ -320,7 +326,7 @@ const SITE_TOOLS_HTML = String.raw`
     background:linear-gradient(135deg,rgba(255,132,62,.82),rgba(158,61,231,.86));
     box-shadow:0 10px 34px rgba(212,90,66,.18),inset 0 1px rgba(255,255,255,.12);
   }
-  #afx-pricing-jump:active, #afx-channel-jump:active, #afx-cases-jump:active, #afx-fortune-jump:active{transform:scale(.97)}
+  #afx-audit-jump:active, #afx-pricing-jump:active, #afx-channel-jump:active, #afx-cases-jump:active, #afx-fortune-jump:active{transform:scale(.97)}
   #afx-pricing-jump:hover{box-shadow:0 12px 40px rgba(122,54,239,.38),inset 0 1px rgba(255,255,255,.14)}
   #afx-channel-jump:hover{box-shadow:0 12px 40px rgba(77,132,255,.34),inset 0 1px rgba(255,255,255,.14)}
   #afx-cases-jump:hover{box-shadow:0 12px 40px rgba(222,103,75,.28),inset 0 1px rgba(255,255,255,.14)}
@@ -332,7 +338,7 @@ const SITE_TOOLS_HTML = String.raw`
     #afx-site-tools::-webkit-scrollbar{display:none}
     .afx-tool-pill{min-height:40px;padding:9px 12px;font-size:12px;flex:0 0 auto}
     #afx-online-pill{min-width:max-content;max-width:none}
-    #afx-pricing-jump,#afx-channel-jump,#afx-cases-jump,#afx-fortune-jump{padding-left:12px;padding-right:12px}
+    #afx-audit-jump,#afx-pricing-jump,#afx-channel-jump,#afx-cases-jump,#afx-fortune-jump{padding-left:12px;padding-right:12px}
   }
   @media(prefers-reduced-motion:reduce){.afx-online-dot{animation:none}}
 </style>
@@ -343,6 +349,7 @@ const SITE_TOOLS_HTML = String.raw`
     <span class="afx-online-sep">·</span>
     <span id="afx-total-text">👥 … всего</span>
   </div>
+  <button class="afx-tool-pill" id="afx-audit-jump" type="button">🎁 Бесплатный разбор</button>
   <button class="afx-tool-pill" id="afx-pricing-jump" type="button">⚡ Тарифы</button>
   <a class="afx-tool-pill" id="afx-channel-jump" href="https://t.me/AuraFX_design" target="_blank" rel="noopener">✈ Канал</a>
   <button class="afx-tool-pill" id="afx-cases-jump" type="button">🔥 Кейсы</button>
@@ -352,11 +359,12 @@ const SITE_TOOLS_HTML = String.raw`
 (function(){
   var onlineText=document.getElementById('afx-online-text');
   var totalText=document.getElementById('afx-total-text');
+  var auditJump=document.getElementById('afx-audit-jump');
   var jump=document.getElementById('afx-pricing-jump');
   var channel=document.getElementById('afx-channel-jump');
   var casesJump=document.getElementById('afx-cases-jump');
   var fortuneJump=document.getElementById('afx-fortune-jump');
-  if(!onlineText||!totalText||!jump||!channel||!casesJump||!fortuneJump)return;
+  if(!onlineText||!totalText||!auditJump||!jump||!channel||!casesJump||!fortuneJump)return;
 
   function makeVisitorId(){
     try{
@@ -403,6 +411,13 @@ const SITE_TOOLS_HTML = String.raw`
     }
     return document.querySelector('[id*="tarif"],[class*="tarif"],[id*="price"],[class*="price"],[id*="plan"],[class*="plan"]');
   }
+
+  auditJump.addEventListener('click',function(){
+    var open=document.getElementById('afx-open-brief');
+    if(open){open.click();return}
+    var cta=document.getElementById('afx-premium-cta');
+    if(cta)cta.scrollIntoView({behavior:'smooth',block:'center'});
+  });
 
   jump.addEventListener('click',function(){
     var section=findPricingSection();
@@ -1146,14 +1161,14 @@ const PREMIUM_STUDIO_HTML = String.raw`
 
 <section id="afx-premium-cta">
   <div class="afx-premium-wrap">
-    <div class="afx-premium-kicker">AuraFX / Start a project</div>
-    <h2 class="afx-premium-title">Карточки, которые хочется рассмотреть.</h2>
-    <p class="afx-premium-copy">Расскажи о товаре и задаче — короткий бриф соберёт всё нужное в одном сообщении. Без регистрации и длинной переписки на старте.</p>
+    <div class="afx-premium-kicker">AuraFX / Бесплатный mini-audit</div>
+    <h2 class="afx-premium-title">Покажи карточку — найдём, что мешает ей цеплять.</h2>
+    <p class="afx-premium-copy">Пришли ссылку, название товара или текущую карточку. AuraFX сделает бесплатный мини-разбор: 3 точки роста, идея первого слайда и рекомендации по визуальной подаче. Без оплаты и обязательств.</p>
     <div class="afx-premium-actions">
-      <button class="afx-premium-btn" id="afx-open-brief" type="button">Начать проект →</button>
-      <a class="afx-premium-btn secondary" href="https://t.me/AuraFX_marketplace" target="_blank" rel="noopener">Telegram ↗</a>
+      <button class="afx-premium-btn" id="afx-open-brief" type="button">Получить бесплатный разбор →</button>
+      <a class="afx-premium-btn secondary" href="https://t.me/AuraFX_marketplace" target="_blank" rel="noopener">Сразу заказать дизайн ↗</a>
     </div>
-    <div class="afx-premium-trust"><span>Бриф ≈ 60 секунд</span><span>Можно начать с одной карточки</span><span>Telegram или Avito</span></div>
+    <div class="afx-premium-trust"><span>Бесплатно</span><span>Форма ≈ 60 секунд</span><span>WB / Ozon / Avito</span><span>Без регистрации</span></div>
   </div>
 </section>
 
@@ -1168,7 +1183,7 @@ const PREMIUM_STUDIO_HTML = String.raw`
         <p class="afx-case-copy">Демонстрационный концепт AuraFX: акцент на читаемой иерархии, композиции и визуальной подаче преимуществ товара.</p>
         <div class="afx-case-chips"><span class="afx-case-chip">Композиция</span><span class="afx-case-chip">Типографика</span><span class="afx-case-chip">Акценты</span></div>
         <div class="afx-case-actions">
-          <button class="afx-premium-btn" id="afx-case-order" type="button">Хочу в таком стиле →</button>
+          <button class="afx-premium-btn" id="afx-case-order" type="button">Разобрать мою карточку →</button>
         </div>
         <div class="afx-case-nav"><button id="afx-case-prev" type="button">← Предыдущий</button><button id="afx-case-next" type="button">Следующий →</button></div>
       </div>
@@ -1179,35 +1194,29 @@ const PREMIUM_STUDIO_HTML = String.raw`
 <div class="afx-premium-modal" id="afx-brief-modal" aria-hidden="true">
   <div class="afx-premium-dialog afx-brief-dialog" role="dialog" aria-modal="true" aria-label="Бриф AuraFX">
     <button class="afx-modal-close" type="button" data-close-modal aria-label="Закрыть">×</button>
-    <div class="afx-brief-kicker">Новый проект</div>
-    <h3 class="afx-brief-title">Короткий бриф</h3>
-    <p class="afx-brief-sub">Заполни главное. После отправки заявка сразу сохранится в AuraFX — дублировать её в Telegram не нужно.</p>
+    <div class="afx-brief-kicker">Бесплатный разбор AuraFX</div>
+    <h3 class="afx-brief-title">Разберём твою карточку</h3>
+    <p class="afx-brief-sub">Оставь товар и контакт. Мы посмотрим, где теряется внимание, и подскажем, как усилить первый экран и визуальную подачу.</p>
     <form id="afx-brief-form">
       <div class="afx-brief-grid">
         <label class="afx-field">Площадка
           <select name="marketplace"><option>Wildberries</option><option>Ozon</option><option>Avito</option><option>Другое</option></select>
         </label>
-        <label class="afx-field">Количество карточек
-          <input name="count" type="number" min="1" max="50" value="1" required>
-        </label>
-        <label class="afx-field full">Что за товар?
-          <input name="product" maxlength="100" placeholder="Например, беспроводные наушники" required>
-        </label>
-        <label class="afx-field">Стиль
-          <select name="style"><option>На усмотрение AuraFX</option><option>Премиальный</option><option>Минималистичный</option><option>Яркий marketplace</option><option>Технологичный</option></select>
-        </label>
-        <label class="afx-field">Желаемый срок
-          <input name="deadline" maxlength="60" placeholder="Не срочно / дата">
-        </label>
         <label class="afx-field">Как связаться?
           <input name="contact" maxlength="100" placeholder="Telegram @username / Avito" required>
         </label>
-        <label class="afx-field full">Комментарий
-          <textarea name="comment" maxlength="500" placeholder="Ссылка на товар, пожелания, референсы — если есть"></textarea>
+        <label class="afx-field full">Ссылка или название товара
+          <input name="product" maxlength="180" placeholder="Ссылка на карточку или, например, беспроводные наушники" required>
+        </label>
+        <input name="count" type="hidden" value="1">
+        <input name="style" type="hidden" value="Бесплатный мини-разбор">
+        <input name="deadline" type="hidden" value="">
+        <label class="afx-field full">Что хочешь улучшить? <span style="opacity:.55;font-weight:600">необязательно</span>
+          <textarea name="comment" maxlength="500" placeholder="Например: мало кликов, карточка выглядит просто, нужен сильнее первый слайд"></textarea>
         </label>
       </div>
       <div class="afx-brief-actions">
-        <button class="afx-premium-btn" type="submit">Отправить заявку →</button>
+        <button class="afx-premium-btn" type="submit">Получить бесплатный разбор →</button>
         <a class="afx-premium-btn secondary" href="https://t.me/AuraFX_marketplace" target="_blank" rel="noopener">Написать в Telegram ↗</a>
       </div>
       <div class="afx-brief-status" id="afx-brief-status" aria-live="polite"></div>
@@ -1339,9 +1348,9 @@ const PREMIUM_STUDIO_HTML = String.raw`
     var form=document.getElementById('afx-brief-form');
     if(caseName){
       var field=form.elements.comment;
-      if(field&&!field.value)field.value='Понравился стиль кейса: '+caseName+'. ';
+      if(field&&!field.value)field.value='Понравился стиль кейса: '+caseName+'. Хочу понять, как применить похожую логику к моей карточке. ';
     }
-    openModal(briefModal);track('brief_open',caseName||'direct');
+    openModal(briefModal);track('brief_open',caseName||'free_audit');track('audit_open',caseName||'free_audit');
   }
   document.getElementById('afx-open-brief').addEventListener('click',function(){openBrief('')});
   [].slice.call(document.querySelectorAll('[data-close-modal]')).forEach(function(btn){btn.addEventListener('click',function(){closeModal(btn.closest('.afx-premium-modal'))})});
@@ -1360,13 +1369,13 @@ const PREMIUM_STUDIO_HTML = String.raw`
     var payload={
       visitor_id:visitorId(),
       marketplace:String(f.get('marketplace')||''),
-      count:Number(f.get('count')||1),
+      count:1,
       product:String(f.get('product')||''),
-      style:String(f.get('style')||''),
-      deadline:String(f.get('deadline')||''),
+      style:'Бесплатный мини-разбор',
+      deadline:'',
       contact:String(f.get('contact')||''),
-      comment:String(f.get('comment')||''),
-      source:String(attr.source||''),medium:String(attr.medium||''),campaign:String(attr.campaign||''),
+      comment:('[Бесплатный мини-разбор] '+String(f.get('comment')||'')).slice(0,500),
+      source:String(attr.source||'site'),medium:String(attr.medium||'website'),campaign:String(attr.campaign||'free_audit'),
       content:String(attr.content||''),term:String(attr.term||''),referrer:String(attr.referrer||''),landing:String(attr.landing||'')
     };
     btn.disabled=true;status.textContent='Отправляю заявку…';
@@ -1374,8 +1383,8 @@ const PREMIUM_STUDIO_HTML = String.raw`
       var res=await fetch('/api/lead',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify(payload)});
       var data=await res.json();
       if(!res.ok)throw new Error(data.error||'Не удалось сохранить заявку');
-      status.textContent='Заявка №'+data.id+' отправлена ✓ AuraFX получил её и свяжется по указанному контакту.';
-      track('brief_submit',payload.marketplace+' / '+payload.count);
+      status.textContent='Заявка №'+data.id+' на бесплатный разбор отправлена ✓ AuraFX получил её и свяжется по указанному контакту.';
+      track('brief_submit',payload.marketplace+' / free_audit');track('audit_submit',payload.marketplace);
     }catch(err){status.textContent=err.message||'Не удалось сохранить заявку. Попробуй ещё раз.'}
     finally{btn.disabled=false}
   });
@@ -1825,7 +1834,7 @@ const BEFORE_AFTER_HTML = String.raw`
           <div class="afx-ba-point"><i>03</i><div><b>Цельный стиль серии</b><span>Следующие слайды продолжают одну визуальную историю.</span></div></div>
         </div>
         <div class="afx-ba-disclaimer">Без выдуманных процентов и обещаний: блок показывает разницу именно в визуальной упаковке.</div>
-        <button class="afx-ba-cta" id="afx-ba-cta" type="button">Хочу так оформить товар →</button>
+        <button class="afx-ba-cta" id="afx-ba-cta" type="button">Получить бесплатный разбор →</button>
       </aside>
     </div>
   </div>
@@ -1897,7 +1906,7 @@ const BEFORE_AFTER_HTML = String.raw`
   stage.addEventListener('pointermove',function(e){if(dragging)fromPointer(e)});
   stage.addEventListener('pointerup',function(){dragging=false});stage.addEventListener('pointercancel',function(){dragging=false});
   range.addEventListener('input',function(){setPos(range.value)});
-  cta.addEventListener('click',function(){var target=document.getElementById('afx-direct-order-btn');if(target){(target.closest('section,article,div')||target).scrollIntoView({behavior:'smooth',block:'center'});return}var ta=document.querySelector('textarea');if(ta)(ta.closest('section')||ta).scrollIntoView({behavior:'smooth',block:'start'})});
+  cta.addEventListener('click',function(){var open=document.getElementById('afx-open-brief');if(open){open.click();return}var target=document.getElementById('afx-premium-cta');if(target)target.scrollIntoView({behavior:'smooth',block:'center'})});
   var tries=0,t=setInterval(function(){tries++;place();if(build()||tries>24)clearInterval(t)},250);setTimeout(place,900);
 })();
 </script>`;
@@ -3601,7 +3610,7 @@ export default {
     const response = await env.ASSETS.fetch(request);
     if ((url.pathname === "/" || url.pathname === "/index.html") && response.headers.get("content-type")?.includes("text/html")) {
       return new HTMLRewriter()
-        .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, тарифы, отзывы и быстрый заказ."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta property="og:site_name" content="AuraFX"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2358e6ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a53cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%230b0612%22/%3E%3Cpath d=%22M16 46 29 16h6l13 30h-8l-2.5-6H26L23.5 46zm12.5-13h6.4L31.7 24z%22 fill=%22url(%23g)%22/%3E%3C/svg%3E"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, тарифы и заказ онлайн."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
+        .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, кейсы и бесплатный мини-разбор вашей карточки."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta property="og:site_name" content="AuraFX"><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 64 64%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%2358e6ff%22/%3E%3Cstop offset=%221%22 stop-color=%22%23a53cff%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%2264%22 height=%2264%22 rx=%2218%22 fill=%22%230b0612%22/%3E%3Cpath d=%22M16 46 29 16h6l13 30h-8l-2.5-6H26L23.5 46zm12.5-13h6.4L31.7 24z%22 fill=%22url(%23g)%22/%3E%3C/svg%3E"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, кейсы и бесплатный мини-разбор карточки."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
         .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + PERFORMANCE_V2_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + CASE_STORY_UPGRADE_HTML + CASE_REAL_SLIDES_HTML + BEFORE_AFTER_HTML + PREMIUM_INTERACTIVE_HTML + FUNCTION_NAV_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML + ACCOUNT_WIDGET_HTML, { html: true }); } })
         .transform(response);
     }
