@@ -2739,11 +2739,16 @@ async function ensureDb(env) {
     next_path TEXT NOT NULL DEFAULT '/',
     bind_admin INTEGER NOT NULL DEFAULT 0,
     telegram_id TEXT,
+    login_code TEXT,
     status TEXT NOT NULL DEFAULT 'pending',
     expires_at INTEGER NOT NULL,
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`).run();
+  const tgLoginInfo = await env.DB.prepare("PRAGMA table_info(telegram_login_tokens)").all();
+  const tgLoginCols = new Set((tgLoginInfo.results || []).map(c => String(c.name)));
+  if (!tgLoginCols.has("login_code")) await env.DB.prepare("ALTER TABLE telegram_login_tokens ADD COLUMN login_code TEXT").run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_tg_login_expires ON telegram_login_tokens(expires_at)").run();
+  await env.DB.prepare("CREATE UNIQUE INDEX IF NOT EXISTS idx_tg_login_code ON telegram_login_tokens(login_code)").run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS promo_spins (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     ip_hash TEXT NOT NULL,
@@ -3036,6 +3041,12 @@ function b64urlDecodeText(value) {
   return new TextDecoder().decode(out);
 }
 function randomUrlSafe(size = 32) { const b = new Uint8Array(size); crypto.getRandomValues(b); return b64urlEncodeBytes(b); }
+function randomLoginCode(size = 8) {
+  const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const b = new Uint8Array(size); crypto.getRandomValues(b);
+  let out = ""; for (const n of b) out += alphabet[n % alphabet.length];
+  return out;
+}
 async function sha256UrlSafe(value) { return b64urlEncodeBytes(new Uint8Array(await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(value))))); }
 function authSecret(env) { return String(env.AUTH_SESSION_SECRET || env.ADMIN_SESSION_SECRET || "").trim(); }
 async function signedCompact(secret, payload) {
@@ -3151,16 +3162,21 @@ async function handleTelegramAuthStart(request, env, url) {
   let token = String(url.searchParams.get("resume") || "");
   let next = safeNext(url.searchParams.get("next") || (bindAdmin ? "/admin" : "/account"));
   const now = Math.floor(Date.now()/1000);
-  let row = null;
+  let row = null, loginCode = "";
 
   if (/^[A-Za-z0-9_-]{20,64}$/.test(token)) {
-    row = await env.DB.prepare("SELECT token,next_path,bind_admin,telegram_id,status,expires_at FROM telegram_login_tokens WHERE token=? LIMIT 1").bind(token).first();
+    row = await env.DB.prepare("SELECT token,next_path,bind_admin,telegram_id,login_code,status,expires_at FROM telegram_login_tokens WHERE token=? LIMIT 1").bind(token).first();
     if (!row || Number(row.expires_at||0) < now) {
       if (row) await env.DB.prepare("DELETE FROM telegram_login_tokens WHERE token=?").bind(token).run();
       row = null; token = "";
     } else {
       next = safeNext(row.next_path || next);
       bindAdmin = Number(row.bind_admin||0)===1 ? 1 : 0;
+      loginCode = String(row.login_code || "").toUpperCase();
+      if (!/^[A-HJ-NP-Z2-9]{8}$/.test(loginCode)) {
+        loginCode = randomLoginCode(8);
+        await env.DB.prepare("UPDATE telegram_login_tokens SET login_code=? WHERE token=?").bind(loginCode, token).run();
+      }
     }
   }
 
@@ -3168,8 +3184,13 @@ async function handleTelegramAuthStart(request, env, url) {
     token = randomUrlSafe(24);
     const expiresAt = now + 600;
     await env.DB.prepare("DELETE FROM telegram_login_tokens WHERE expires_at < ?").bind(now-60).run();
-    await env.DB.prepare("INSERT INTO telegram_login_tokens (token,next_path,bind_admin,status,expires_at) VALUES (?,?,?,'pending',?)")
-      .bind(token, next, bindAdmin, expiresAt).run();
+    for (let i=0;i<8;i++) {
+      loginCode = randomLoginCode(8);
+      const exists = await env.DB.prepare("SELECT token FROM telegram_login_tokens WHERE login_code=? LIMIT 1").bind(loginCode).first();
+      if (!exists) break;
+    }
+    await env.DB.prepare("INSERT INTO telegram_login_tokens (token,next_path,bind_admin,login_code,status,expires_at) VALUES (?,?,?,?,'pending',?)")
+      .bind(token, next, bindAdmin, loginCode, expiresAt).run();
     const resumeUrl = new URL("/auth/telegram", request.url);
     resumeUrl.searchParams.set("resume", token);
     resumeUrl.searchParams.set("next", next);
@@ -3186,7 +3207,7 @@ async function handleTelegramAuthStart(request, env, url) {
   const launchUrl = `/auth/telegram/launch?token=${encodeURIComponent(token)}`;
   const statusUrl = `/api/auth/telegram/status?token=${encodeURIComponent(token)}`;
   const html = `<!doctype html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b0612"><title>Вход в AuraFX</title><style>
-  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 0,#2a0f48 0,#0b0612 52%,#07040c 100%);color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.card{width:min(440px,calc(100vw - 32px));padding:28px;border:1px solid rgba(255,255,255,.1);border-radius:28px;background:rgba(20,10,34,.86);box-shadow:0 28px 90px rgba(0,0,0,.42);text-align:center}.brand{font-weight:950;font-size:30px;letter-spacing:-.04em}.brand span{background:linear-gradient(90deg,#5de8ff,#ba5cff);-webkit-background-clip:text;color:transparent}.muted{color:#a99db5;line-height:1.55;margin:10px 0 22px}.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:15px 18px;border:0;border-radius:16px;background:linear-gradient(135deg,#2ca5e0,#1686c8);color:white;text-decoration:none;font-weight:900;font-size:15px;box-shadow:0 14px 34px rgba(24,142,207,.28)}.btn2{margin-top:10px;background:rgba(255,255,255,.06);box-shadow:none;border:1px solid rgba(255,255,255,.1);cursor:pointer}.steps{margin:18px 0 0;padding:15px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.03);text-align:left;color:#c8bdd1;font-size:13px;line-height:1.55}.status{margin-top:16px;min-height:22px;color:#77f6c1;font-size:13px}.status.wait{color:#bbaec8}.back{display:inline-block;margin-top:18px;color:#bbaec8;text-decoration:none;font-size:13px}.tiny{margin-top:10px;color:#746a7e;font-size:11px;line-height:1.45}</style></head><body><main class="card"><div class="brand"><span>AuraFX</span> Account</div><p class="muted">Подтверди вход через @${escAttr(botUsername)}. Сам вход завершится именно в этом браузере, поэтому сессия не потеряется.</p><button class="btn" id="openTg" type="button">✈ Открыть @${escAttr(botUsername)}</button><button class="btn btn2" id="checkNow" type="button">✓ Я подтвердил — проверить вход</button><div class="steps"><b>Как теперь работает:</b><br>1. Кнопка откроет Telegram через отдельное временное окно браузера.<br>2. В боте нажми <b>Start / Запустить</b>.<br>3. Когда вернёшься в браузер, временное окно закроется само, а эта страница завершит вход автоматически.<br><br>Основная страница AuraFX при этом не теряется.</div><div class="status wait" id="status">Ждём подтверждение в Telegram…</div><div class="tiny">Ссылка действует 10 минут. Пароль создавать не нужно.</div><a class="back" href="${escAttr(next)}">← Вернуться на сайт</a></main><script>
+  *{box-sizing:border-box}body{margin:0;min-height:100vh;display:grid;place-items:center;background:radial-gradient(circle at 50% 0,#2a0f48 0,#0b0612 52%,#07040c 100%);color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.card{width:min(440px,calc(100vw - 32px));padding:28px;border:1px solid rgba(255,255,255,.1);border-radius:28px;background:rgba(20,10,34,.86);box-shadow:0 28px 90px rgba(0,0,0,.42);text-align:center}.brand{font-weight:950;font-size:30px;letter-spacing:-.04em}.brand span{background:linear-gradient(90deg,#5de8ff,#ba5cff);-webkit-background-clip:text;color:transparent}.muted{color:#a99db5;line-height:1.55;margin:10px 0 22px}.btn{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;padding:15px 18px;border:0;border-radius:16px;background:linear-gradient(135deg,#2ca5e0,#1686c8);color:white;text-decoration:none;font-weight:900;font-size:15px;box-shadow:0 14px 34px rgba(24,142,207,.28)}.btn2{margin-top:10px;background:rgba(255,255,255,.06);box-shadow:none;border:1px solid rgba(255,255,255,.1);cursor:pointer}.steps{margin:18px 0 0;padding:15px;border:1px solid rgba(255,255,255,.08);border-radius:18px;background:rgba(255,255,255,.03);text-align:left;color:#c8bdd1;font-size:13px;line-height:1.55}.status{margin-top:16px;min-height:22px;color:#77f6c1;font-size:13px}.status.wait{color:#bbaec8}.back{display:inline-block;margin-top:18px;color:#bbaec8;text-decoration:none;font-size:13px}.tiny{margin-top:10px;color:#746a7e;font-size:11px;line-height:1.45}.manual{margin:14px 0 0;padding:14px;border:1px solid rgba(93,232,255,.24);border-radius:18px;background:rgba(93,232,255,.055)}.manual b{display:block;font-size:12px;color:#c7bacf;margin-bottom:8px}.code{font:950 26px/1.1 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.14em;color:#fff;user-select:all}.manual small{display:block;margin-top:8px;color:#9f92aa;line-height:1.4}</style></head><body><main class="card"><div class="brand"><span>AuraFX</span> Account</div><p class="muted">Подтверди вход через @${escAttr(botUsername)}. Сам вход завершится именно в этом браузере, поэтому сессия не потеряется.</p><button class="btn" id="openTg" type="button">✈ Открыть @${escAttr(botUsername)}</button><button class="btn btn2" id="checkNow" type="button">✓ Я подтвердил — проверить вход</button><div class="manual"><b>TinyFish / встроенный браузер</b><div class="code">${escAttr(loginCode)}</div><small>Открой @${escAttr(botUsername)} в обычном Telegram на телефоне и отправь боту этот код одним сообщением. Затем вернись сюда.</small></div><div class="steps"><b>Обычный вход:</b><br>1. Кнопка откроет Telegram через отдельное временное окно браузера.<br>2. В боте нажми <b>Start / Запустить</b>.<br>3. Когда вернёшься в браузер, эта страница завершит вход автоматически.<br><br>Если встроенный браузер не открывает Telegram — используй код выше.</div><div class="status wait" id="status">Ждём подтверждение в Telegram…</div><div class="tiny">Код и ссылка действуют 10 минут. Пароль создавать не нужно.</div><a class="back" href="${escAttr(next)}">← Вернуться на сайт</a></main><script>
   (()=>{const s=document.getElementById('status'),check=document.getElementById('checkNow'),open=document.getElementById('openTg');let stopped=false,busy=false,tries=0,launchWin=null;
     async function poll(){if(stopped||busy)return;busy=true;tries++;try{const r=await fetch(${JSON.stringify(statusUrl)},{headers:{accept:'application/json'},cache:'no-store',credentials:'same-origin'});const d=await r.json();if(r.ok&&d.authenticated){stopped=true;s.className='status';s.textContent='Готово. Входим…';try{if(launchWin&&!launchWin.closed)launchWin.close()}catch(e){}location.replace(d.next||${JSON.stringify(next)});return}if(d.status==='expired'){stopped=true;s.className='status wait';s.textContent='Ссылка истекла. Начни вход заново.';return}s.className='status wait';s.textContent='Ждём подтверждение в Telegram…'}catch(e){s.className='status wait';s.textContent='Проверяем соединение…'}finally{busy=false}if(!stopped&&tries<500)setTimeout(poll,900)}
     open.addEventListener('click',()=>{s.className='status wait';s.textContent='Открываем Telegram…';launchWin=window.open(${JSON.stringify(launchUrl)},'afxTelegramAuth','popup=yes,width=460,height=700');if(!launchWin){window.open(${JSON.stringify(deepLink)},'_blank');}setTimeout(()=>{tries=0;poll()},700)});
@@ -3276,15 +3297,23 @@ async function handleAuthApi(request, env, url) {
     const msg = update && update.message;
     const from = msg && msg.from;
     const text = String(msg && msg.text || "").trim();
-    const match = text.match(/^\/start(?:@\w+)?\s+login_([A-Za-z0-9_-]{20,64})$/);
-    if (!match || !from || !from.id) return json({ok:true});
+    const startMatch = text.match(/^\/start(?:@\w+)?\s+login_([A-Za-z0-9_-]{20,64})$/);
+    const codeMatch = text.toUpperCase().match(/^([A-HJ-NP-Z2-9]{8})$/);
+    if ((!startMatch && !codeMatch) || !from || !from.id) return json({ok:true});
 
     await ensureDb(env);
-    const token = match[1];
-    const row = await env.DB.prepare("SELECT token,next_path,bind_admin,status,expires_at FROM telegram_login_tokens WHERE token=? LIMIT 1").bind(token).first();
+    let token = "", row = null;
+    if (startMatch) {
+      token = startMatch[1];
+      row = await env.DB.prepare("SELECT token,next_path,bind_admin,status,expires_at FROM telegram_login_tokens WHERE token=? LIMIT 1").bind(token).first();
+    } else {
+      const loginCode = codeMatch[1];
+      row = await env.DB.prepare("SELECT token,next_path,bind_admin,status,expires_at FROM telegram_login_tokens WHERE login_code=? AND status='pending' ORDER BY created_at DESC LIMIT 1").bind(loginCode).first();
+      token = row ? String(row.token || "") : "";
+    }
     const now = Math.floor(Date.now()/1000);
     if (!row || row.status !== "pending" || Number(row.expires_at||0) < now) {
-      try { await telegramLoginApi(env,"sendMessage",{chat_id:String(msg.chat && msg.chat.id || from.id),text:"Ссылка входа AuraFX уже истекла. Вернись на сайт и нажми «Войти через Telegram» ещё раз."}); } catch {}
+      try { await telegramLoginApi(env,"sendMessage",{chat_id:String(msg.chat && msg.chat.id || from.id),text:codeMatch?"Код входа AuraFX неверный или уже истёк. Получи новый код на странице входа.":"Ссылка входа AuraFX уже истекла. Вернись на сайт и нажми «Войти через Telegram» ещё раз."}); } catch {}
       return json({ok:true});
     }
 
