@@ -2344,13 +2344,15 @@ const ADMIN_HTML = String.raw`<!doctype html>
 *{box-sizing:border-box}body{margin:0;background:#09050f;color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;min-height:100vh}body:before{content:"";position:fixed;inset:-25%;background:radial-gradient(circle at 80% 15%,rgba(139,49,255,.18),transparent 27%),radial-gradient(circle at 15% 82%,rgba(66,224,255,.07),transparent 24%);pointer-events:none}
 .wrap{position:relative;max-width:1180px;margin:auto;padding:28px 18px 70px}.top{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:22px}.brand{font-size:25px;font-weight:950}.brand span{background:linear-gradient(90deg,#67e8ff,#b44dff);-webkit-background-clip:text;color:transparent}.sub{color:#8f839d;font-size:13px;margin-top:4px}.top-actions,.actions,.filters{display:flex;gap:8px;flex-wrap:wrap}
 .panel,.card{border:1px solid rgba(255,255,255,.095);background:linear-gradient(145deg,rgba(255,255,255,.055),rgba(255,255,255,.025));backdrop-filter:blur(18px);box-shadow:0 18px 60px rgba(0,0,0,.22);border-radius:22px}.login{max-width:440px;margin:12vh auto 0;padding:26px}.login h1{margin:0 0 8px;font-size:32px}.login p{margin:0 0 22px;color:#a99db5;line-height:1.55}
-input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color:#fff;border-radius:14px;padding:14px 15px;font:inherit;outline:none}input:focus{border-color:#a64bff;box-shadow:0 0 0 4px rgba(164,72,255,.12)}button,a.btn{border:0;border-radius:13px;padding:11px 14px;font:inherit;font-size:13px;font-weight:850;cursor:pointer;color:#fff;background:#251630;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}button:disabled{opacity:.5;cursor:wait}.primary{background:linear-gradient(135deg,#b247ff,#7027ed)}.danger{background:#39151d;color:#ff9cab}.warn{background:#352713;color:#ffd783}.ghost{background:rgba(255,255,255,.06)}.ok{background:#123126;color:#8ff3c6}
+input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color:#fff;border-radius:14px;padding:14px 15px;font:inherit;outline:none}textarea{resize:vertical;min-height:150px;line-height:1.55}select{appearance:none}input:focus,textarea:focus,select:focus{border-color:#a64bff;box-shadow:0 0 0 4px rgba(164,72,255,.12)}button,a.btn{border:0;border-radius:13px;padding:11px 14px;font:inherit;font-size:13px;font-weight:850;cursor:pointer;color:#fff;background:#251630;text-decoration:none;display:inline-flex;align-items:center;justify-content:center;gap:7px}button:disabled{opacity:.5;cursor:wait}.primary{background:linear-gradient(135deg,#b247ff,#7027ed)}.danger{background:#39151d;color:#ff9cab}.warn{background:#352713;color:#ffd783}.ghost{background:rgba(255,255,255,.06)}.ok{background:#123126;color:#8ff3c6}
 .msg{min-height:20px;margin:12px 0 0;color:#ff9aaa;font-size:13px}.section-title{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:30px 0 12px}.section-title h2{margin:0;font-size:22px}.section-title p{margin:0;color:#81758e;font-size:12px}.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}.metric{padding:16px}.metric small{color:#92869e;font-size:11px}.metric b{display:block;font-size:27px;margin-top:6px;letter-spacing:-.03em}.metric em{display:block;color:#746b7f;font-style:normal;font-size:11px;margin-top:3px}
 .overview-grid{display:grid;grid-template-columns:1.35fr .65fr;gap:12px}.chart{padding:18px}.bars{height:150px;display:flex;align-items:end;gap:8px;margin-top:18px}.bar-wrap{flex:1;min-width:0;text-align:center}.bar{width:100%;min-height:4px;border-radius:9px 9px 3px 3px;background:linear-gradient(180deg,#b14cff,#6330de);box-shadow:0 0 18px rgba(135,59,240,.18)}.bar-wrap span{display:block;color:#746a80;font-size:10px;margin-top:7px}.quick{padding:18px}.quick h3{margin:0 0 12px}.quick .actions{display:grid;grid-template-columns:1fr 1fr}.system{margin-top:12px;padding:14px;display:flex;justify-content:space-between;align-items:center;color:#9f93aa;font-size:12px}.status-dot{width:8px;height:8px;border-radius:50%;background:#59eeb2;box-shadow:0 0 14px rgba(89,238,178,.7);display:inline-block;margin-right:7px}
 .toolbar{display:flex;gap:10px;justify-content:space-between;align-items:center;margin:0 0 12px;flex-wrap:wrap}.filters button.active{background:#7629ee}.review-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px}.review-stat{padding:14px}.review-stat b{display:block;font-size:22px;margin-top:4px}.review-stat small{color:#8f839b}.list{display:grid;gap:10px}.card{padding:18px}.cardtop{display:flex;justify-content:space-between;gap:14px;align-items:start}.name{font-weight:900;font-size:17px}.stars{color:#ffd45c;letter-spacing:1px}.text{color:#ddd5e4;line-height:1.55;white-space:pre-wrap;overflow-wrap:anywhere}.meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap;color:#786e82;font-size:11px}.badge{display:inline-flex;padding:5px 9px;border-radius:999px;font-size:10px;font-weight:850}.approved{background:rgba(55,220,151,.12);color:#82f0be}.pending{background:rgba(255,188,61,.12);color:#ffd06f}.hidden{background:rgba(255,103,128,.12);color:#ff9bac}.new{background:rgba(102,213,255,.12);color:#83e7ff}.contacted{background:rgba(177,91,255,.14);color:#d3a6ff}.done{background:rgba(55,220,151,.12);color:#82f0be}.spam{background:rgba(255,103,128,.12);color:#ff9bac}.empty{text-align:center;padding:40px 20px;color:#8f829c}.hidden-ui{display:none!important}.toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);background:#171020;border:1px solid rgba(255,255,255,.1);padding:11px 15px;border-radius:999px;opacity:0;pointer-events:none;transition:.22s;z-index:20;font-size:12px}.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .promo-check{padding:18px}.promo-form{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px}.promo-note{margin-top:10px}.promo-result{margin-top:12px;padding:16px;border-radius:17px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.025)}.promo-result.empty{color:#8f829c}.promo-code{font:900 16px/1.2 ui-monospace,SFMono-Regular,Menlo,monospace;letter-spacing:.03em;overflow-wrap:anywhere}.promo-main{display:flex;justify-content:space-between;gap:12px;align-items:flex-start}.promo-info{margin-top:10px;color:#b7aabd;font-size:12px;line-height:1.65}.promo-history{display:grid;gap:8px;margin-top:12px}.promo-row{display:grid;grid-template-columns:minmax(0,1.25fr) 80px 110px minmax(0,.8fr);gap:10px;align-items:center;padding:12px 14px;border:1px solid rgba(255,255,255,.075);border-radius:15px;background:rgba(255,255,255,.025);font-size:12px}.promo-row .promo-code{font-size:12px}.promo-status-active{background:rgba(55,220,151,.12);color:#82f0be}.promo-status-redeemed{background:rgba(102,213,255,.12);color:#83e7ff}.promo-status-expired{background:rgba(255,103,128,.12);color:#ff9bac}.promo-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.promo-actions button{flex:0 0 auto}
 .tg-panel{padding:18px}.tg-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:14px}.tg-box{padding:16px;border:1px solid rgba(255,255,255,.075);border-radius:17px;background:rgba(255,255,255,.025)}.tg-box h3{margin:0 0 7px;font-size:16px}.tg-box p{margin:0;color:#9e92a8;font-size:12px;line-height:1.65}.tg-state{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tg-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.tg-step{display:flex;gap:10px;margin-top:10px;color:#bcb1c5;font-size:12px;line-height:1.55}.tg-step b{width:22px;height:22px;flex:0 0 22px;display:grid;place-items:center;border-radius:50%;background:rgba(166,75,255,.14);color:#d5b6ff}.tg-command{font:800 12px/1.3 ui-monospace,SFMono-Regular,Menlo,monospace;color:#fff;background:#100819;border:1px solid rgba(255,255,255,.09);padding:8px 10px;border-radius:10px;display:inline-block;margin-top:8px}
-@media(max-width:860px){.tg-grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.overview-grid{grid-template-columns:1fr}.review-stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.wrap{padding:20px 14px 60px}.top{align-items:flex-start}.top-actions{justify-content:flex-end}.metrics{grid-template-columns:repeat(2,1fr)}.quick .actions{grid-template-columns:1fr}.cardtop{display:block}.stars{margin-top:6px}.promo-form{grid-template-columns:1fr}.promo-row{grid-template-columns:1fr 70px}.promo-row>*:nth-child(3),.promo-row>*:nth-child(4){grid-column:1/-1}.promo-main{display:block}.promo-main .badge{margin-top:8px}}
+.tg-publisher{padding:18px}.tg-pub-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(300px,.9fr);gap:14px}.tg-pub-box{padding:17px;border:1px solid rgba(255,255,255,.075);border-radius:18px;background:rgba(255,255,255,.025)}.tg-pub-box h3{margin:0 0 7px;font-size:16px}.tg-pub-box p{margin:0 0 13px;color:#9e92a8;font-size:12px;line-height:1.65}.tg-pub-fields{display:grid;gap:11px}.tg-pub-label{display:grid;gap:6px;color:#cfc4d6;font-size:12px;font-weight:750}.tg-pub-meta{display:flex;justify-content:space-between;gap:10px;align-items:center;color:#776d80;font-size:11px}.tg-pub-preview{min-height:210px;border:1px solid rgba(255,255,255,.075);border-radius:17px;padding:17px;background:linear-gradient(145deg,rgba(49,25,68,.34),rgba(8,5,14,.65));white-space:pre-wrap;overflow-wrap:anywhere;color:#e9e3ee;line-height:1.55}.tg-pub-preview.empty{display:grid;place-items:center;text-align:center;color:#756a80}.tg-pub-photo{width:100%;max-height:260px;object-fit:cover;border-radius:14px;margin:0 0 12px;display:none}.tg-pub-photo.show{display:block}.tg-pub-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.tg-pub-status{min-height:20px;margin-top:10px;color:#9e92a8;font-size:12px}.tg-pub-status.good{color:#82f0be}.tg-pub-status.bad{color:#ff9bac}.tg-pub-check{display:flex;gap:8px;align-items:center;color:#a99db5;font-size:12px}.tg-pub-check input{width:auto;accent-color:#9f4bff}
+
+@media(max-width:860px){.tg-grid,.tg-pub-grid{grid-template-columns:1fr}.metrics{grid-template-columns:repeat(2,1fr)}.overview-grid{grid-template-columns:1fr}.review-stats{grid-template-columns:repeat(2,1fr)}}@media(max-width:620px){.wrap{padding:20px 14px 60px}.top{align-items:flex-start}.top-actions{justify-content:flex-end}.metrics{grid-template-columns:repeat(2,1fr)}.quick .actions{grid-template-columns:1fr}.cardtop{display:block}.stars{margin-top:6px}.promo-form{grid-template-columns:1fr}.promo-row{grid-template-columns:1fr 70px}.promo-row>*:nth-child(3),.promo-row>*:nth-child(4){grid-column:1/-1}.promo-main{display:block}.promo-main .badge{margin-top:8px}}
 </style></head><body><div class="wrap">
 <div class="top"><div><div class="brand"><span>AuraFX</span> Admin Pro</div><div class="sub">Аналитика, отзывы и управление сайтом</div></div><div class="top-actions"><a class="btn ghost hidden-ui" id="openSite" href="/" target="_blank">↗ Сайт</a><button id="logout" class="ghost hidden-ui">Выйти</button></div></div>
 <section id="loginBox" class="panel login"><h1>Вход</h1><p>Если Telegram уже привязан к владельцу AuraFX — вход откроет админку автоматически.</p><a class="btn primary" href="/auth/telegram?next=/admin" style="width:100%;padding:14px 16px;font-size:14px">✈ Войти через Telegram</a><div style="display:flex;align-items:center;gap:10px;margin:18px 0;color:#706777;font-size:11px"><span style="height:1px;background:rgba(255,255,255,.08);flex:1"></span><span>или резервный вход</span><span style="height:1px;background:rgba(255,255,255,.08);flex:1"></span></div><form id="loginForm"><input id="password" type="password" autocomplete="current-password" placeholder="Пароль администратора" required><button class="ghost" style="width:100%;margin-top:12px">Войти по паролю →</button><div class="msg" id="loginMsg"></div></form></section>
@@ -2395,6 +2397,32 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
     <div class="sub" style="margin-top:12px">Будут приходить: 🔥 новые заявки, ⭐ отзывы, 🎁 SUPER 20% и ✅ погашение промокода. Заявка сохраняется в D1 даже если Telegram временно недоступен.</div>
   </div>
 
+  <div class="section-title"><div><h2>Публикации в Telegram</h2><p>@AuraFXPostBot → только разрешённые каналы и группы</p></div><button id="tgPubCheck" class="ghost">Проверить бота</button></div>
+  <div class="panel tg-publisher">
+    <div class="tg-pub-grid">
+      <div class="tg-pub-box">
+        <h3>Новый пост</h3>
+        <p>Публикация идёт через отдельного <b>@AuraFXPostBot</b>. Токен остаётся только в Cloudflare Secret и никогда не отправляется в браузер.</p>
+        <div class="tg-pub-fields">
+          <label class="tg-pub-label">Куда публикуем<select id="tgPubTarget"><option value="@AuraFX_design">@AuraFX_design</option></select></label>
+          <label class="tg-pub-label">Текст поста<textarea id="tgPubText" maxlength="4000" placeholder="Напиши пост для AuraFX…"></textarea></label>
+          <div class="tg-pub-meta"><span id="tgPubCounter">0 / 4000</span><span>обычный текст + эмодзи + ссылки</span></div>
+          <label class="tg-pub-label">Фото по HTTPS-ссылке <span style="font-weight:500;color:#786e82">(необязательно)</span><input id="tgPubPhoto" type="url" inputmode="url" placeholder="https://…/image.jpg"></label>
+          <label class="tg-pub-check"><input id="tgPubPreviewLink" type="checkbox" checked> Показывать превью ссылок в текстовом посте</label>
+        </div>
+        <div class="tg-pub-actions"><button id="tgPubPublish" class="primary">🚀 Опубликовать</button><button id="tgPubClear" class="ghost">Очистить</button></div>
+        <div class="tg-pub-status" id="tgPubStatus">Проверяю подключение @AuraFXPostBot…</div>
+      </div>
+      <div class="tg-pub-box">
+        <h3>Предпросмотр</h3>
+        <p>Так будет выглядеть содержание поста. Telegram может немного иначе оформить превью ссылок.</p>
+        <div class="tg-pub-preview empty" id="tgPubPreview"><img id="tgPubPreviewPhoto" class="tg-pub-photo" alt=""><span id="tgPubPreviewText">Начни писать текст слева.</span></div>
+        <div class="tg-state"><span id="tgPubTokenBadge" class="badge pending">POST BOT: …</span><span id="tgPubChannelBadge" class="badge pending">@AuraFX_design: …</span></div>
+        <div class="sub" style="margin-top:12px">Дополнительные группы добавим только в белый список — бот не сможет отправлять посты в произвольные чаты.</div>
+      </div>
+    </div>
+  </div>
+
   <div class="section-title"><div><h2>Промокоды</h2><p>Проверка скидок из колеса Фортуны</p></div><button id="refreshPromos" class="ghost">Обновить историю</button></div>
   <div class="panel promo-check">
     <div class="promo-form"><input id="promoInput" autocomplete="off" spellcheck="false" placeholder="Например: AURAFX-10-ABCD"><button id="promoCheckBtn" class="primary" type="button">Проверить код</button></div>
@@ -2432,6 +2460,23 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
     test.disabled=!d.ready;disc.disabled=!d.chat_connected;
   }
   async function loadTelegramStatus(){var d=await api('/api/admin/telegram/status');renderTelegramStatus(d);return d}
+  function renderTelegramPublisherStatus(d){
+    d=d||{};var token=$('#tgPubTokenBadge'),channel=$('#tgPubChannelBadge'),status=$('#tgPubStatus'),select=$('#tgPubTarget'),pub=$('#tgPubPublish');
+    token.textContent=d.token_configured?'POST BOT: готов':'POST BOT: нет токена';token.className='badge '+(d.token_configured?'approved':'pending');
+    var targets=Array.isArray(d.targets)&&d.targets.length?d.targets:['@AuraFX_design'];
+    select.innerHTML=targets.map(function(t){return '<option value="'+esc(t)+'"'+(t===d.default_target?' selected':'')+'>'+esc(t)+'</option>'}).join('');
+    channel.textContent=(d.channel_ready?'Канал: готов':'Канал: требует проверки');channel.className='badge '+(d.channel_ready?'approved':'pending');
+    status.className='tg-pub-status '+(d.ready?'good':(d.token_configured?'':'bad'));
+    status.textContent=d.ready?('Готово: '+(d.bot_username?'@'+d.bot_username:'@AuraFXPostBot')+' может публиковать в '+(d.default_target||'@AuraFX_design')):(!d.token_configured?'Добавь TELEGRAM_POST_BOT_TOKEN в Cloudflare Secrets.':(d.error||'Бот найден. Нажми «Проверить бота», чтобы проверить права канала.'));
+    pub.disabled=!d.ready;
+  }
+  async function loadTelegramPublisherStatus(){try{var d=await api('/api/admin/telegram-post/status');renderTelegramPublisherStatus(d);return d}catch(e){if(e.message!=='AUTH'){renderTelegramPublisherStatus({error:e.message})}return null}}
+  function renderTelegramPublisherPreview(){
+    var text=$('#tgPubText').value||'',url=$('#tgPubPhoto').value.trim(),box=$('#tgPubPreview'),txt=$('#tgPubPreviewText'),img=$('#tgPubPreviewPhoto');
+    $('#tgPubCounter').textContent=text.length+' / '+(url?'1000':'4000');
+    txt.textContent=text||'Начни писать текст слева.';box.classList.toggle('empty',!text&&!url);
+    if(/^https:\/\//i.test(url)){img.src=url;img.classList.add('show')}else{img.removeAttribute('src');img.classList.remove('show')}
+  }
   function promoStatusLabel(status){return status==='active'?'Активен':status==='redeemed'?'Погашен':'Истёк'}
   function promoStatusClass(status){return status==='active'?'promo-status-active':status==='redeemed'?'promo-status-redeemed':'promo-status-expired'}
   function renderPromoHistory(){
@@ -2472,7 +2517,7 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
   async function loadLeads(){var d=await api('/api/admin/leads');leads=d.leads||[];renderLeads()}
   function renderReviews(){var c={all:reviews.length,approved:0,pending:0,hidden:0};reviews.forEach(function(r){c[r.status]=(c[r.status]||0)+1});$('#sAll').textContent=c.all;$('#sApproved').textContent=c.approved;$('#sPending').textContent=c.pending;$('#sHidden').textContent=c.hidden;var data=filter==='all'?reviews:reviews.filter(function(r){return r.status===filter});if(!data.length){$('#list').innerHTML='<div class="panel empty">Здесь пока пусто.</div>';return}$('#list').innerHTML=data.map(function(r){var html='<article class="card" data-id="'+r.id+'"><div class="cardtop"><div><div class="name">'+esc(r.name)+'</div><div class="meta"><span class="badge '+esc(r.status)+'">'+(labels[r.status]||esc(r.status))+'</span><span>'+new Date(r.created_at+'Z').toLocaleString('ru-RU')+'</span><span>#'+r.id+'</span></div></div><div class="stars">'+'★'.repeat(r.rating)+'</div></div><p class="text">'+esc(r.text)+'</p><div class="actions">';if(r.status!=='approved')html+='<button class="ok" data-action="approved">Опубликовать</button>';if(r.status!=='hidden')html+='<button class="ghost" data-action="hidden">Скрыть</button>';html+='<button class="danger" data-action="delete">Удалить</button></div></article>';return html}).join('')}
   async function loadReviews(){var d=await api('/api/admin/reviews');reviews=d.reviews||[];renderReviews()}
-  async function loadAll(){await Promise.all([loadDashboard(),loadReviews(),loadLeads(),loadPromos(),loadTelegramStatus()]);showDash()}
+  async function loadAll(){await Promise.all([loadDashboard(),loadReviews(),loadLeads(),loadPromos(),loadTelegramStatus(),loadTelegramPublisherStatus()]);showDash();renderTelegramPublisherPreview()}
   $('#loginForm').addEventListener('submit',async function(e){e.preventDefault();$('#loginMsg').textContent='Проверяем…';try{await api('/api/admin/login',{method:'POST',body:JSON.stringify({password:$('#password').value})});$('#password').value='';await loadAll()}catch(err){if(err.message!=='AUTH')$('#loginMsg').textContent=err.message}});
   $('#logout').addEventListener('click',async function(){try{await api('/api/admin/logout',{method:'POST',body:'{}'})}catch(e){}showLogin('Ты вышел из панели.')});
   $('#refreshAll').addEventListener('click',async function(){await loadAll();toast('Обновлено')});$('#refreshReviews').addEventListener('click',async function(){await loadReviews();toast('Отзывы обновлены')});
@@ -2483,6 +2528,11 @@ input{width:100%;border:1px solid rgba(255,255,255,.12);background:#100819;color
   $('#tgConnect').addEventListener('click',async function(){var b=this;b.disabled=true;try{var d=await api('/api/admin/telegram/connect',{method:'POST',body:'{}'});await loadTelegramStatus();toast(d.test_sent?'Telegram подключён — сообщение уже отправлено':'Telegram подключён')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#tgTest').addEventListener('click',async function(){var b=this;b.disabled=true;try{await api('/api/admin/telegram/test',{method:'POST',body:'{}'});toast('Тест отправлен в Telegram')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#tgDisconnect').addEventListener('click',async function(){if(!confirm('Отключить Telegram-уведомления для этого чата?'))return;var b=this;b.disabled=true;try{await api('/api/admin/telegram/disconnect',{method:'POST',body:'{}'});await loadTelegramStatus();toast('Telegram отключён')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
+  $('#tgPubText').addEventListener('input',renderTelegramPublisherPreview);
+  $('#tgPubPhoto').addEventListener('input',renderTelegramPublisherPreview);
+  $('#tgPubClear').addEventListener('click',function(){if($('#tgPubText').value||$('#tgPubPhoto').value){if(!confirm('Очистить черновик поста?'))return}$('#tgPubText').value='';$('#tgPubPhoto').value='';$('#tgPubStatus').textContent='Черновик очищен.';renderTelegramPublisherPreview()});
+  $('#tgPubCheck').addEventListener('click',async function(){var b=this;b.disabled=true;$('#tgPubStatus').className='tg-pub-status';$('#tgPubStatus').textContent='Проверяю @AuraFXPostBot и права канала…';try{var d=await api('/api/admin/telegram-post/check',{method:'POST',body:JSON.stringify({target:$('#tgPubTarget').value})});renderTelegramPublisherStatus(d);toast('Telegram PostBot проверен')}catch(err){if(err.message!=='AUTH'){var s=$('#tgPubStatus');s.className='tg-pub-status bad';s.textContent=err.message;alert(err.message)}}finally{b.disabled=false}});
+  $('#tgPubPublish').addEventListener('click',async function(){var b=this,text=$('#tgPubText').value.trim(),photo=$('#tgPubPhoto').value.trim(),target=$('#tgPubTarget').value;if(!text&&!photo){alert('Добавь текст или фото.');return}if(photo&&text.length>1000){alert('Для поста с фото оставь до 1000 символов текста.');return}if(!photo&&text.length>4000){alert('Текст слишком длинный.');return}if(!confirm('Опубликовать этот пост в '+target+' прямо сейчас?'))return;b.disabled=true;var s=$('#tgPubStatus');s.className='tg-pub-status';s.textContent='Публикую…';try{var d=await api('/api/admin/telegram-post/publish',{method:'POST',body:JSON.stringify({target:target,text:text,photo_url:photo,link_preview:$('#tgPubPreviewLink').checked})});s.className='tg-pub-status good';s.textContent='Опубликовано ✅ message_id '+(d.message_id||'—');toast('Пост опубликован в '+target)}catch(err){if(err.message!=='AUTH'){s.className='tg-pub-status bad';s.textContent=err.message;alert(err.message)}}finally{b.disabled=false}});
   $('#refreshPromos').addEventListener('click',async function(){await loadPromos();toast('Промокоды обновлены')});
   $('#promoCheckBtn').addEventListener('click',checkPromo);
   $('#promoInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();checkPromo()}});
@@ -2747,6 +2797,47 @@ function queueTelegram(ctx, env, text) {
   const job = sendTelegram(env, text).catch(() => ({ sent:false }));
   if (ctx && typeof ctx.waitUntil === "function") ctx.waitUntil(job);
   return job;
+}
+
+const AURAFX_DEFAULT_POST_CHANNEL = "@AuraFX_design";
+
+function telegramPostTargets(env) {
+  const extra = String(env.TELEGRAM_POST_ALLOWED_CHATS || "").split(/[\n,;]+/).map(s => s.trim()).filter(Boolean);
+  const all = [AURAFX_DEFAULT_POST_CHANNEL, ...extra];
+  return [...new Set(all)].filter(v => /^@[A-Za-z0-9_]{5,32}$/.test(v) || /^-100\d{5,20}$/.test(v));
+}
+
+async function telegramPostApi(env, method, payload = {}) {
+  const token = String(env.TELEGRAM_POST_BOT_TOKEN || "").trim();
+  if (!token) throw new Error("POST_BOT_TOKEN_MISSING");
+  const response = await fetch(`https://api.telegram.org/bot${token}/${method}`, {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(payload)
+  });
+  let data = {};
+  try { data = await response.json(); } catch {}
+  if (!response.ok || data.ok !== true) {
+    const err = new Error(String(data?.description || "Telegram API error"));
+    err.code = "POST_BOT_API_ERROR";
+    throw err;
+  }
+  return data.result;
+}
+
+async function telegramPostCheck(env, target = AURAFX_DEFAULT_POST_CHANNEL) {
+  const allowed = telegramPostTargets(env);
+  if (!allowed.includes(target)) throw new Error("Этот чат не добавлен в белый список AuraFX.");
+  const me = await telegramPostApi(env, "getMe", {});
+  const chat = await telegramPostApi(env, "getChat", { chat_id: target });
+  const member = await telegramPostApi(env, "getChatMember", { chat_id: target, user_id: me.id });
+  const admin = member && (member.status === "administrator" || member.status === "creator");
+  const canPost = admin && member.can_post_messages !== false;
+  return {
+    bot_username: String(me?.username || "AuraFXPostBot"),
+    target,
+    chat_title: String(chat?.title || chat?.username || target),
+    channel_ready: Boolean(canPost),
+    member_status: String(member?.status || "unknown")
+  };
 }
 
 function adminLink(request) {
@@ -3381,6 +3472,61 @@ async function handleAdminApi(request, env, url, ctx) {
 
   if (!(await validAdmin(request, env))) return json({ error: "Требуется вход." }, 401);
   if (["POST","PATCH","PUT","DELETE"].includes(request.method) && !sameOrigin(request)) return json({ error: "Запрос отклонён." }, 403);
+
+  if (url.pathname === "/api/admin/telegram-post/status" && request.method === "GET") {
+    const tokenConfigured = Boolean(String(env.TELEGRAM_POST_BOT_TOKEN || "").trim());
+    const targets = telegramPostTargets(env);
+    const defaultTarget = targets[0] || AURAFX_DEFAULT_POST_CHANNEL;
+    let details = { channel_ready:false, bot_username:"", error:"" };
+    if (tokenConfigured) {
+      try { details = await telegramPostCheck(env, defaultTarget); }
+      catch (e) { details.error = e && e.message ? e.message : "Не удалось проверить PostBot."; }
+    }
+    return json({ token_configured:tokenConfigured, targets, default_target:defaultTarget, ready:tokenConfigured && Boolean(details.channel_ready), ...details });
+  }
+
+  if (url.pathname === "/api/admin/telegram-post/check" && request.method === "POST") {
+    if (!String(env.TELEGRAM_POST_BOT_TOKEN || "").trim()) return json({ error:"Добавь TELEGRAM_POST_BOT_TOKEN в Cloudflare Secrets." },503);
+    let body = {}; try { body = await request.json(); } catch {}
+    const target = String(body.target || AURAFX_DEFAULT_POST_CHANNEL).trim();
+    try {
+      const details = await telegramPostCheck(env,target);
+      if (!details.channel_ready) return json({ error:`@${details.bot_username || 'AuraFXPostBot'} найден, но у него нет права публиковать в ${target}. Добавь бота администратором канала с правом публикации.` },409);
+      return json({ ok:true, token_configured:true, ready:true, targets:telegramPostTargets(env), default_target:target, ...details });
+    } catch (e) {
+      const msg = e && e.message ? String(e.message) : "Не удалось проверить Telegram.";
+      return json({ error: msg.includes('chat not found') ? `Telegram не видит ${target}. Проверь username канала и добавь @AuraFXPostBot администратором.` : `Проверка PostBot: ${msg}` },502);
+    }
+  }
+
+  if (url.pathname === "/api/admin/telegram-post/publish" && request.method === "POST") {
+    if (!String(env.TELEGRAM_POST_BOT_TOKEN || "").trim()) return json({ error:"TELEGRAM_POST_BOT_TOKEN не настроен в Cloudflare Secrets." },503);
+    let body = {}; try { body = await request.json(); } catch { return json({error:"Некорректные данные."},400); }
+    const target = String(body.target || AURAFX_DEFAULT_POST_CHANNEL).trim();
+    if (!telegramPostTargets(env).includes(target)) return json({ error:"Этот чат не разрешён для публикаций AuraFX." },403);
+    const text = String(body.text || "").trim();
+    const photoUrl = String(body.photo_url || "").trim();
+    if (!text && !photoUrl) return json({ error:"Добавь текст или фото." },400);
+    if (text.length > (photoUrl ? 1000 : 4000)) return json({ error:photoUrl?"Для поста с фото текст должен быть до 1000 символов.":"Текст должен быть до 4000 символов." },400);
+    if (photoUrl) {
+      let parsed; try { parsed = new URL(photoUrl); } catch { return json({error:"Некорректная ссылка на фото."},400); }
+      if (parsed.protocol !== "https:") return json({error:"Фото должно быть доступно по HTTPS-ссылке."},400);
+    }
+    try {
+      const check = await telegramPostCheck(env,target);
+      if (!check.channel_ready) return json({error:`@${check.bot_username || 'AuraFXPostBot'} не имеет права публиковать в ${target}.`},409);
+      let result;
+      if (photoUrl) {
+        result = await telegramPostApi(env,"sendPhoto",{chat_id:target,photo:photoUrl,caption:text || undefined});
+      } else {
+        result = await telegramPostApi(env,"sendMessage",{chat_id:target,text,link_preview_options:{is_disabled:body.link_preview === false}});
+      }
+      return json({ok:true,target,message_id:Number(result?.message_id || 0),bot_username:check.bot_username});
+    } catch (e) {
+      const msg = e && e.message ? String(e.message) : "Telegram не принял публикацию.";
+      return json({error:`Не удалось опубликовать: ${msg}`},502);
+    }
+  }
 
   if (url.pathname === "/api/admin/telegram/status" && request.method === "GET") {
     const tokenConfigured = Boolean(String(env.TELEGRAM_BOT_TOKEN || "").trim());
