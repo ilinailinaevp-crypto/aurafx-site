@@ -2423,6 +2423,29 @@ input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.12);backgrou
     </div>
   </div>
 
+  <div class="section-title"><div><h2>Автопубликация ChatGPT</h2><p>Отдельный ключ без доступа к паролю админки и токену Telegram-бота</p></div><span id="autoKeyBadge" class="badge pending">AUTOMATION: …</span></div>
+  <div class="panel tg-publisher">
+    <div class="tg-pub-grid">
+      <div class="tg-pub-box">
+        <h3>Ключ автоматизации</h3>
+        <p>Создай отдельный ключ для автоматизированных публикаций. На сервере хранится только SHA-256 хэш. Сам ключ показывается один раз — его можно сохранить в защищённом хранилище браузерной автоматизации.</p>
+        <div class="tg-pub-fields">
+          <label class="tg-pub-label">Ключ<input id="autoKeyValue" type="text" readonly autocomplete="off" placeholder="Нажми «Создать новый ключ»"></label>
+        </div>
+        <div class="tg-pub-actions"><button id="autoKeyCreate" class="primary">🔑 Создать новый ключ</button><button id="autoKeyCopy" class="ghost" disabled>⧉ Скопировать</button><button id="autoKeyRevoke" class="danger">Отозвать ключ</button></div>
+        <div class="tg-pub-status" id="autoKeyStatus">Проверяю состояние ключа…</div>
+      </div>
+      <div class="tg-pub-box">
+        <h3>Что получает автоматизация</h3>
+        <p>Только право публиковать через <b>@AuraFXPostBot</b> в белый список чатов. Ключ не открывает админку, заявки, отзывы, Cloudflare Secrets или токен бота.</p>
+        <div class="tg-pub-preview" style="min-height:0">
+          <span><b>POST</b> /api/automation/telegram/publish<br><br>Канал по умолчанию: <b>@AuraFX_design</b><br>Защита от дублей: <b>Idempotency-Key</b><br>Лимит: <b>20 публикаций/час</b></span>
+        </div>
+        <div class="sub" style="margin-top:12px">Если ключ потеряется — просто отзови его здесь и создай новый. Старый сразу перестанет работать.</div>
+      </div>
+    </div>
+  </div>
+
   <div class="section-title"><div><h2>Промокоды</h2><p>Проверка скидок из колеса Фортуны</p></div><button id="refreshPromos" class="ghost">Обновить историю</button></div>
   <div class="panel promo-check">
     <div class="promo-form"><input id="promoInput" autocomplete="off" spellcheck="false" placeholder="Например: AURAFX-10-ABCD"><button id="promoCheckBtn" class="primary" type="button">Проверить код</button></div>
@@ -2471,6 +2494,7 @@ input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.12);backgrou
     pub.disabled=!d.ready;
   }
   async function loadTelegramPublisherStatus(){try{var d=await api('/api/admin/telegram-post/status');renderTelegramPublisherStatus(d);return d}catch(e){if(e.message!=='AUTH'){renderTelegramPublisherStatus({error:e.message})}return null}}
+  async function loadAutomationKeyStatus(){try{var d=await api('/api/admin/automation-key/status');var badge=$('#autoKeyBadge'),st=$('#autoKeyStatus');badge.textContent=d.configured?'AUTOMATION: ВКЛ':'AUTOMATION: НЕТ КЛЮЧА';badge.className='badge '+(d.configured?'approved':'pending');st.className='tg-pub-status '+(d.configured?'good':'');st.textContent=d.configured?'Ключ активен. Автоматизация может публиковать только в разрешённые чаты.':'Создай отдельный ключ автоматизации.';return d}catch(e){if(e.message!=='AUTH')$('#autoKeyStatus').textContent=e.message;return null}}
   function renderTelegramPublisherPreview(){
     var text=$('#tgPubText').value||'',url=$('#tgPubPhoto').value.trim(),box=$('#tgPubPreview'),txt=$('#tgPubPreviewText'),img=$('#tgPubPreviewPhoto');
     $('#tgPubCounter').textContent=text.length+' / '+(url?'1000':'4000');
@@ -2517,7 +2541,7 @@ input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.12);backgrou
   async function loadLeads(){var d=await api('/api/admin/leads');leads=d.leads||[];renderLeads()}
   function renderReviews(){var c={all:reviews.length,approved:0,pending:0,hidden:0};reviews.forEach(function(r){c[r.status]=(c[r.status]||0)+1});$('#sAll').textContent=c.all;$('#sApproved').textContent=c.approved;$('#sPending').textContent=c.pending;$('#sHidden').textContent=c.hidden;var data=filter==='all'?reviews:reviews.filter(function(r){return r.status===filter});if(!data.length){$('#list').innerHTML='<div class="panel empty">Здесь пока пусто.</div>';return}$('#list').innerHTML=data.map(function(r){var html='<article class="card" data-id="'+r.id+'"><div class="cardtop"><div><div class="name">'+esc(r.name)+'</div><div class="meta"><span class="badge '+esc(r.status)+'">'+(labels[r.status]||esc(r.status))+'</span><span>'+new Date(r.created_at+'Z').toLocaleString('ru-RU')+'</span><span>#'+r.id+'</span></div></div><div class="stars">'+'★'.repeat(r.rating)+'</div></div><p class="text">'+esc(r.text)+'</p><div class="actions">';if(r.status!=='approved')html+='<button class="ok" data-action="approved">Опубликовать</button>';if(r.status!=='hidden')html+='<button class="ghost" data-action="hidden">Скрыть</button>';html+='<button class="danger" data-action="delete">Удалить</button></div></article>';return html}).join('')}
   async function loadReviews(){var d=await api('/api/admin/reviews');reviews=d.reviews||[];renderReviews()}
-  async function loadAll(){await Promise.all([loadDashboard(),loadReviews(),loadLeads(),loadPromos(),loadTelegramStatus(),loadTelegramPublisherStatus()]);showDash();renderTelegramPublisherPreview()}
+  async function loadAll(){await Promise.all([loadDashboard(),loadReviews(),loadLeads(),loadPromos(),loadTelegramStatus(),loadTelegramPublisherStatus(),loadAutomationKeyStatus()]);showDash();renderTelegramPublisherPreview()}
   $('#loginForm').addEventListener('submit',async function(e){e.preventDefault();$('#loginMsg').textContent='Проверяем…';try{await api('/api/admin/login',{method:'POST',body:JSON.stringify({password:$('#password').value})});$('#password').value='';await loadAll()}catch(err){if(err.message!=='AUTH')$('#loginMsg').textContent=err.message}});
   $('#logout').addEventListener('click',async function(){try{await api('/api/admin/logout',{method:'POST',body:'{}'})}catch(e){}showLogin('Ты вышел из панели.')});
   $('#refreshAll').addEventListener('click',async function(){await loadAll();toast('Обновлено')});$('#refreshReviews').addEventListener('click',async function(){await loadReviews();toast('Отзывы обновлены')});
@@ -2533,6 +2557,9 @@ input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.12);backgrou
   $('#tgPubClear').addEventListener('click',function(){if($('#tgPubText').value||$('#tgPubPhoto').value){if(!confirm('Очистить черновик поста?'))return}$('#tgPubText').value='';$('#tgPubPhoto').value='';$('#tgPubStatus').textContent='Черновик очищен.';renderTelegramPublisherPreview()});
   $('#tgPubCheck').addEventListener('click',async function(){var b=this;b.disabled=true;$('#tgPubStatus').className='tg-pub-status';$('#tgPubStatus').textContent='Проверяю @AuraFXPostBot и права канала…';try{var d=await api('/api/admin/telegram-post/check',{method:'POST',body:JSON.stringify({target:$('#tgPubTarget').value})});renderTelegramPublisherStatus(d);toast('Telegram PostBot проверен')}catch(err){if(err.message!=='AUTH'){var s=$('#tgPubStatus');s.className='tg-pub-status bad';s.textContent=err.message;alert(err.message)}}finally{b.disabled=false}});
   $('#tgPubPublish').addEventListener('click',async function(){var b=this,text=$('#tgPubText').value.trim(),photo=$('#tgPubPhoto').value.trim(),target=$('#tgPubTarget').value;if(!text&&!photo){alert('Добавь текст или фото.');return}if(photo&&text.length>1000){alert('Для поста с фото оставь до 1000 символов текста.');return}if(!photo&&text.length>4000){alert('Текст слишком длинный.');return}if(!confirm('Опубликовать этот пост в '+target+' прямо сейчас?'))return;b.disabled=true;var s=$('#tgPubStatus');s.className='tg-pub-status';s.textContent='Публикую…';try{var d=await api('/api/admin/telegram-post/publish',{method:'POST',body:JSON.stringify({target:target,text:text,photo_url:photo,link_preview:$('#tgPubPreviewLink').checked})});s.className='tg-pub-status good';s.textContent='Опубликовано ✅ message_id '+(d.message_id||'—');toast('Пост опубликован в '+target)}catch(err){if(err.message!=='AUTH'){s.className='tg-pub-status bad';s.textContent=err.message;alert(err.message)}}finally{b.disabled=false}});
+  $('#autoKeyCreate').addEventListener('click',async function(){if(!confirm('Создать новый ключ автоматизации? Старый ключ, если он был, сразу перестанет работать.'))return;var b=this;b.disabled=true;try{var d=await api('/api/admin/automation-key/create',{method:'POST',body:'{}'});$('#autoKeyValue').value=d.key||'';$('#autoKeyCopy').disabled=!d.key;await loadAutomationKeyStatus();var st=$('#autoKeyStatus');st.className='tg-pub-status good';st.textContent='Новый ключ создан. Скопируй его сейчас — повторно сервер его не покажет.';toast('Ключ автоматизации создан')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
+  $('#autoKeyCopy').addEventListener('click',async function(){var v=$('#autoKeyValue').value;if(!v)return;try{await navigator.clipboard.writeText(v);toast('Ключ скопирован')}catch(e){alert('Не удалось скопировать автоматически. Выдели ключ вручную.')}});
+  $('#autoKeyRevoke').addEventListener('click',async function(){if(!confirm('Отозвать ключ автоматизации? Все системы, где он сохранён, сразу потеряют доступ к публикациям.'))return;var b=this;b.disabled=true;try{await api('/api/admin/automation-key/revoke',{method:'POST',body:'{}'});$('#autoKeyValue').value='';$('#autoKeyCopy').disabled=true;await loadAutomationKeyStatus();toast('Ключ автоматизации отозван')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#refreshPromos').addEventListener('click',async function(){await loadPromos();toast('Промокоды обновлены')});
   $('#promoCheckBtn').addEventListener('click',checkPromo);
   $('#promoInput').addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();checkPromo()}});
@@ -2736,6 +2763,15 @@ async function ensureDb(env) {
     value TEXT,
     updated_at TEXT NOT NULL DEFAULT (datetime('now'))
   )`).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS automation_publish_log (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    idempotency_key TEXT UNIQUE,
+    target TEXT NOT NULL,
+    message_id INTEGER,
+    created_at TEXT NOT NULL DEFAULT (datetime('now')),
+    ip_hash TEXT
+  )`).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_automation_publish_created ON automation_publish_log(created_at DESC)").run();
 }
 
 function normalize(value) {
@@ -2838,6 +2874,99 @@ async function telegramPostCheck(env, target = AURAFX_DEFAULT_POST_CHANNEL) {
     channel_ready: Boolean(canPost),
     member_status: String(member?.status || "unknown")
   };
+}
+
+const AURAFX_AUTOMATION_KEY_SETTING = "automation_api_key_hash";
+
+function constantTimeTextEqual(a, b) {
+  a = String(a || ""); b = String(b || "");
+  if (a.length !== b.length) return false;
+  let diff = 0;
+  for (let i = 0; i < a.length; i++) diff |= a.charCodeAt(i) ^ b.charCodeAt(i);
+  return diff === 0;
+}
+
+async function automationKeyConfigured(env) {
+  return Boolean((await getAppSetting(env, AURAFX_AUTOMATION_KEY_SETTING)).trim());
+}
+
+async function createAutomationKey(env) {
+  const token = "afx_auto_" + randomUrlSafe(36);
+  const hash = await sha256UrlSafe(token);
+  await setAppSetting(env, AURAFX_AUTOMATION_KEY_SETTING, hash);
+  return token;
+}
+
+async function validAutomationRequest(request, env) {
+  const stored = (await getAppSetting(env, AURAFX_AUTOMATION_KEY_SETTING)).trim();
+  if (!stored) return false;
+  const auth = String(request.headers.get("authorization") || "");
+  let token = auth.toLowerCase().startsWith("bearer ") ? auth.slice(7).trim() : "";
+  if (!token) token = String(request.headers.get("x-aurafx-automation-key") || "").trim();
+  if (!token || token.length < 32 || token.length > 160) return false;
+  return constantTimeTextEqual(await sha256UrlSafe(token), stored);
+}
+
+async function automationPublishAllowed(env) {
+  const row = await env.DB.prepare("SELECT COUNT(*) AS n FROM automation_publish_log WHERE datetime(created_at) > datetime('now','-1 hour')").first();
+  return Number(row?.n || 0) < 20;
+}
+
+async function handleAutomationApi(request, env, url) {
+  try { await ensureDb(env); } catch { return json({ error:"База данных недоступна." },503); }
+  if (!(await validAutomationRequest(request, env))) return json({ error:"Неверный ключ автоматизации." },401);
+
+  if (url.pathname === "/api/automation/telegram/status" && request.method === "GET") {
+    if (!String(env.TELEGRAM_POST_BOT_TOKEN || "").trim()) return json({ error:"TELEGRAM_POST_BOT_TOKEN не настроен." },503);
+    const target = String(url.searchParams.get("target") || AURAFX_DEFAULT_POST_CHANNEL).trim();
+    if (!telegramPostTargets(env).includes(target)) return json({ error:"Этот чат не разрешён для публикаций AuraFX." },403);
+    try {
+      const details = await telegramPostCheck(env,target);
+      return json({ok:true,ready:Boolean(details.channel_ready),targets:telegramPostTargets(env),...details});
+    } catch (e) { return json({error:String(e?.message || "Не удалось проверить Telegram.")},502); }
+  }
+
+  if (url.pathname === "/api/automation/telegram/publish" && request.method === "POST") {
+    if (!String(env.TELEGRAM_POST_BOT_TOKEN || "").trim()) return json({ error:"TELEGRAM_POST_BOT_TOKEN не настроен." },503);
+    if (!(await automationPublishAllowed(env))) return json({ error:"Лимит автоматических публикаций: до 20 в час." },429);
+    let body={}; try { body=await request.json(); } catch { return json({error:"Некорректные данные."},400); }
+    const target=String(body.target || AURAFX_DEFAULT_POST_CHANNEL).trim();
+    if (!telegramPostTargets(env).includes(target)) return json({error:"Этот чат не разрешён для публикаций AuraFX."},403);
+    const text=String(body.text || "").trim();
+    const photoUrl=String(body.photo_url || "").trim();
+    if (!text && !photoUrl) return json({error:"Добавь текст или фото."},400);
+    if (text.length > (photoUrl ? 1000 : 4000)) return json({error:photoUrl?"Для поста с фото текст должен быть до 1000 символов.":"Текст должен быть до 4000 символов."},400);
+    if (photoUrl) {
+      let parsed; try { parsed=new URL(photoUrl); } catch { return json({error:"Некорректная ссылка на фото."},400); }
+      if (parsed.protocol !== "https:") return json({error:"Фото должно быть доступно по HTTPS-ссылке."},400);
+    }
+    let idem=String(request.headers.get("idempotency-key") || body.idempotency_key || "").trim().slice(0,120);
+    if (idem && !/^[A-Za-z0-9._:-]{8,120}$/.test(idem)) return json({error:"Некорректный Idempotency-Key."},400);
+    if (idem) {
+      const old=await env.DB.prepare("SELECT target,message_id,created_at FROM automation_publish_log WHERE idempotency_key=? LIMIT 1").bind(idem).first();
+      if (old) return json({ok:true,duplicate:true,target:String(old.target),message_id:Number(old.message_id||0),created_at:String(old.created_at||"")});
+    }
+    try {
+      const check=await telegramPostCheck(env,target);
+      if (!check.channel_ready) return json({error:`@${check.bot_username || 'AuraFXPostBot'} не имеет права публиковать в ${target}.`},409);
+      let result;
+      if (photoUrl) result=await telegramPostApi(env,"sendPhoto",{chat_id:target,photo:photoUrl,caption:text || undefined});
+      else result=await telegramPostApi(env,"sendMessage",{chat_id:target,text,link_preview_options:{is_disabled:body.link_preview === false}});
+      const messageId=Number(result?.message_id || 0);
+      const ip=await hashIp(request);
+      try {
+        await env.DB.prepare("INSERT INTO automation_publish_log (idempotency_key,target,message_id,ip_hash) VALUES (?,?,?,?)").bind(idem || null,target,messageId,ip).run();
+      } catch (e) {
+        if (idem) {
+          const old=await env.DB.prepare("SELECT target,message_id,created_at FROM automation_publish_log WHERE idempotency_key=? LIMIT 1").bind(idem).first();
+          if (old) return json({ok:true,duplicate:true,target:String(old.target),message_id:Number(old.message_id||0),created_at:String(old.created_at||"")});
+        }
+      }
+      return json({ok:true,target,message_id:messageId,bot_username:check.bot_username});
+    } catch (e) { return json({error:`Не удалось опубликовать: ${String(e?.message || 'Telegram не принял публикацию.')}`},502); }
+  }
+
+  return json({error:"Метод не поддерживается."},405);
 }
 
 function adminLink(request) {
@@ -3473,6 +3602,20 @@ async function handleAdminApi(request, env, url, ctx) {
   if (!(await validAdmin(request, env))) return json({ error: "Требуется вход." }, 401);
   if (["POST","PATCH","PUT","DELETE"].includes(request.method) && !sameOrigin(request)) return json({ error: "Запрос отклонён." }, 403);
 
+  if (url.pathname === "/api/admin/automation-key/status" && request.method === "GET") {
+    return json({configured:await automationKeyConfigured(env)});
+  }
+
+  if (url.pathname === "/api/admin/automation-key/create" && request.method === "POST") {
+    const key=await createAutomationKey(env);
+    return json({ok:true,key});
+  }
+
+  if (url.pathname === "/api/admin/automation-key/revoke" && request.method === "POST") {
+    await deleteAppSetting(env,AURAFX_AUTOMATION_KEY_SETTING);
+    return json({ok:true});
+  }
+
   if (url.pathname === "/api/admin/telegram-post/status" && request.method === "GET") {
     const tokenConfigured = Boolean(String(env.TELEGRAM_POST_BOT_TOKEN || "").trim());
     const targets = telegramPostTargets(env);
@@ -3740,6 +3883,7 @@ export default {
     if (url.pathname === "/api/event") return handleSiteEvent(request, env);
     if (url.pathname === "/api/promo") return handlePromo(request, env, ctx);
     if (url.pathname === "/api/lead") return handleLead(request, env, ctx);
+    if (url.pathname.startsWith("/api/automation/")) return handleAutomationApi(request, env, url);
     if (url.pathname.startsWith("/api/admin/")) return handleAdminApi(request, env, url, ctx);
 
     if (url.pathname === "/privacy" || url.pathname === "/privacy/") {
@@ -3774,4 +3918,5 @@ export default {
 // AuraFX Case Story Upgrade: 5-slide case walkthrough with swipe/navigation
 
 // AuraFX Motion + Case Pack V2: rAF Fortune spin, restored top-card float, product-specific 5-slide stories
-// redeploy
+
+// AuraFX Automation Publish API V1: scoped hashed key + allowlist + rate limit + idempotency
