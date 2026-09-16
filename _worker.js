@@ -2556,7 +2556,7 @@ input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.12);backgrou
   $('#tgPubPhoto').addEventListener('input',renderTelegramPublisherPreview);
   $('#tgPubClear').addEventListener('click',function(){if($('#tgPubText').value||$('#tgPubPhoto').value){if(!confirm('Очистить черновик поста?'))return}$('#tgPubText').value='';$('#tgPubPhoto').value='';$('#tgPubStatus').textContent='Черновик очищен.';renderTelegramPublisherPreview()});
   $('#tgPubCheck').addEventListener('click',async function(){var b=this;b.disabled=true;$('#tgPubStatus').className='tg-pub-status';$('#tgPubStatus').textContent='Проверяю @AuraFXPostBot и права канала…';try{var d=await api('/api/admin/telegram-post/check',{method:'POST',body:JSON.stringify({target:$('#tgPubTarget').value})});renderTelegramPublisherStatus(d);toast('Telegram PostBot проверен')}catch(err){if(err.message!=='AUTH'){var s=$('#tgPubStatus');s.className='tg-pub-status bad';s.textContent=err.message;alert(err.message)}}finally{b.disabled=false}});
-  $('#tgPubPublish').addEventListener('click',async function(){var b=this,text=$('#tgPubText').value.trim(),photo=$('#tgPubPhoto').value.trim(),target=$('#tgPubTarget').value;if(!text&&!photo){alert('Добавь текст или фото.');return}if(photo&&text.length>1000){alert('Для поста с фото оставь до 1000 символов текста.');return}if(!photo&&text.length>4000){alert('Текст слишком длинный.');return}if(!confirm('Опубликовать этот пост в '+target+' прямо сейчас?'))return;b.disabled=true;var s=$('#tgPubStatus');s.className='tg-pub-status';s.textContent='Публикую…';try{var d=await api('/api/admin/telegram-post/publish',{method:'POST',body:JSON.stringify({target:target,text:text,photo_url:photo,link_preview:$('#tgPubPreviewLink').checked})});s.className='tg-pub-status good';s.textContent='Опубликовано ✅ message_id '+(d.message_id||'—');toast('Пост опубликован в '+target)}catch(err){if(err.message!=='AUTH'){s.className='tg-pub-status bad';s.textContent=err.message;alert(err.message)}}finally{b.disabled=false}});
+  $('#tgPubPublish').addEventListener('click',async function(){var b=this,text=$('#tgPubText').value.trim(),photo=$('#tgPubPhoto').value.trim(),target=$('#tgPubTarget').value;if(!text&&!photo){alert('Добавь текст или фото.');return}if(photo&&text.length>1000){alert('Для поста с фото оставь до 1000 символов текста.');return}if(!photo&&text.length>4000){alert('Текст слишком длинный.');return}if(!confirm('Опубликовать этот пост в '+target+' прямо сейчас?'))return;b.disabled=true;var s=$('#tgPubStatus');s.className='tg-pub-status';s.textContent='Публикую…';try{var d=await api('/api/admin/telegram-post/publish',{method:'POST',body:JSON.stringify({target:target,text:text,photo_url:photo,link_preview:$('#tgPubPreviewLink').checked})});if(d.ok!==true||d.telegram_confirmed!==true||!Number.isInteger(Number(d.message_id))||Number(d.message_id)<=0)throw new Error('Telegram не подтвердил публикацию. Зелёный статус не показан.');s.className='tg-pub-status good';s.textContent='Telegram подтвердил публикацию ✅ '+(d.chat_username||target)+' · message_id '+d.message_id;toast('Пост подтверждён Telegram в '+(d.chat_username||target))}catch(err){if(err.message!=='AUTH'){s.className='tg-pub-status bad';s.textContent=err.message;alert(err.message)}}finally{b.disabled=false}});
   $('#autoKeyCreate').addEventListener('click',async function(){if(!confirm('Создать новый ключ автоматизации? Старый ключ, если он был, сразу перестанет работать.'))return;var b=this;b.disabled=true;try{var d=await api('/api/admin/automation-key/create',{method:'POST',body:'{}'});$('#autoKeyValue').value=d.key||'';$('#autoKeyCopy').disabled=!d.key;await loadAutomationKeyStatus();var st=$('#autoKeyStatus');st.className='tg-pub-status good';st.textContent='Новый ключ создан. Скопируй его сейчас — повторно сервер его не покажет.';toast('Ключ автоматизации создан')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#autoKeyCopy').addEventListener('click',async function(){var v=$('#autoKeyValue').value;if(!v)return;try{await navigator.clipboard.writeText(v);toast('Ключ скопирован')}catch(e){alert('Не удалось скопировать автоматически. Выдели ключ вручную.')}});
   $('#autoKeyRevoke').addEventListener('click',async function(){if(!confirm('Отозвать ключ автоматизации? Все системы, где он сохранён, сразу потеряют доступ к публикациям.'))return;var b=this;b.disabled=true;try{await api('/api/admin/automation-key/revoke',{method:'POST',body:'{}'});$('#autoKeyValue').value='';$('#autoKeyCopy').disabled=true;await loadAutomationKeyStatus();toast('Ключ автоматизации отозван')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
@@ -2864,6 +2864,31 @@ async function telegramPostApi(env, method, payload = {}) {
   return data.result;
 }
 
+function verifiedTelegramPost(result, target) {
+  const messageId = Number(result?.message_id || 0);
+  const chat = result?.chat;
+  if (!Number.isSafeInteger(messageId) || messageId <= 0 || !chat || chat.id == null) {
+    throw new Error("Telegram не подтвердил публикацию: в ответе нет message_id или данных канала.");
+  }
+
+  const expected = String(target || "").trim();
+  const actualUsername = String(chat.username || "").trim();
+  const actualId = String(chat.id || "").trim();
+  if (expected.startsWith("@") && actualUsername.toLowerCase() !== expected.slice(1).toLowerCase()) {
+    throw new Error(`Telegram вернул другой канал: @${actualUsername || "unknown"} вместо ${expected}.`);
+  }
+  if (expected.startsWith("-100") && actualId !== expected) {
+    throw new Error(`Telegram вернул другой chat_id: ${actualId || "unknown"} вместо ${expected}.`);
+  }
+
+  return {
+    message_id: messageId,
+    chat_id: actualId,
+    chat_username: actualUsername ? `@${actualUsername}` : "",
+    chat_type: String(chat.type || "")
+  };
+}
+
 async function telegramPostCheck(env, target = AURAFX_DEFAULT_POST_CHANNEL) {
   const allowed = telegramPostTargets(env);
   if (!allowed.includes(target)) throw new Error("Этот чат не добавлен в белый список AuraFX.");
@@ -2957,7 +2982,8 @@ async function handleAutomationApi(request, env, url) {
       let result;
       if (photoUrl) result=await telegramPostApi(env,"sendPhoto",{chat_id:target,photo:photoUrl,caption:text || undefined});
       else result=await telegramPostApi(env,"sendMessage",{chat_id:target,text,link_preview_options:{is_disabled:body.link_preview === false}});
-      const messageId=Number(result?.message_id || 0);
+      const confirmation=verifiedTelegramPost(result,target);
+      const messageId=confirmation.message_id;
       const ip=await hashIp(request);
       try {
         await env.DB.prepare("INSERT INTO automation_publish_log (idempotency_key,target,message_id,ip_hash) VALUES (?,?,?,?)").bind(idem || null,target,messageId,ip).run();
@@ -2967,7 +2993,7 @@ async function handleAutomationApi(request, env, url) {
           if (old) return json({ok:true,duplicate:true,target:String(old.target),message_id:Number(old.message_id||0),created_at:String(old.created_at||"")});
         }
       }
-      return json({ok:true,target,message_id:messageId,bot_username:check.bot_username});
+      return json({ok:true,telegram_confirmed:true,target,bot_username:check.bot_username,...confirmation});
     } catch (e) { return json({error:`Не удалось опубликовать: ${String(e?.message || 'Telegram не принял публикацию.')}`},502); }
   }
 
@@ -3693,7 +3719,8 @@ async function handleAdminApi(request, env, url, ctx) {
       } else {
         result = await telegramPostApi(env,"sendMessage",{chat_id:target,text,link_preview_options:{is_disabled:body.link_preview === false}});
       }
-      return json({ok:true,target,message_id:Number(result?.message_id || 0),bot_username:check.bot_username});
+      const confirmation = verifiedTelegramPost(result,target);
+      return json({ok:true,telegram_confirmed:true,target,bot_username:check.bot_username,...confirmation});
     } catch (e) {
       const msg = e && e.message ? String(e.message) : "Telegram не принял публикацию.";
       return json({error:`Не удалось опубликовать: ${msg}`},502);
