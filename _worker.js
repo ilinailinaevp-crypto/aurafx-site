@@ -3949,3 +3949,4 @@ export default {
 // AuraFX Motion + Case Pack V2: rAF Fortune spin, restored top-card float, product-specific 5-slide stories
 
 // AuraFX Automation Publish API V1: scoped hashed key + allowlist + rate limit + idempotency
+// redeploy-20260916-1502
