@@ -2184,7 +2184,8 @@ const FUNCTION_NAV_HTML = String.raw`
   .afx-fnav-shell{display:flex;align-items:center;gap:8px;padding:8px;min-width:0;overflow:hidden;border-radius:20px;border:1px solid rgba(255,255,255,.11);background:rgba(12,7,20,.80);box-shadow:0 16px 54px rgba(0,0,0,.34),inset 0 1px rgba(255,255,255,.055);backdrop-filter:blur(20px) saturate(1.2);-webkit-backdrop-filter:blur(20px) saturate(1.2)}
   .afx-fnav-brand{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:0 9px 0 7px;color:#cabbd8;font-size:11px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;white-space:nowrap}
   .afx-fnav-brand i{width:8px;height:8px;border-radius:50%;background:#b962ff;box-shadow:0 0 18px rgba(185,98,255,.8)}
-  .afx-fnav-scroll{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y;min-width:0;max-width:100%;flex:1;mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);padding:1px 14px}
+  .afx-fnav-scroll{display:flex;gap:7px;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-y;min-width:0;width:0;max-width:100%;flex:1 1 0;cursor:grab;user-select:none;-webkit-user-select:none;mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);padding:1px 14px}
+  .afx-fnav-scroll.is-dragging{cursor:grabbing;scroll-behavior:auto}
   .afx-fnav-scroll::-webkit-scrollbar{display:none}
   .afx-fnav-chip{appearance:none;border:1px solid rgba(255,255,255,.085);background:rgba(255,255,255,.04);color:#c8bdcf;border-radius:14px;padding:10px 12px;display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font:800 12px/1 inherit;cursor:pointer;text-decoration:none;transition:transform .16s ease,background .2s ease,border-color .2s ease,color .2s ease,box-shadow .2s ease;flex:0 0 auto}
   .afx-fnav-chip:hover{background:rgba(255,255,255,.075);border-color:rgba(190,121,255,.24);color:#fff;transform:translateY(-1px)}
@@ -2203,7 +2204,7 @@ const FUNCTION_NAV_HTML = String.raw`
     #afx-function-nav{top:68px;width:calc(100% - 16px)}
     .afx-fnav-shell{border-radius:17px;padding:6px;gap:4px}
     .afx-fnav-brand{display:none}
-    .afx-fnav-scroll{padding:1px 7px;gap:6px;min-width:0;max-width:100%;touch-action:pan-x pan-y;overscroll-behavior-x:contain;mask-image:linear-gradient(90deg,transparent 0,#000 8px,#000 calc(100% - 8px),transparent 100%);-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8px,#000 calc(100% - 8px),transparent 100%)}
+    .afx-fnav-scroll{padding:1px 7px;gap:6px;min-width:0;width:0;max-width:100%;touch-action:pan-y;overscroll-behavior-x:contain;mask-image:linear-gradient(90deg,transparent 0,#000 8px,#000 calc(100% - 8px),transparent 100%);-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 8px,#000 calc(100% - 8px),transparent 100%)}
     .afx-fnav-chip{padding:9px 10px;border-radius:12px;font-size:11px}
     .afx-fnav-chip span{font-size:12px}
     .afx-fnav-close{width:34px;height:34px;border-radius:11px}
@@ -2278,6 +2279,42 @@ const FUNCTION_NAV_HTML = String.raw`
     collapsed=!collapsed; applyCollapsed();
     try{sessionStorage.setItem('afx_nav_collapsed',collapsed?'1':'0')}catch(e){}
   });
+
+  /* AuraFX Mobile Nav Swipe V2: explicit drag so Android/iOS webviews cannot steal horizontal navigation. */
+  var suppressNavClick=false,mouseDragging=false,mouseStartX=0,mouseStartLeft=0;
+  strip.addEventListener('mousedown',function(e){
+    if(e.button!==0)return;
+    mouseDragging=true;suppressNavClick=false;mouseStartX=e.clientX;mouseStartLeft=strip.scrollLeft;strip.classList.add('is-dragging');
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove',function(e){
+    if(!mouseDragging)return;
+    var dx=e.clientX-mouseStartX;
+    if(Math.abs(dx)>4)suppressNavClick=true;
+    strip.scrollLeft=mouseStartLeft-dx;
+  });
+  function stopMouseDrag(){if(!mouseDragging)return;mouseDragging=false;strip.classList.remove('is-dragging');if(suppressNavClick)setTimeout(function(){suppressNavClick=false},220)}
+  window.addEventListener('mouseup',stopMouseDrag);window.addEventListener('blur',stopMouseDrag);
+
+  var touchStartX=0,touchStartY=0,touchStartLeft=0,touchHorizontal=false,touchMoved=false;
+  strip.addEventListener('touchstart',function(e){
+    if(!e.touches||e.touches.length!==1)return;
+    var t=e.touches[0];touchStartX=t.clientX;touchStartY=t.clientY;touchStartLeft=strip.scrollLeft;touchHorizontal=false;touchMoved=false;
+  },{passive:true});
+  strip.addEventListener('touchmove',function(e){
+    if(!e.touches||e.touches.length!==1)return;
+    var t=e.touches[0],dx=t.clientX-touchStartX,dy=t.clientY-touchStartY;
+    if(!touchHorizontal&&Math.abs(dx)>6&&Math.abs(dx)>Math.abs(dy)*1.08)touchHorizontal=true;
+    if(!touchHorizontal)return;
+    touchMoved=true;strip.scrollLeft=touchStartLeft-dx;
+    if(e.cancelable)e.preventDefault();
+  },{passive:false});
+  strip.addEventListener('touchend',function(){if(touchMoved){suppressNavClick=true;setTimeout(function(){suppressNavClick=false},260)}touchHorizontal=false;touchMoved=false},{passive:true});
+  strip.addEventListener('touchcancel',function(){touchHorizontal=false;touchMoved=false},{passive:true});
+  strip.addEventListener('click',function(e){if(suppressNavClick){e.preventDefault();e.stopPropagation()}},true);
+  strip.addEventListener('wheel',function(e){
+    if(Math.abs(e.deltaY)>Math.abs(e.deltaX)&&strip.scrollWidth>strip.clientWidth){strip.scrollLeft+=e.deltaY;if(e.cancelable)e.preventDefault()}
+  },{passive:false});
 
   function visibility(){
     if(collapsed){nav.classList.add('is-visible');return}
@@ -2740,11 +2777,15 @@ const REFERRAL_HTML = String.raw`<!doctype html><html lang="ru"><head><meta char
 
 const SUPPORT_WIDGET_HTML = String.raw`
 <style>
-  #afx-support-fab{position:fixed;right:18px;bottom:18px;z-index:9998;width:58px;height:58px;border:1px solid rgba(188,112,255,.35);border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#a546ff,#6427dc);color:#fff;box-shadow:0 18px 50px rgba(50,16,87,.46),0 0 34px rgba(160,71,255,.26);cursor:pointer;font:900 25px/1 system-ui,-apple-system,Segoe UI,sans-serif;transition:.2s transform,.2s box-shadow;-webkit-tap-highlight-color:transparent}
-  #afx-support-fab:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 22px 58px rgba(50,16,87,.52),0 0 42px rgba(160,71,255,.32)}
-  #afx-support-fab .afx-sup-badge{position:absolute;right:-2px;top:-3px;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#ff4c7e;border:2px solid #100719;color:#fff;display:none;place-items:center;font:900 10px/1 system-ui,-apple-system,Segoe UI,sans-serif}
+  #afx-support-fab{position:fixed;right:20px;bottom:44px;z-index:9998;width:62px;height:62px;border:1px solid rgba(112,235,255,.48);border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle at 35% 28%,rgba(108,244,255,.20),transparent 30%),linear-gradient(145deg,rgba(26,13,44,.98),rgba(64,22,108,.98));color:#fff;box-shadow:inset 0 0 0 1px rgba(191,103,255,.22),inset 0 0 20px rgba(126,61,255,.18),0 16px 48px rgba(35,10,66,.52),0 0 18px rgba(79,230,255,.36),0 0 40px rgba(170,70,255,.30);cursor:pointer;font:900 25px/1 system-ui,-apple-system,Segoe UI,sans-serif;transition:.22s transform,.22s box-shadow,.22s border-color;-webkit-tap-highlight-color:transparent;isolation:isolate;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px)}
+  #afx-support-fab:before{content:"";position:absolute;inset:-6px;border-radius:50%;border:1px solid rgba(115,236,255,.26);box-shadow:0 0 18px rgba(85,228,255,.22),0 0 34px rgba(166,71,255,.18);opacity:.72;animation:afxSupNeonPulse 2.7s ease-in-out infinite;pointer-events:none}
+  #afx-support-fab:after{content:"";position:absolute;inset:4px;border-radius:50%;background:linear-gradient(145deg,rgba(255,255,255,.10),transparent 34%,rgba(119,64,255,.08));pointer-events:none;z-index:-1}
+  #afx-support-fab:hover{transform:translateY(-3px) scale(1.045);border-color:rgba(145,244,255,.70);box-shadow:inset 0 0 0 1px rgba(201,124,255,.27),0 20px 58px rgba(36,10,70,.56),0 0 24px rgba(80,235,255,.48),0 0 52px rgba(173,70,255,.38)}
+  .afx-sup-neon-icon{width:31px;height:31px;display:block;filter:drop-shadow(0 0 4px rgba(123,239,255,.95)) drop-shadow(0 0 9px rgba(171,92,255,.78));position:relative;z-index:2}.afx-sup-neon-icon path{vector-effect:non-scaling-stroke}
+  @keyframes afxSupNeonPulse{0%,100%{transform:scale(.98);opacity:.52}50%{transform:scale(1.055);opacity:1}}
+  #afx-support-fab .afx-sup-badge{position:absolute;right:-3px;top:-4px;z-index:4;min-width:20px;height:20px;padding:0 5px;border-radius:999px;background:#ff4c7e;border:2px solid #100719;color:#fff;display:none;place-items:center;font:900 10px/1 system-ui,-apple-system,Segoe UI,sans-serif;box-shadow:0 0 14px rgba(255,76,126,.48)}
   #afx-support-fab.has-unread .afx-sup-badge{display:grid}
-  #afx-support-mini{position:fixed;right:18px;bottom:88px;z-index:9999;width:min(400px,calc(100vw - 24px));height:min(610px,calc(100dvh - 118px));display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(255,255,255,.11);border-radius:26px;background:rgba(11,6,19,.97);box-shadow:0 30px 90px rgba(0,0,0,.58),0 0 50px rgba(129,48,220,.16);backdrop-filter:blur(24px) saturate(1.15);-webkit-backdrop-filter:blur(24px) saturate(1.15);color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;transform-origin:bottom right}
+  #afx-support-mini{position:fixed;right:20px;bottom:118px;z-index:9999;width:min(400px,calc(100vw - 24px));height:min(610px,calc(100dvh - 148px));display:none;flex-direction:column;overflow:hidden;border:1px solid rgba(255,255,255,.11);border-radius:26px;background:rgba(11,6,19,.97);box-shadow:0 30px 90px rgba(0,0,0,.58),0 0 50px rgba(129,48,220,.16);backdrop-filter:blur(24px) saturate(1.15);-webkit-backdrop-filter:blur(24px) saturate(1.15);color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;transform-origin:bottom right}
   #afx-support-mini.open{display:flex;animation:afxSupIn .18s ease-out}
   @keyframes afxSupIn{from{opacity:0;transform:translateY(12px) scale(.97)}to{opacity:1;transform:none}}
   .afx-sup-head{flex:0 0 auto;display:flex;align-items:center;gap:10px;padding:14px 14px 12px;border-bottom:1px solid rgba(255,255,255,.075);background:linear-gradient(180deg,rgba(165,69,255,.10),rgba(255,255,255,0))}
@@ -2758,11 +2799,11 @@ const SUPPORT_WIDGET_HTML = String.raw`
   .afx-sup-empty{margin:auto;padding:26px;text-align:center;color:#86798f;font-size:12px;line-height:1.55}.afx-sup-login{margin:auto;padding:28px 22px;text-align:center}.afx-sup-login b{display:block;font-size:20px}.afx-sup-login p{color:#92869d;font-size:12px;line-height:1.55;margin:8px 0 14px}.afx-sup-login a{display:inline-flex;text-decoration:none}
   .afx-sup-chathead{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.07)}.afx-sup-chatname{min-width:0;flex:1}.afx-sup-chatname b{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.afx-sup-chatname span{display:block;margin-top:3px;color:#82768d;font-size:9px}.afx-sup-messages{min-height:0;flex:1;overflow:auto;padding:13px;display:flex;flex-direction:column;gap:8px;overscroll-behavior:contain}.afx-sup-bubble{max-width:84%;padding:10px 12px;border-radius:15px;line-height:1.45;font-size:12px;white-space:pre-wrap;overflow-wrap:anywhere}.afx-sup-bubble.client{align-self:flex-end;background:linear-gradient(135deg,#8737e8,#6525bd);border-bottom-right-radius:5px}.afx-sup-bubble.admin{align-self:flex-start;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.08);border-bottom-left-radius:5px}.afx-sup-bubble small{display:block;margin-top:5px;opacity:.55;font-size:8px}.afx-sup-compose{flex:0 0 auto;padding:10px;border-top:1px solid rgba(255,255,255,.07);display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}.afx-sup-compose textarea,.afx-sup-new input,.afx-sup-new select,.afx-sup-new textarea{width:100%;min-width:0;border:1px solid rgba(255,255,255,.09);border-radius:13px;background:#100818;color:#fff;padding:11px 12px;font:inherit;font-size:12px;outline:none}.afx-sup-compose textarea{resize:none;min-height:44px;max-height:96px}.afx-sup-compose button{align-self:end;height:44px}
   .afx-sup-new{padding:13px;display:grid;gap:9px;overflow:auto}.afx-sup-new textarea{min-height:110px;resize:vertical}.afx-sup-newstatus{min-height:18px;color:#a294aa;font-size:10px}.afx-sup-newactions{display:flex;justify-content:flex-end;gap:8px}.afx-sup-resolve{border:0;border-radius:10px;background:rgba(53,194,139,.12);color:#8af0c0;padding:8px 10px;font:850 10px/1 inherit;cursor:pointer}
-  @media(max-width:620px){#afx-support-fab{right:12px;bottom:12px;width:56px;height:56px}#afx-support-mini{left:8px;right:8px;bottom:78px;width:auto;height:min(72dvh,620px);border-radius:23px}.afx-sup-toolbar{grid-template-columns:1fr}.afx-sup-toolbar .afx-sup-primary{width:100%}}
+  @media(max-width:620px){#afx-support-fab{right:14px;bottom:32px;width:58px;height:58px}.afx-sup-neon-icon{width:29px;height:29px}#afx-support-mini{left:8px;right:8px;bottom:102px;width:auto;height:min(72dvh,620px);border-radius:23px}.afx-sup-toolbar{grid-template-columns:1fr}.afx-sup-toolbar .afx-sup-primary{width:100%}}
 </style>
-<button id="afx-support-fab" type="button" aria-label="Открыть техподдержку AuraFX" aria-expanded="false">💬<span class="afx-sup-badge" id="afx-sup-badge">0</span></button>
+<button id="afx-support-fab" type="button" aria-label="Открыть техподдержку AuraFX" aria-expanded="false"><svg class="afx-sup-neon-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M7.2 7.4h17.6a3.6 3.6 0 0 1 3.6 3.6v8.6a3.6 3.6 0 0 1-3.6 3.6H15l-6.2 4.2.9-4.2H7.2a3.6 3.6 0 0 1-3.6-3.6V11a3.6 3.6 0 0 1 3.6-3.6Z" fill="rgba(118,66,255,.10)" stroke="#c9fbff" stroke-width="1.65" stroke-linejoin="round"/><path d="M10 13.1h12M10 17.7h8.2" fill="none" stroke="#bca2ff" stroke-width="1.8" stroke-linecap="round"/></svg><span class="afx-sup-badge" id="afx-sup-badge">0</span></button>
 <section id="afx-support-mini" aria-label="Мини-чат техподдержки AuraFX" aria-hidden="true">
-  <div class="afx-sup-head"><div class="afx-sup-logo">💬</div><div class="afx-sup-headtext"><b>AuraFX Support</b><span>Техподдержка прямо на сайте</span></div><button class="afx-sup-iconbtn" id="afx-sup-open-full" type="button" title="Открыть полный центр">↗</button><button class="afx-sup-iconbtn" id="afx-sup-close" type="button" aria-label="Закрыть">×</button></div>
+  <div class="afx-sup-head"><div class="afx-sup-logo"><svg class="afx-sup-neon-icon" viewBox="0 0 32 32" aria-hidden="true"><path d="M7.2 7.4h17.6a3.6 3.6 0 0 1 3.6 3.6v8.6a3.6 3.6 0 0 1-3.6 3.6H15l-6.2 4.2.9-4.2H7.2a3.6 3.6 0 0 1-3.6-3.6V11a3.6 3.6 0 0 1 3.6-3.6Z" fill="rgba(118,66,255,.10)" stroke="#c9fbff" stroke-width="1.65" stroke-linejoin="round"/><path d="M10 13.1h12M10 17.7h8.2" fill="none" stroke="#bca2ff" stroke-width="1.8" stroke-linecap="round"/></svg></div><div class="afx-sup-headtext"><b>AuraFX Support</b><span>Техподдержка прямо на сайте</span></div><button class="afx-sup-iconbtn" id="afx-sup-open-full" type="button" title="Открыть полный центр">↗</button><button class="afx-sup-iconbtn" id="afx-sup-close" type="button" aria-label="Закрыть">×</button></div>
   <div class="afx-sup-body">
     <div class="afx-sup-screen active" id="afx-sup-home"><div class="afx-sup-toolbar"><input class="afx-sup-search" id="afx-sup-search" type="search" placeholder="Найти переписку по вопросу…" autocomplete="off"><button class="afx-sup-primary" id="afx-sup-newbtn" type="button">+ Новый вопрос</button></div><div class="afx-sup-list" id="afx-sup-list"><div class="afx-sup-empty">Загружаем обращения…</div></div></div>
     <div class="afx-sup-screen" id="afx-sup-chat"><div class="afx-sup-chathead"><button class="afx-sup-iconbtn" id="afx-sup-back" type="button" aria-label="Назад">←</button><div class="afx-sup-chatname"><b id="afx-sup-chat-title">Обращение</b><span id="afx-sup-chat-meta"></span></div><button class="afx-sup-resolve" id="afx-sup-resolve" type="button">✓ Решено</button></div><div class="afx-sup-messages" id="afx-sup-messages"><div class="afx-sup-empty">Загружаем сообщения…</div></div><div class="afx-sup-compose" id="afx-sup-compose"><textarea id="afx-sup-input" maxlength="1500" placeholder="Написать сообщение…"></textarea><button class="afx-sup-primary" id="afx-sup-send" type="button">Отправить</button></div></div>
