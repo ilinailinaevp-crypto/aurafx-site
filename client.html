@@ -9,7 +9,6 @@
 <title>AuraFX Client</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/aurafx-app-icon.svg">
-<script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 <style>
 :root{--bg:#08040e;--panel:rgba(255,255,255,.055);--line:rgba(255,255,255,.09);--muted:#9689a1;--purple:#9f42ff}
 *{box-sizing:border-box}html{background:var(--bg)}body{margin:0;min-height:100dvh;background:radial-gradient(circle at 85% 0,rgba(155,62,255,.18),transparent 28%),radial-gradient(circle at 0 92%,rgba(77,226,255,.08),transparent 24%),var(--bg);color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
@@ -54,7 +53,7 @@
 const $=id=>document.getElementById(id),qsa=s=>[...document.querySelectorAll(s)];
 const statusMeta={new:{label:'Заявка принята',step:0},contacted:{label:'В работе',step:1},review:{label:'На согласовании',step:2},revision:{label:'Правки',step:3},done:{label:'Готово',step:4},spam:{label:'Закрыта',step:-1}};
 const stepLabels=['Заявка принята','В работе','На согласовании','Правки','Готово'],supportLabels={open:'Открыт',waiting_client:'Ждём тебя',resolved:'Решён'};
-let me=null,orders=[],referral=null,threads=[],activeThread=0,tgApp=null,currentScreen='home';
+let me=null,orders=[],referral=null,threads=[],activeThread=0,tgApp=null,tgInitData='',currentScreen='home';
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2200)}
 async function api(url,opt={}){const headers=Object.assign({accept:'application/json','content-type':'application/json'},opt.headers||{});const r=await fetch(url,Object.assign({},opt,{headers}));let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||'Ошибка');return d}
 function go(name){if(!['home','orders','support','bonus'].includes(name))name='home';currentScreen=name;qsa('.screen').forEach(x=>x.classList.toggle('active',x.dataset.screen===name));qsa('[data-screen-btn]').forEach(x=>x.classList.toggle('active',x.dataset.screenBtn===name));scrollTo({top:0,behavior:'smooth'});try{if(tgApp&&tgApp.BackButton){if(name==='home')tgApp.BackButton.hide();else tgApp.BackButton.show()}}catch{}if(name==='support')loadThreads();if(name==='bonus')loadReferral()}
@@ -77,23 +76,52 @@ $('sendReply').onclick=sendReply;$('reply').addEventListener('keydown',e=>{if(e.
 $('resolveTicket').onclick=async()=>{if(!activeThread)return;try{await api('/api/account/support/'+activeThread,{method:'PATCH',body:JSON.stringify({status:'resolved'})});toast('Обращение закрыто ✓');await openThread(activeThread)}catch(e){toast(e.message)}};
 $('newTicket').onclick=()=>{$('newTicketBox').classList.remove('hidden');$('ticketSubject').focus()};$('cancelTicket').onclick=()=>$('newTicketBox').classList.add('hidden');$('createTicket').onclick=async()=>{const subject=$('ticketSubject').value.trim(),message=$('ticketMessage').value.trim(),category=$('ticketCategory').value,m=$('ticketMsg');m.textContent='Создаём…';try{const d=await api('/api/account/support',{method:'POST',body:JSON.stringify({subject,category,message})});$('ticketSubject').value='';$('ticketMessage').value='';$('newTicketBox').classList.add('hidden');m.textContent='';await loadThreads();await openThread(Number(d.id));toast('Обращение создано ✓')}catch(e){m.className='msg bad';m.textContent=e.message}};
 $('logout').onclick=async()=>{try{await fetch('/api/auth/logout',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})}catch{}location.href='/'};
-async function init(){
-  if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{});
+function telegramInitFromUrl(){
   try{
-    tgApp=window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null;
+    const sets=[new URLSearchParams(location.search),new URLSearchParams((location.hash||'').replace(/^#/,'') )];
+    for(const p of sets){const v=p.get('tgWebAppData');if(v)return v}
+  }catch{}
+  return '';
+}
+function likelyTelegramContext(){
+  return !!telegramInitFromUrl() || /Telegram(?:-Android)?/i.test(navigator.userAgent||'');
+}
+function loadTelegramSdk(){
+  return new Promise(resolve=>{
+    try{
+      if(window.Telegram&&window.Telegram.WebApp){resolve(window.Telegram.WebApp);return}
+      if(!likelyTelegramContext()){resolve(null);return}
+      let settled=false;
+      const done=()=>{if(settled)return;settled=true;resolve(window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null)};
+      const s=document.createElement('script');
+      s.src='https://telegram.org/js/telegram-web-app.js?63';
+      s.async=true;s.onload=done;s.onerror=done;
+      document.head.appendChild(s);
+      setTimeout(done,2200);
+    }catch{resolve(null)}
+  })
+}
+async function init(){
+  if('serviceWorker'in navigator){
+    navigator.serviceWorker.register('/sw.js',{scope:'/'}).then(r=>r.update().catch(()=>{})).catch(()=>{});
+  }
+  try{
+    tgInitData=telegramInitFromUrl();
+    tgApp=await loadTelegramSdk();
     if(tgApp){
-      tgApp.ready();tgApp.expand();document.body.classList.add('telegram-app');
+      try{tgApp.ready();tgApp.expand();document.body.classList.add('telegram-app')}catch{}
       try{tgApp.setHeaderColor('#0b0612');tgApp.setBackgroundColor('#08040e')}catch{}
       try{tgApp.BackButton.onClick(()=>go('home'))}catch{}
-      if(tgApp.initData){
-        try{await fetch('/api/auth/telegram/webapp',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify({init_data:tgApp.initData})})}catch{}
-      }
+      if(tgApp.initData)tgInitData=tgApp.initData;
+    }
+    if(tgInitData){
+      try{await fetch('/api/auth/telegram/webapp',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify({init_data:tgInitData})})}catch{}
     }
   }catch{}
   try{me=await fetch('/api/auth/me',{headers:{accept:'application/json'}}).then(r=>r.json())}catch{me={}}
   if(!me.authenticated||!me.user){$('login').classList.remove('hidden');return}
   $('clientApp').classList.remove('hidden');$('bottomNav').classList.remove('hidden');$('logout').classList.remove('hidden');
-  const name=me.user.name||me.user.username||'клиент';$('hello').textContent='Привет, '+name+' 👋';$('subtitle').textContent=tgApp&&tgApp.initData?'Telegram Mini App':(me.user.username?'@'+me.user.username:'AuraFX Client');
+  const name=me.user.name||me.user.username||'клиент';$('hello').textContent='Привет, '+name+' 👋';$('subtitle').textContent=tgInitData?'Telegram Mini App':(me.user.username?'@'+me.user.username:'AuraFX Client');
   await Promise.all([loadOrders(),loadReferral(),loadThreads()]);
   const tab=new URLSearchParams(location.search).get('tab');if(['orders','support','bonus'].includes(tab))go(tab);else go('home');
 }

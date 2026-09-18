@@ -2725,11 +2725,28 @@ const AURAFX_PWA_MANIFEST = JSON.stringify({
 
 const AURAFX_APP_ICON_SVG = String.raw`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#58e6ff"/><stop offset=".52" stop-color="#9d43ff"/><stop offset="1" stop-color="#d45cff"/></linearGradient><radialGradient id="b"><stop stop-color="#241039"/><stop offset="1" stop-color="#08040d"/></radialGradient></defs><rect width="512" height="512" rx="118" fill="url(#b)"/><circle cx="256" cy="256" r="170" fill="none" stroke="url(#g)" stroke-width="18" opacity=".9"/><circle cx="386" cy="148" r="24" fill="#68ecff"/><path d="M154 365 239 139h38l82 226h-50l-18-54h-72l-18 54zm82-100h39l-19-61z" fill="url(#g)"/><path d="M129 353c61 50 178 64 258-6" fill="none" stroke="#fff" stroke-opacity=".18" stroke-width="10" stroke-linecap="round"/></svg>`;
 
-const AURAFX_SW_JS = String.raw`const CACHE='aurafx-pwa-v1';
-const CORE=['/','/manifest.webmanifest','/aurafx-app-icon.svg'];
-self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(CORE)).catch(()=>{}));self.skipWaiting()});
+const AURAFX_SW_JS = String.raw`const CACHE='aurafx-pwa-v2';
+const CORE=['/','/client','/manifest.webmanifest','/aurafx-app-icon.svg'];
+self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>Promise.all(CORE.map(u=>c.add(u).catch(()=>{})))));self.skipWaiting()});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE&&k.startsWith('aurafx-pwa-')).map(k=>caches.delete(k)))));self.clients.claim()});
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;const u=new URL(e.request.url);if(u.origin!==location.origin)return;if(/^\/(?:api|auth|admin|account|client|referral|support)(?:\/|$)/.test(u.pathname))return;if(e.request.mode==='navigate'){e.respondWith(fetch(e.request).then(r=>{const copy=r.clone();caches.open(CACHE).then(c=>c.put('/',copy)).catch(()=>{});return r}).catch(()=>caches.match('/')));return}e.respondWith(caches.match(e.request).then(hit=>hit||fetch(e.request).then(r=>{if(r.ok)caches.open(CACHE).then(c=>c.put(e.request,r.clone())).catch(()=>{});return r}))) });`;
+self.addEventListener('fetch',e=>{
+  if(e.request.method!=='GET')return;
+  const u=new URL(e.request.url);
+  if(u.origin!==location.origin)return;
+  if(/^\/(?:api|auth|admin|account|referral|support)(?:\/|$)/.test(u.pathname))return;
+  if(e.request.mode==='navigate'){
+    const fallback=(u.pathname==='/client'||u.pathname==='/client.html')?'/client':'/';
+    e.respondWith(fetch(e.request).then(r=>{
+      if(r.ok){const copy=r.clone();caches.open(CACHE).then(c=>c.put(e.request,copy)).catch(()=>{})}
+      return r
+    }).catch(()=>caches.match(e.request,{ignoreSearch:true}).then(hit=>hit||caches.match(fallback))));
+    return
+  }
+  e.respondWith(caches.match(e.request).then(hit=>hit||fetch(e.request).then(r=>{
+    if(r.ok)caches.open(CACHE).then(c=>c.put(e.request,r.clone())).catch(()=>{});
+    return r
+  })))
+});`;
 
 const PWA_INSTALL_HTML = String.raw`
 <style>
