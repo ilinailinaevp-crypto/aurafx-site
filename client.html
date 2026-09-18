@@ -9,12 +9,13 @@
 <title>AuraFX Client</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/aurafx-app-icon.svg">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
 <style>
 :root{--bg:#08040e;--panel:rgba(255,255,255,.055);--line:rgba(255,255,255,.09);--muted:#9689a1;--purple:#9f42ff}
 *{box-sizing:border-box}html{background:var(--bg)}body{margin:0;min-height:100dvh;background:radial-gradient(circle at 85% 0,rgba(155,62,255,.18),transparent 28%),radial-gradient(circle at 0 92%,rgba(77,226,255,.08),transparent 24%),var(--bg);color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
 .hidden{display:none!important}button,input,textarea,select{font:inherit}body.telegram-app .app{padding-top:max(10px,env(safe-area-inset-top))}body.telegram-app .top{margin-bottom:14px}body.telegram-app #siteLink{display:none!important}body.telegram-app .bottom{bottom:max(6px,env(safe-area-inset-bottom));background:rgba(12,7,19,.96)}
 .app{width:min(720px,100%);min-height:100dvh;margin:auto;padding:calc(16px + env(safe-area-inset-top)) 14px calc(92px + env(safe-area-inset-bottom));position:relative}
-.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.logo{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;background:radial-gradient(circle at 32% 24%,rgba(113,243,255,.22),transparent 32%),linear-gradient(145deg,#261038,#6c28a6);border:1px solid rgba(101,231,255,.35);box-shadow:0 0 28px rgba(104,66,255,.24),0 0 16px rgba(86,232,255,.13);font-weight:950}
+.top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.logo{width:48px;height:48px;display:grid;place-items:center;filter:drop-shadow(0 0 14px rgba(164,70,255,.38));flex:0 0 48px}.logo img{display:block;width:100%;height:100%;object-fit:contain}
 .title{min-width:0;flex:1}.title b{display:block;font-size:18px}.title span{display:block;color:var(--muted);font-size:10px;margin-top:3px}
 .iconbtn,.btn{border:1px solid var(--line);background:rgba(255,255,255,.055);color:#fff;border-radius:13px;cursor:pointer}.iconbtn{width:42px;height:42px;display:grid;place-items:center}.btn{display:inline-flex;align-items:center;justify-content:center;gap:7px;padding:11px 13px;text-decoration:none;font-weight:850;font-size:12px}.btn.primary{border:0;background:linear-gradient(135deg,#b148ff,#6a29df)}.btn.good{background:#123126;color:#8ff3c6}.btn.warn{background:#352713;color:#ffd783}
 .hero{position:relative;overflow:hidden;border:1px solid rgba(255,255,255,.1);border-radius:26px;padding:21px;background:linear-gradient(145deg,rgba(170,72,255,.13),rgba(255,255,255,.035));box-shadow:0 24px 70px rgba(0,0,0,.27)}.hero:after{content:"";position:absolute;width:190px;height:190px;border-radius:50%;right:-70px;top:-80px;background:rgba(74,226,255,.12);filter:blur(35px);pointer-events:none}
@@ -38,7 +39,7 @@
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="logo">A</div><div class="title"><b>AuraFX Client</b><span id="subtitle">Личный центр клиента</span></div><a class="iconbtn" id="siteLink" href="/">↗</a><button class="iconbtn hidden" id="logout">⎋</button></header>
+<header class="top"><div class="logo"><img src="/aurafx-logo.png" alt="AuraFX"></div><div class="title"><b>AuraFX Client</b><span id="subtitle">Личный центр клиента</span></div><a class="iconbtn" id="siteLink" href="/">↗</a><button class="iconbtn hidden" id="logout">⎋</button></header>
 <section id="login" class="panel login hidden"><h1>AuraFX Client</h1><p>Войди через Telegram — заказы, поддержка, согласование макетов и бонусы будут в одном приложении.</p><a class="btn primary" href="/auth/telegram?next=/client">✈ Войти через Telegram</a></section>
 <main id="clientApp" class="hidden">
 <section class="screen active" data-screen="home"><div class="hero"><div class="eyebrow">AuraFX · client space</div><h1 id="hello">Твой проект под контролем</h1><p>Заказы, согласования, поддержка и бонусы — в одном месте.</p><div class="stats"><div class="stat"><b id="activeCount">0</b><span>активных</span></div><div class="stat"><b id="doneCount">0</b><span>готово</span></div><div class="stat"><b id="bonusCount">0</b><span>бонусов</span></div></div><div class="quick"><a class="btn primary" href="/?source=client#contact">＋ Новый заказ</a><button class="btn" data-go="support">💬 Поддержка</button></div></div><div class="section"><div class="section-head"><h2>Живой проект</h2><span>последний заказ</span></div><div id="liveProject" class="panel"><div class="empty">Загружаем проект…</div></div></div></section>
