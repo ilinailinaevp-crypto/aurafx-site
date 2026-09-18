@@ -9,10 +9,11 @@
 <title>AuraFX Client</title>
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/aurafx-app-icon.svg">
+<script src="https://telegram.org/js/telegram-web-app.js?63"></script>
 <style>
 :root{--bg:#08040e;--panel:rgba(255,255,255,.055);--line:rgba(255,255,255,.09);--muted:#9689a1;--purple:#9f42ff}
 *{box-sizing:border-box}html{background:var(--bg)}body{margin:0;min-height:100dvh;background:radial-gradient(circle at 85% 0,rgba(155,62,255,.18),transparent 28%),radial-gradient(circle at 0 92%,rgba(77,226,255,.08),transparent 24%),var(--bg);color:#fff;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
-.hidden{display:none!important}button,input,textarea,select{font:inherit}
+.hidden{display:none!important}button,input,textarea,select{font:inherit}body.telegram-app .app{padding-top:max(10px,env(safe-area-inset-top))}body.telegram-app .top{margin-bottom:14px}body.telegram-app #siteLink{display:none!important}body.telegram-app .bottom{bottom:max(6px,env(safe-area-inset-bottom));background:rgba(12,7,19,.96)}
 .app{width:min(720px,100%);min-height:100dvh;margin:auto;padding:calc(16px + env(safe-area-inset-top)) 14px calc(92px + env(safe-area-inset-bottom));position:relative}
 .top{display:flex;align-items:center;gap:12px;margin-bottom:18px}.logo{width:44px;height:44px;border-radius:15px;display:grid;place-items:center;background:radial-gradient(circle at 32% 24%,rgba(113,243,255,.22),transparent 32%),linear-gradient(145deg,#261038,#6c28a6);border:1px solid rgba(101,231,255,.35);box-shadow:0 0 28px rgba(104,66,255,.24),0 0 16px rgba(86,232,255,.13);font-weight:950}
 .title{min-width:0;flex:1}.title b{display:block;font-size:18px}.title span{display:block;color:var(--muted);font-size:10px;margin-top:3px}
@@ -38,8 +39,8 @@
 </head>
 <body>
 <div class="app">
-<header class="top"><div class="logo">A</div><div class="title"><b>AuraFX Client</b><span id="subtitle">Личный центр клиента</span></div><a class="iconbtn" href="/">↗</a><button class="iconbtn hidden" id="logout">⎋</button></header>
-<section id="login" class="panel login hidden"><h1>AuraFX Client</h1><p>Войди через Telegram — заказы, поддержка, согласование макетов и бонусы будут в одном приложении.</p><a class="btn primary" href="/auth/telegram?next=/client.html">✈ Войти через Telegram</a></section>
+<header class="top"><div class="logo">A</div><div class="title"><b>AuraFX Client</b><span id="subtitle">Личный центр клиента</span></div><a class="iconbtn" id="siteLink" href="/">↗</a><button class="iconbtn hidden" id="logout">⎋</button></header>
+<section id="login" class="panel login hidden"><h1>AuraFX Client</h1><p>Войди через Telegram — заказы, поддержка, согласование макетов и бонусы будут в одном приложении.</p><a class="btn primary" href="/auth/telegram?next=/client">✈ Войти через Telegram</a></section>
 <main id="clientApp" class="hidden">
 <section class="screen active" data-screen="home"><div class="hero"><div class="eyebrow">AuraFX · client space</div><h1 id="hello">Твой проект под контролем</h1><p>Заказы, согласования, поддержка и бонусы — в одном месте.</p><div class="stats"><div class="stat"><b id="activeCount">0</b><span>активных</span></div><div class="stat"><b id="doneCount">0</b><span>готово</span></div><div class="stat"><b id="bonusCount">0</b><span>бонусов</span></div></div><div class="quick"><a class="btn primary" href="/?source=client#contact">＋ Новый заказ</a><button class="btn" data-go="support">💬 Поддержка</button></div></div><div class="section"><div class="section-head"><h2>Живой проект</h2><span>последний заказ</span></div><div id="liveProject" class="panel"><div class="empty">Загружаем проект…</div></div></div></section>
 <section class="screen" data-screen="orders"><div class="section-head"><h2>Мои заказы</h2><span id="ordersHint">вся история</span></div><div id="orders" class="order-list"><div class="panel empty">Загружаем…</div></div></section>
@@ -53,10 +54,10 @@
 const $=id=>document.getElementById(id),qsa=s=>[...document.querySelectorAll(s)];
 const statusMeta={new:{label:'Заявка принята',step:0},contacted:{label:'В работе',step:1},review:{label:'На согласовании',step:2},revision:{label:'Правки',step:3},done:{label:'Готово',step:4},spam:{label:'Закрыта',step:-1}};
 const stepLabels=['Заявка принята','В работе','На согласовании','Правки','Готово'],supportLabels={open:'Открыт',waiting_client:'Ждём тебя',resolved:'Решён'};
-let me=null,orders=[],referral=null,threads=[],activeThread=0;
+let me=null,orders=[],referral=null,threads=[],activeThread=0,tgApp=null,currentScreen='home';
 function toast(t){const el=$('toast');el.textContent=t;el.classList.add('show');clearTimeout(toast.t);toast.t=setTimeout(()=>el.classList.remove('show'),2200)}
 async function api(url,opt={}){const headers=Object.assign({accept:'application/json','content-type':'application/json'},opt.headers||{});const r=await fetch(url,Object.assign({},opt,{headers}));let d={};try{d=await r.json()}catch{}if(!r.ok)throw new Error(d.error||'Ошибка');return d}
-function go(name){qsa('.screen').forEach(x=>x.classList.toggle('active',x.dataset.screen===name));qsa('[data-screen-btn]').forEach(x=>x.classList.toggle('active',x.dataset.screenBtn===name));scrollTo({top:0,behavior:'smooth'});if(name==='support')loadThreads();if(name==='bonus')loadReferral()}
+function go(name){if(!['home','orders','support','bonus'].includes(name))name='home';currentScreen=name;qsa('.screen').forEach(x=>x.classList.toggle('active',x.dataset.screen===name));qsa('[data-screen-btn]').forEach(x=>x.classList.toggle('active',x.dataset.screenBtn===name));scrollTo({top:0,behavior:'smooth'});try{if(tgApp&&tgApp.BackButton){if(name==='home')tgApp.BackButton.hide();else tgApp.BackButton.show()}}catch{}if(name==='support')loadThreads();if(name==='bonus')loadReferral()}
 qsa('[data-screen-btn]').forEach(b=>b.onclick=()=>go(b.dataset.screenBtn));qsa('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));
 function track(status){const meta=statusMeta[status]||{step:0},box=document.createElement('div');box.className='track';stepLabels.forEach((label,i)=>{const s=document.createElement('div');s.className='step';if(meta.step>=0&&i<meta.step)s.classList.add('done-step');if(i===meta.step)s.classList.add('on');s.textContent=label;box.appendChild(s)});return box}
 function orderCard(o,live=false){const meta=statusMeta[o.status]||{label:o.status||'Заявка',step:0},card=document.createElement('article');card.className=live?'order':'panel order';const top=document.createElement('div');top.className='order-top';const title=document.createElement('div');title.className='order-title';title.textContent='#'+o.id+' · '+(o.product||'Заказ AuraFX');const st=document.createElement('span');st.className='status '+(o.status||'');st.textContent=meta.label;top.append(title,st);const info=document.createElement('div');info.className='meta';info.textContent=[o.marketplace||'',o.count?o.count+' карточ.':'',o.deadline?'срок '+o.deadline:'',o.created_at?new Date(o.created_at+'Z').toLocaleDateString('ru-RU'):''].filter(Boolean).join(' · ');card.append(top,info);if(o.status!=='spam')card.append(track(o.status));
@@ -76,7 +77,26 @@ $('sendReply').onclick=sendReply;$('reply').addEventListener('keydown',e=>{if(e.
 $('resolveTicket').onclick=async()=>{if(!activeThread)return;try{await api('/api/account/support/'+activeThread,{method:'PATCH',body:JSON.stringify({status:'resolved'})});toast('Обращение закрыто ✓');await openThread(activeThread)}catch(e){toast(e.message)}};
 $('newTicket').onclick=()=>{$('newTicketBox').classList.remove('hidden');$('ticketSubject').focus()};$('cancelTicket').onclick=()=>$('newTicketBox').classList.add('hidden');$('createTicket').onclick=async()=>{const subject=$('ticketSubject').value.trim(),message=$('ticketMessage').value.trim(),category=$('ticketCategory').value,m=$('ticketMsg');m.textContent='Создаём…';try{const d=await api('/api/account/support',{method:'POST',body:JSON.stringify({subject,category,message})});$('ticketSubject').value='';$('ticketMessage').value='';$('newTicketBox').classList.add('hidden');m.textContent='';await loadThreads();await openThread(Number(d.id));toast('Обращение создано ✓')}catch(e){m.className='msg bad';m.textContent=e.message}};
 $('logout').onclick=async()=>{try{await fetch('/api/auth/logout',{method:'POST',headers:{'content-type':'application/json'},body:'{}'})}catch{}location.href='/'};
-async function init(){if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{});try{me=await fetch('/api/auth/me',{headers:{accept:'application/json'}}).then(r=>r.json())}catch{me={}}if(!me.authenticated||!me.user){$('login').classList.remove('hidden');return}$('clientApp').classList.remove('hidden');$('bottomNav').classList.remove('hidden');$('logout').classList.remove('hidden');const name=me.user.name||me.user.username||'клиент';$('hello').textContent='Привет, '+name+' 👋';$('subtitle').textContent=me.user.username?'@'+me.user.username:'AuraFX Client';try{if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand()}}catch{}await Promise.all([loadOrders(),loadReferral(),loadThreads()])}
+async function init(){
+  if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{});
+  try{
+    tgApp=window.Telegram&&window.Telegram.WebApp?window.Telegram.WebApp:null;
+    if(tgApp){
+      tgApp.ready();tgApp.expand();document.body.classList.add('telegram-app');
+      try{tgApp.setHeaderColor('#0b0612');tgApp.setBackgroundColor('#08040e')}catch{}
+      try{tgApp.BackButton.onClick(()=>go('home'))}catch{}
+      if(tgApp.initData){
+        try{await fetch('/api/auth/telegram/webapp',{method:'POST',headers:{'content-type':'application/json',accept:'application/json'},body:JSON.stringify({init_data:tgApp.initData})})}catch{}
+      }
+    }
+  }catch{}
+  try{me=await fetch('/api/auth/me',{headers:{accept:'application/json'}}).then(r=>r.json())}catch{me={}}
+  if(!me.authenticated||!me.user){$('login').classList.remove('hidden');return}
+  $('clientApp').classList.remove('hidden');$('bottomNav').classList.remove('hidden');$('logout').classList.remove('hidden');
+  const name=me.user.name||me.user.username||'клиент';$('hello').textContent='Привет, '+name+' 👋';$('subtitle').textContent=tgApp&&tgApp.initData?'Telegram Mini App':(me.user.username?'@'+me.user.username:'AuraFX Client');
+  await Promise.all([loadOrders(),loadReferral(),loadThreads()]);
+  const tab=new URLSearchParams(location.search).get('tab');if(['orders','support','bonus'].includes(tab))go(tab);else go('home');
+}
 init();
 })();
 </script>
