@@ -3378,7 +3378,7 @@ async function handleAutomationApi(request, env, url) {
 
 function adminLink(request) {
   try { return new URL("/admin", request.url).toString(); }
-  catch { return "https://aurafx-site.pages.dev/admin"; }
+  catch { return "https://aurafx-design.ru/admin"; }
 }
 
 function extractPromoCode(value) {
@@ -4565,6 +4565,15 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
 
+    // Keep the public Pages hostname only as a deployment endpoint. Browser
+    // navigations always land on the canonical AuraFX domain, including paths,
+    // query parameters and hashes handled by the client.
+    if (url.hostname === "aurafx-site.pages.dev" && (request.method === "GET" || request.method === "HEAD") && (request.headers.get("accept") || "").includes("text/html")) {
+      url.hostname = "aurafx-design.ru";
+      url.protocol = "https:";
+      return Response.redirect(url.toString(), 308);
+    }
+
     if (url.pathname === "/manifest.webmanifest" && request.method === "GET") return new Response(AURAFX_PWA_MANIFEST,{headers:{"content-type":"application/manifest+json; charset=utf-8","cache-control":"public, max-age=3600"}});
     if (url.pathname === "/sw.js" && request.method === "GET") return new Response(AURAFX_SW_JS,{headers:{"content-type":"application/javascript; charset=utf-8","cache-control":"no-cache","service-worker-allowed":"/"}});
     if (url.pathname === "/aurafx-app-icon.svg" && request.method === "GET") return new Response(AURAFX_APP_ICON_SVG,{headers:{"content-type":"image/svg+xml; charset=utf-8","cache-control":"public, max-age=86400"}});
@@ -4609,7 +4618,7 @@ export default {
       return new HTMLRewriter()
         .on("header .brand .mark", { element(element) { element.setAttribute("data-aurafx-logo", "crown-v2"); element.setInnerContent(AURAFX_BRAND_LOGO_HTML, { html: true }); } })
         .on('head link[rel~="icon"]', { element(element) { element.remove(); } })
-        .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, кейсы и бесплатные инструменты для продавцов."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><meta property="og:site_name" content="AuraFX"><link rel="icon" type="image/png" sizes="48x48" href="${AURAFX_FAVICON_DATA_URL}"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, кейсы и бесплатный мини-разбор карточки."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-site.pages.dev/">`, { html: true }); } })
+        .on("head", { element(element) { element.append(`<meta name="description" content="AuraFX — дизайн карточек товаров для маркетплейсов. Портфолио, кейсы и бесплатные инструменты для продавцов."><meta name="theme-color" content="#0b0612"><meta name="color-scheme" content="dark"><meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"><link rel="manifest" href="/manifest.webmanifest"><link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"><meta property="og:site_name" content="AuraFX"><link rel="icon" type="image/png" sizes="48x48" href="${AURAFX_FAVICON_DATA_URL}"><meta property="og:title" content="AuraFX — дизайн карточек товаров"><meta property="og:description" content="Дизайн карточек товаров: портфолио, кейсы и бесплатный мини-разбор карточки."><meta property="og:type" content="website"><meta property="og:url" content="https://aurafx-design.ru/">`, { html: true }); } })
         .on("body", { element(element) { element.append(PRICING_EFFECT_HTML + PROMO_WHEEL_HTML + SITE_UPGRADES_HTML + REVIEW_WIDGET_HTML + SITE_TOOLS_HTML + PERFORMANCE_HTML + PERFORMANCE_V2_HTML + SCROLL_REVEAL_HTML + MOTION_OVERRIDE_HTML + SMOOTH_MOTION_HTML + SHOWCASE_FLOAT_HTML + PREMIUM_STUDIO_HTML + CASE_STORY_UPGRADE_HTML + CASE_REAL_SLIDES_HTML + BEFORE_AFTER_HTML + PREMIUM_INTERACTIVE_HTML + FUNCTION_NAV_HTML + DIRECT_ORDER_HTML + HEADER_EXCLUSIVE_LOGO_HTML + SELLER_TOOL_HTML + REFERRAL_CAPTURE_HTML + PWA_INSTALL_HTML + SUPPORT_WIDGET_HTML + ACCOUNT_WIDGET_HTML, { html: true }); } })
         .transform(response);
     }
