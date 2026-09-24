@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.drawable.GradientDrawable;
 import android.view.View;
 import android.view.Gravity;
+import android.view.ViewGroup;
 import android.widget.*;
 import android.text.InputType;
 import org.json.*;
@@ -43,7 +44,7 @@ public class MainActivity extends Activity {
   private void title(String kicker,String heading,String sub){add(page,text(kicker.toUpperCase(),12,CYAN,true),8);add(page,text(heading,32,WHITE,true),10);if(sub!=null)add(page,text(sub,15,MUTED,false),9);}
   private Button button(String label,boolean primary,Runnable action){Button b=new Button(this);b.setAllCaps(false);b.setText(label);b.setTextSize(15);b.setTextColor(WHITE);b.setBackground(primary?glow():shape(0xff292035,16));b.setOnClickListener(v->action.run());return b;}
   private EditText field(String hint,boolean multi){EditText e=new EditText(this);e.setHint(hint);e.setHintTextColor(0xff8f81a0);e.setTextColor(WHITE);e.setTextSize(15);e.setSingleLine(!multi);if(multi)e.setMinLines(3);e.setPadding(dp(14),dp(12),dp(14),dp(12));e.setBackground(shape(0xff261d32,14));return e;}
-  private Spinner selector(String[] values){Spinner s=new Spinner(this);ArrayAdapter<String> a=new ArrayAdapter<>(this,android.R.layout.simple_spinner_dropdown_item,values);s.setAdapter(a);s.setBackground(shape(0xff30213f,14));s.setPadding(dp(12),dp(8),dp(12),dp(8));return s;}
+  private Spinner selector(String[] values){Spinner s=new Spinner(this);ArrayAdapter<String> a=new ArrayAdapter<String>(this,android.R.layout.simple_spinner_dropdown_item,values){@Override public View getView(int position,View old,ViewGroup parent){TextView v=(TextView)super.getView(position,old,parent);v.setTextColor(WHITE);v.setTextSize(15);return v;}@Override public View getDropDownView(int position,View old,ViewGroup parent){TextView v=(TextView)super.getDropDownView(position,old,parent);v.setTextColor(0xff211329);return v;}};s.setAdapter(a);s.setBackground(shape(0xff30213f,14));s.setPadding(dp(12),dp(8),dp(12),dp(8));return s;}
   private String value(EditText e){return e.getText().toString().trim();}
   private void message(String s){Toast.makeText(this,s,Toast.LENGTH_LONG).show();}
   private void render(int tab){current=tab;root=column();root.setBackgroundColor(BG);setContentView(root);TextView logo=text("✦ AuraFX",23,WHITE,true);logo.setPadding(dp(22),dp(18),dp(22),dp(12));root.addView(logo);ScrollView scroll=new ScrollView(this);scroll.setFillViewport(false);page=column();page.setPadding(dp(20),0,dp(20),dp(24));scroll.addView(page);root.addView(scroll,new LinearLayout.LayoutParams(-1,0,1));nav=new LinearLayout(this);nav.setBackgroundColor(0xff191124);String[] tabs={"Главная","Работы","Тарифы","Заявка","Кабинет"};for(int i=0;i<tabs.length;i++){final int index=i;TextView item=text(tabs[i],11,i==tab?CYAN:MUTED,i==tab);item.setGravity(Gravity.CENTER);item.setPadding(0,dp(17),0,dp(17));nav.addView(item,new LinearLayout.LayoutParams(0,-2,1));item.setOnClickListener(v->render(index));}root.addView(nav);switch(tab){case 0:home();break;case 1:work();break;case 2:prices();break;case 3:order();break;default:account();}}
