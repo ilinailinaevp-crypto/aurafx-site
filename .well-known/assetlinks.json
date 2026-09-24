@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "ru.aurafx.design",
+    "sha256_cert_fingerprints": ["FE:27:CC:CA:19:7B:88:B2:DF:47:EF:D5:E8:89:FE:FE:E2:55:76:E4:64:DB:9A:E9:CE:7A:4C:BC:69:08:7D:6A"]
+  }
+}]
