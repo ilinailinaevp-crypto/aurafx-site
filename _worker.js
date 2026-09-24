@@ -2707,10 +2707,10 @@ input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.12);backgrou
 
 
 const AURAFX_PWA_MANIFEST = JSON.stringify({
-  name:"AuraFX — кабинет клиента",
+  name:"AuraFX — дизайн карточек товаров",
   short_name:"AuraFX",
   description:"Заказы, согласование макетов и инструменты AuraFX в одном приложении.",
-  start_url:"/client?source=pwa",
+  start_url:"/?source=app",
   scope:"/",
   display:"standalone",
   background_color:"#09050f",
@@ -2722,7 +2722,7 @@ const AURAFX_PWA_MANIFEST = JSON.stringify({
     {src:"/aurafx-app-icon.svg",sizes:"any",type:"image/svg+xml",purpose:"maskable"}
   ],
   shortcuts:[
-    {name:"AuraFX Client",short_name:"Client",url:"/client"},
+    {name:"Личный кабинет",short_name:"Кабинет",url:"/client"},
     {name:"Мои заявки",short_name:"Заявки",url:"/client?tab=orders"},
     {name:"AuraFX",short_name:"Сайт",url:"/"},
     {name:"Пригласить друга",short_name:"Реферал",url:"/referral"},
@@ -2763,7 +2763,7 @@ const PWA_INSTALL_HTML = String.raw`
   #afx-pwa-install.show{display:block}.afx-pwa-row{display:flex;gap:10px;align-items:center}.afx-pwa-icon{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#58e6ff,#9d43ff);display:grid;place-items:center;font-weight:950;font-size:20px;box-shadow:0 8px 28px rgba(125,67,255,.28)}.afx-pwa-text{min-width:0;flex:1}.afx-pwa-text b{display:block;font-size:13px}.afx-pwa-text span{display:block;margin-top:3px;color:#9e91aa;font-size:10px;line-height:1.35}.afx-pwa-actions{display:flex;gap:7px;margin-top:10px}.afx-pwa-actions button{border:0;border-radius:11px;padding:9px 11px;font:inherit;font-size:11px;font-weight:850;cursor:pointer}.afx-pwa-go{background:linear-gradient(135deg,#ad49ff,#6a2bea);color:#fff}.afx-pwa-later{background:rgba(255,255,255,.06);color:#b8acbf}
   @media(max-width:640px){#afx-pwa-install{bottom:68px;left:9px;right:9px;max-width:none}}
 </style>
-<div id="afx-pwa-install"><div class="afx-pwa-row"><div class="afx-pwa-icon"><img src="/aurafx-logo.png" alt="AuraFX" style="width:100%;height:100%;object-fit:contain"></div><div class="afx-pwa-text"><b>AuraFX как приложение</b><span id="afx-pwa-hint">Установи кабинет на главный экран — заказы и согласование будут под рукой.</span></div></div><div class="afx-pwa-actions"><button class="afx-pwa-go" id="afx-pwa-go" type="button">Установить</button><button class="afx-pwa-later" id="afx-pwa-later" type="button">Позже</button></div></div>
+<div id="afx-pwa-install"><div class="afx-pwa-row"><div class="afx-pwa-icon"><img src="/aurafx-logo.png" alt="AuraFX" style="width:100%;height:100%;object-fit:contain"></div><div class="afx-pwa-text"><b>AuraFX как приложение</b><span id="afx-pwa-hint">Установи AuraFX на телефон — сайт, заявки и кабинет всегда под рукой.</span></div></div><div class="afx-pwa-actions"><button class="afx-pwa-go" id="afx-pwa-go" type="button">Установить</button><button class="afx-pwa-later" id="afx-pwa-later" type="button">Позже</button></div></div>
 <script>
 (()=>{if('serviceWorker'in navigator)navigator.serviceWorker.register('/sw.js',{scope:'/'}).catch(()=>{});const box=document.getElementById('afx-pwa-install'),go=document.getElementById('afx-pwa-go'),later=document.getElementById('afx-pwa-later'),hint=document.getElementById('afx-pwa-hint');if(!box||!go)return;let prompt=null;const standalone=window.matchMedia&&window.matchMedia('(display-mode: standalone)').matches||navigator.standalone===true;if(standalone)return;try{if(sessionStorage.getItem('afx_pwa_later')==='1')return}catch(e){}window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();prompt=e;box.classList.add('show')});const ios=/iphone|ipad|ipod/i.test(navigator.userAgent);if(ios){hint.textContent='На iPhone: нажми «Поделиться» → «На экран Домой».';go.textContent='Как установить';box.classList.add('show')}go.addEventListener('click',async()=>{if(prompt){prompt.prompt();try{await prompt.userChoice}catch(e){}prompt=null;box.classList.remove('show');return}if(ios){alert('В Safari нажми кнопку «Поделиться», затем «На экран Домой». AuraFX появится как приложение.')}});later.addEventListener('click',()=>{box.classList.remove('show');try{sessionStorage.setItem('afx_pwa_later','1')}catch(e){}});window.addEventListener('appinstalled',()=>box.classList.remove('show'))})();
 </script>`;
