@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AuraFX</string>
+    <string name="asset_statements">[{"relation":["delegate_permission/common.handle_all_urls"],"target":{"namespace":"web","site":"https://aurafx-design.ru"}}]</string>
+    <color name="brand_background">#0B0612</color>
+</resources>
