@@ -2193,7 +2193,7 @@ const FUNCTION_NAV_HTML = String.raw`
   .afx-fnav-chip span{font-size:13px;line-height:1}
   .afx-fnav-close{flex:0 0 auto;width:36px;height:36px;border-radius:12px;border:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.035);color:#9f93aa;display:grid;place-items:center;cursor:pointer;font:900 18px/1 inherit;transition:.18s ease}
   .afx-fnav-close:hover{color:#fff;background:rgba(255,255,255,.07)}
-  #afx-function-nav.is-collapsed{width:auto;left:auto;right:12px;transform:translateY(0);opacity:1;pointer-events:auto}
+  #afx-function-nav.is-collapsed{width:auto;left:8px;right:auto;transform:translateY(0);opacity:1;pointer-events:auto}
   #afx-function-nav.is-collapsed .afx-fnav-shell{padding:6px;border-radius:17px}
   #afx-function-nav.is-collapsed .afx-fnav-brand,#afx-function-nav.is-collapsed .afx-fnav-scroll{display:none}
   #afx-function-nav.is-collapsed .afx-fnav-close{width:auto;padding:0 12px;font-size:12px;gap:6px}
@@ -2781,6 +2781,7 @@ const SELLER_TOOL_HTML = String.raw`
 
 const ACCOUNT_WIDGET_HTML = String.raw`
 <style>
+  body:has(#afx-function-nav.is-visible:not(.is-collapsed)) #afx-account-shell{display:none}
   #afx-account-shell{position:fixed;top:84px;right:max(20px,calc((100vw - 1180px)/2));z-index:9998;display:flex;align-items:center;gap:7px;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,sans-serif}.afx-account-btn[hidden]{display:none!important}
   .afx-account-btn{min-height:42px;display:inline-flex;align-items:center;gap:9px;padding:7px 12px;border:1px solid rgba(255,255,255,.12);border-radius:999px;background:rgba(14,7,24,.78);backdrop-filter:blur(18px);box-shadow:0 10px 34px rgba(0,0,0,.28);color:#fff;text-decoration:none;font-size:12px;font-weight:850;cursor:pointer}
   .afx-account-btn:hover{border-color:rgba(177,82,255,.42)}
@@ -2790,7 +2791,7 @@ const ACCOUNT_WIDGET_HTML = String.raw`
   .afx-account-menu.open{display:block}.afx-account-name{padding:9px 10px 11px;color:#fff;font-size:13px;font-weight:900}.afx-account-user{color:#91859e;font-size:11px;font-weight:650;margin-top:3px}
   .afx-account-menu a,.afx-account-menu button{width:100%;border:0;background:transparent;color:#dcd3e5;text-decoration:none;text-align:left;padding:10px;border-radius:11px;font:inherit;font-size:12px;font-weight:780;cursor:pointer;display:block}.afx-account-menu a:hover,.afx-account-menu button:hover{background:rgba(255,255,255,.06)}
   .afx-account-admin{color:#d5b3ff!important}.afx-account-dot{width:7px;height:7px;border-radius:50%;background:#58e6ff;box-shadow:0 0 12px #58e6ff}
-  @media(max-width:720px){#afx-account-shell{top:73px;right:14px}body:has(#afx-function-nav.is-visible:not(.is-collapsed)) #afx-account-shell{display:none}.hero{padding-top:72px}.afx-account-label{max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.afx-client-launch .afx-account-label{max-width:58px}}@media(max-width:430px){.afx-client-launch{width:42px;padding:7px;justify-content:center}.afx-client-launch .afx-account-label{display:none}}
+  @media(max-width:720px){#afx-account-shell{top:73px;right:14px}.hero{padding-top:72px}.afx-account-label{max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.afx-client-launch .afx-account-label{max-width:58px}}@media(max-width:430px){.afx-client-launch{width:42px;padding:7px;justify-content:center}.afx-client-launch .afx-account-label{display:none}}
 </style>
 <div id="afx-account-shell"><a class="afx-account-btn afx-client-launch" href="/client" aria-label="Открыть AuraFX Client">✦ <span class="afx-account-label">Client</span></a><a class="afx-account-btn" id="afx-account-login" href="/auth/telegram?next=/"><span class="afx-account-dot"></span><span class="afx-account-label">Войти через Telegram</span></a><button class="afx-account-btn" id="afx-account-user" type="button" hidden><span class="afx-account-avatar" id="afx-account-avatar">A</span><span class="afx-account-label" id="afx-account-label">Аккаунт</span></button><div class="afx-account-menu" id="afx-account-menu"><div class="afx-account-name"><div id="afx-account-fullname">AuraFX</div><div class="afx-account-user" id="afx-account-username"></div></div><a href="/client">✦ AuraFX Client</a><a href="/account">Личный кабинет</a><a href="/support">💬 Техподдержка</a><a href="/referral">💜 Пригласить друга</a><a href="/admin" class="afx-account-admin" id="afx-account-admin" hidden>Админ-панель</a><button id="afx-account-logout" type="button">Выйти</button></div></div>
 <script>
