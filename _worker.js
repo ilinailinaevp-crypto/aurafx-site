@@ -4579,6 +4579,7 @@ export default {
     }
 
     if (url.pathname === "/manifest.webmanifest" && request.method === "GET") return new Response(AURAFX_PWA_MANIFEST,{headers:{"content-type":"application/manifest+json; charset=utf-8","cache-control":"public, max-age=3600"}});
+    if (url.pathname === "/.well-known/assetlinks.json" && request.method === "GET") return new Response(JSON.stringify([{relation:["delegate_permission/common.handle_all_urls"],target:{namespace:"android_app",package_name:"ru.aurafx.design",sha256_cert_fingerprints:["FE:27:CC:CA:19:7B:88:B2:DF:47:EF:D5:E8:89:FE:FE:E2:55:76:E4:64:DB:9A:E9:CE:7A:4C:BC:69:08:7D:6A"]}}]),{headers:{"content-type":"application/json; charset=utf-8","cache-control":"public, max-age=3600"}});
     if (url.pathname === "/sw.js" && request.method === "GET") return new Response(AURAFX_SW_JS,{headers:{"content-type":"application/javascript; charset=utf-8","cache-control":"no-cache","service-worker-allowed":"/"}});
     if (url.pathname === "/aurafx-app-icon.svg" && request.method === "GET") return new Response(AURAFX_APP_ICON_SVG,{headers:{"content-type":"image/svg+xml; charset=utf-8","cache-control":"public, max-age=86400"}});
 
