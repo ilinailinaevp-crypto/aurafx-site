@@ -2199,7 +2199,7 @@ const FUNCTION_NAV_HTML = String.raw`
   #afx-function-nav.is-collapsed .afx-fnav-close{width:auto;padding:0 12px;font-size:12px;gap:6px}
   #afx-function-nav.is-collapsed .afx-fnav-close:before{content:'☰';font-size:15px}
   #afx-function-nav.is-collapsed .afx-fnav-close:after{content:'Навигация'}
-  [data-afx-nav-target]{scroll-margin-top:148px}
+  [data-afx-nav-target],#prices,#services,#portfolio,#contact{scroll-margin-top:160px}
   @media(max-width:760px){
     #afx-function-nav{top:68px;width:calc(100% - 16px)}
     .afx-fnav-shell{border-radius:17px;padding:6px;gap:4px}
@@ -2268,7 +2268,10 @@ const FUNCTION_NAV_HTML = String.raw`
   });
 
   var collapsed=false;
-  try{collapsed=sessionStorage.getItem('afx_nav_collapsed')==='1'}catch(e){}
+  try{
+    var savedNavState=sessionStorage.getItem('afx_nav_collapsed');
+    collapsed=savedNavState===null?matchMedia('(max-width:760px)').matches:savedNavState==='1';
+  }catch(e){collapsed=matchMedia('(max-width:760px)').matches}
   function applyCollapsed(){
     nav.classList.toggle('is-collapsed',collapsed);
     toggle.setAttribute('aria-label',collapsed?'Открыть навигацию':'Свернуть навигацию');
