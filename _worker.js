@@ -2609,6 +2609,8 @@ input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.12);backgrou
       if(l.status!=='revision')html+='<button class="warn" data-lead-status="revision">Правки</button>';
       if(l.status!=='done')html+='<button class="ok" data-lead-status="done">Готово</button>';
       if(l.status!=='spam')html+='<button class="danger" data-lead-status="spam">Закрыть</button>';
+      if(Number(l.has_source)>0)html+='<a class="ghost" href="/api/admin/leads/'+Number(l.id)+'/source" target="_blank" rel="noopener">Посмотреть исходник</a>';
+      html+='<button class="danger" data-lead-delete="1">Удалить заказ</button>';
       html+='</div></article>';return html
     }).join('')
   }
@@ -2674,7 +2676,7 @@ input,textarea,select{width:100%;border:1px solid rgba(255,255,255,.12);backgrou
       await loadPromos();toast('Промокод сброшен');
     }catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}
   });
-  $('#leadList').addEventListener('click',async function(e){var b=e.target.closest('button[data-lead-status]');if(!b)return;var card=b.closest('[data-lead-id]');b.disabled=true;try{await api('/api/admin/leads/'+card.dataset.leadId,{method:'PATCH',body:JSON.stringify({status:b.dataset.leadStatus})});await Promise.all([loadLeads(),loadDashboard()]);toast('Статус обновлён')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
+  $('#leadList').addEventListener('click',async function(e){var b=e.target.closest('button[data-lead-status],button[data-lead-delete]');if(!b)return;var card=b.closest('[data-lead-id]');if(b.dataset.leadDelete&&!confirm('Удалить заказ из кабинета клиента и админки? Исходное фото будет удалено.'))return;b.disabled=true;try{if(b.dataset.leadDelete)await api('/api/admin/leads/'+card.dataset.leadId,{method:'DELETE'});else await api('/api/admin/leads/'+card.dataset.leadId,{method:'PATCH',body:JSON.stringify({status:b.dataset.leadStatus})});await Promise.all([loadLeads(),loadDashboard()]);toast(b.dataset.leadDelete?'Заказ удалён':'Статус обновлён')}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#list').addEventListener('click',async function(e){var b=e.target.closest('button[data-action]');if(!b)return;var card=b.closest('[data-id]'),id=card.dataset.id,action=b.dataset.action;if(action==='delete'&&!confirm('Удалить отзыв навсегда?'))return;b.disabled=true;try{if(action==='delete')await api('/api/admin/reviews/'+id,{method:'DELETE'});else await api('/api/admin/reviews/'+id,{method:'PATCH',body:JSON.stringify({status:action})});await Promise.all([loadReviews(),loadDashboard()])}catch(err){if(err.message!=='AUTH')alert(err.message)}finally{b.disabled=false}});
   $('#copyLink').addEventListener('click',async function(){try{await navigator.clipboard.writeText(location.origin+'/');toast('Ссылка скопирована')}catch(e){toast(location.origin+'/')}});
   function syncMotionButton(){
@@ -2985,6 +2987,11 @@ async function ensureDb(env) {
   if (!leadCols.has("promo_code")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN promo_code TEXT").run();
   if (!leadCols.has("discount_percent")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN discount_percent INTEGER").run();
   if (!leadCols.has("estimated_total")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN estimated_total INTEGER").run();
+  if (!leadCols.has("deleted_at")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN deleted_at TEXT").run();
+  if (!leadCols.has("upload_token")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN upload_token TEXT").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS lead_sources (lead_id INTEGER PRIMARY KEY,mime TEXT NOT NULL,image BLOB NOT NULL,created_at TEXT NOT NULL DEFAULT (datetime('now')))` ).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS lead_events (id INTEGER PRIMARY KEY AUTOINCREMENT,lead_id INTEGER,telegram_id TEXT NOT NULL,title TEXT NOT NULL,body TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT (datetime('now')),read_at TEXT)` ).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_lead_events_user ON lead_events(telegram_id,id DESC)").run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_leads_telegram_created ON leads(telegram_id, created_at DESC)").run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_leads_referrer_created ON leads(referrer_telegram_id, created_at DESC)").run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_users (
@@ -3112,7 +3119,7 @@ async function referralRewardCode(env, referrerId, invitedId, sourceLeadId) {
 
 async function ensureReferralRewardForLead(env, leadId, origin) {
   const id=Number(leadId||0);if(!id)return {created:false};
-  const lead=await env.DB.prepare("SELECT id,status,telegram_id,referrer_telegram_id,campaign,comment FROM leads WHERE id=? LIMIT 1").bind(id).first();
+  const lead=await env.DB.prepare("SELECT id,status,telegram_id,referrer_telegram_id,campaign,comment FROM leads WHERE id=? AND deleted_at IS NULL LIMIT 1").bind(id).first();
   const owner=String(lead?.referrer_telegram_id||"").trim(), invited=String(lead?.telegram_id||"").trim();
   if(!lead||String(lead.status)!=="done"||!owner||!invited||owner===invited||String(lead.campaign||"")==="free_audit"||String(lead.comment||"").startsWith("[Бесплатный мини-разбор]"))return {created:false};
   const rewardCode=await referralRewardCode(env,owner,invited,id);
@@ -3790,7 +3797,7 @@ async function handleAuthApi(request, env, url) {
       await ensureDb(env);
       const tgId=String(from.id), chatId=String(msg.chat&&msg.chat.id||from.id), accountUrl=new URL("/account",request.url).toString(), clientUrl=await ensureTelegramClientMenu(env,request,chatId);
       if (ordersCmd) {
-        const rows=await env.DB.prepare("SELECT id,product,status FROM leads WHERE telegram_id=? ORDER BY datetime(created_at) DESC,id DESC LIMIT 5").bind(tgId).all();
+        const rows=await env.DB.prepare("SELECT id,product,status FROM leads WHERE telegram_id=? AND deleted_at IS NULL ORDER BY datetime(created_at) DESC,id DESC LIMIT 5").bind(tgId).all();
         const labels={new:"Заявка принята",contacted:"В работе",review:"На согласовании",revision:"Правки",done:"Готово",spam:"Закрыта"};
         const items=rows.results||[];
         const body=items.length?"📦 Твои последние заявки AuraFX:\n\n"+items.map(x=>"#"+x.id+" · "+String(x.product||"Заказ").slice(0,70)+"\n"+(labels[x.status]||x.status)).join("\n\n"):"У тебя пока нет заявок AuraFX. Когда отправишь заказ с сайта после входа через Telegram, он появится здесь.";
@@ -3909,13 +3916,23 @@ async function handleAccountApi(request,env,url,ctx){
   const user=await currentUser(request,env);
   if(!user)return json({error:"Требуется вход."},401);
   await ensureDb(env);
+  if(url.pathname==="/api/account/notifications"&&request.method==="GET"){
+    const events=await env.DB.prepare("SELECT id,lead_id,title,body,created_at,read_at FROM lead_events WHERE telegram_id=? ORDER BY id DESC LIMIT 60").bind(user.id).all();
+    const unread=await env.DB.prepare("SELECT COUNT(*) AS n FROM lead_events WHERE telegram_id=? AND read_at IS NULL").bind(user.id).first();
+    return json({notifications:events.results||[],unread:Number(unread?.n||0)});
+  }
+  if(url.pathname==="/api/account/notifications/read"&&request.method==="POST"){
+    if(!sameOrigin(request))return json({error:"Запрос отклонён."},403);
+    await env.DB.prepare("UPDATE lead_events SET read_at=datetime('now') WHERE telegram_id=? AND read_at IS NULL").bind(user.id).run();
+    return json({ok:true});
+  }
   if(url.pathname==="/api/account/leads"&&request.method==="GET"){
-    const r=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,status,promo_code,discount_percent,estimated_total,client_decision,client_comment,client_decision_at,created_at FROM leads WHERE telegram_id=? ORDER BY datetime(created_at) DESC,id DESC LIMIT 100").bind(user.id).all();
+    const r=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,status,promo_code,discount_percent,estimated_total,client_decision,client_comment,client_decision_at,created_at FROM leads WHERE telegram_id=? AND deleted_at IS NULL ORDER BY datetime(created_at) DESC,id DESC LIMIT 100").bind(user.id).all();
     return json({orders:r.results||[]});
   }
   if(url.pathname==="/api/account/referral"&&request.method==="GET"){
     const code=await referralCodeFor(env,user.id);
-    const leadStats=await env.DB.prepare("SELECT COUNT(*) AS total FROM leads WHERE referrer_telegram_id=? AND status!='spam'").bind(user.id).first();
+    const leadStats=await env.DB.prepare("SELECT COUNT(*) AS total FROM leads WHERE referrer_telegram_id=? AND status!='spam' AND deleted_at IS NULL").bind(user.id).first();
     const rewardStats=await env.DB.prepare("SELECT COUNT(*) AS completed,SUM(CASE WHEN status='available' THEN 1 ELSE 0 END) AS available,SUM(CASE WHEN status='reserved' THEN 1 ELSE 0 END) AS reserved,SUM(CASE WHEN status='used' THEN 1 ELSE 0 END) AS used FROM referral_rewards WHERE referrer_telegram_id=?").bind(user.id).first();
     const rewards=await env.DB.prepare("SELECT id,reward_code,status,source_lead_id,reserved_lead_id,created_at,reserved_at,used_at FROM referral_rewards WHERE referrer_telegram_id=? ORDER BY datetime(created_at) DESC,id DESC LIMIT 50").bind(user.id).all();
     return json({code,link:new URL("/?ref="+encodeURIComponent(code),request.url).toString(),total:Number(leadStats?.total||0),completed:Number(rewardStats?.completed||0),available:Number(rewardStats?.available||0),reserved:Number(rewardStats?.reserved||0),used:Number(rewardStats?.used||0),rewards:rewards.results||[]});
@@ -3991,7 +4008,7 @@ async function handleAccountApi(request,env,url,ctx){
     if(!["approve","revision"].includes(action))return json({error:"Недопустимое действие."},400);
     if(action==="revision"&&(comment.length<3||comment.length>800))return json({error:"Комментарий к правкам должен быть от 3 до 800 символов."},400);
     const id=Number(decisionMatch[1]);
-    const lead=await env.DB.prepare("SELECT id,status FROM leads WHERE id=? AND telegram_id=? LIMIT 1").bind(id,user.id).first();
+    const lead=await env.DB.prepare("SELECT id,status FROM leads WHERE id=? AND telegram_id=? AND deleted_at IS NULL LIMIT 1").bind(id,user.id).first();
     if(!lead)return json({error:"Заявка не найдена."},404);
     if(String(lead.status)!=="review")return json({error:"Эта заявка сейчас не ожидает согласования."},409);
     if(action==="approve"){
@@ -4227,9 +4244,12 @@ async function handleLead(request, env, ctx) {
   const standardPrice=![1,3,5,10].includes(count)||marketplace==="Бесплатный mini-audit"?null:count*150;
   const rushPrice=standardPrice!=null&&/срочн/i.test(deadline)?Math.round(standardPrice*1.5):standardPrice;
   const estimatedTotal=rushPrice==null?null:Math.round(rushPrice*(100-discountPercent)/100);
+  const uploadToken=crypto.randomUUID();
   const result=await env.DB.prepare(`INSERT INTO leads (visitor_id,marketplace,count,product,style,deadline,contact,comment,status,source,medium,campaign,content,term,referrer,landing,ip_hash,telegram_id)
     VALUES (?,?,?,?,?,?,?,?, 'new',?,?,?,?,?,?,?,?,?)`).bind(visitorId||null,marketplace,count,product,style,deadline,contact,comment,...fields,referrer,landing,ipHash,loggedTelegramId||null).run();
   const leadId = Number(result.meta?.last_row_id || 0);
+  if(leadId)await env.DB.prepare("UPDATE leads SET upload_token=? WHERE id=?").bind(uploadToken,leadId).run();
+  if(leadId&&loggedTelegramId)await env.DB.prepare("INSERT INTO lead_events (lead_id,telegram_id,title,body) VALUES (?,?,?,?)").bind(leadId,loggedTelegramId,"Заявка принята","Заказ #"+leadId+" · "+product+" получен AuraFX.").run();
   if(leadId&&promo?.status==="active")await env.DB.prepare("UPDATE leads SET promo_code=?,discount_percent=?,estimated_total=? WHERE id=?").bind(promo.code,discountPercent,estimatedTotal,leadId).run();
   if(leadId&&referrerTelegramId){await env.DB.prepare("UPDATE leads SET referral_code=?,referrer_telegram_id=? WHERE id=?").bind(referralCode,referrerTelegramId,leadId).run();}
   if(leadId&&rewardRow){
@@ -4262,7 +4282,26 @@ async function handleLead(request, env, ctx) {
     "Админка: " + adminLink(request)
   ].join("\n");
   queueTelegram(ctx, env, leadMessage);
-  return json({ok:true,id:leadId,reward_applied:rewardApplied,promo_code:promo?.status==="active"?promo.code:null,discount_percent:discountPercent,estimated_total:estimatedTotal},201);
+  return json({ok:true,id:leadId,reward_applied:rewardApplied,promo_code:promo?.status==="active"?promo.code:null,discount_percent:discountPercent,estimated_total:estimatedTotal,upload_token:uploadToken},201);
+}
+
+async function handleLeadSource(request,env,url){
+  if(request.method!=="POST"||!sameOrigin(request))return json({error:"Запрос отклонён."},403);
+  await ensureDb(env);
+  const id=Number(url.pathname.match(/^\/api\/lead\/(\d+)\/source$/)?.[1]||0);
+  const token=String(request.headers.get("x-aurafx-upload-token")||"");
+  if(!id||!token||token.length>80)return json({error:"Неверный доступ."},403);
+  const lead=await env.DB.prepare("SELECT id FROM leads WHERE id=? AND upload_token=? AND deleted_at IS NULL AND datetime(created_at)>datetime('now','-1 hour')").bind(id,token).first();
+  if(!lead)return json({error:"Ссылка на заявку недоступна."},403);
+  if(Number(request.headers.get("content-length")||0)>1400000)return json({error:"Фото слишком большое."},413);
+  let body={};try{body=await request.json()}catch{}
+  const data=String(body.image_base64||"");
+  if(!/^[A-Za-z0-9+/]+={0,2}$/.test(data)||data.length>1300000)return json({error:"Фото должно быть JPEG до 900 КБ."},413);
+  let bytes;try{bytes=Uint8Array.from(atob(data),c=>c.charCodeAt(0))}catch{return json({error:"Некорректное фото."},400)}
+  if(bytes.length<100||bytes.length>900000||bytes[0]!==255||bytes[1]!==216||bytes[bytes.length-2]!==255||bytes[bytes.length-1]!==217)return json({error:"Нужен JPEG до 900 КБ."},400);
+  await env.DB.prepare("INSERT OR REPLACE INTO lead_sources (lead_id,mime,image) VALUES (?,'image/jpeg',?)").bind(id,bytes.buffer).run();
+  await env.DB.prepare("UPDATE leads SET upload_token=NULL WHERE id=?").bind(id).run();
+  return json({ok:true});
 }
 
 async function handleAdminApi(request, env, url, ctx) {
@@ -4497,8 +4536,8 @@ async function handleAdminApi(request, env, url, ctx) {
     const pricing = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type='pricing_select' AND date(created_at)=date('now')").first();
     const caseOpens = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type='case_open' AND date(created_at)=date('now')").first();
     const briefs = await env.DB.prepare("SELECT COUNT(*) AS n FROM site_events WHERE event_type='brief_submit' AND date(created_at)=date('now')").first();
-    const leadsToday = await env.DB.prepare("SELECT COUNT(*) AS n FROM leads WHERE date(created_at)=date('now')").first();
-    const topSource = await env.DB.prepare("SELECT COALESCE(NULLIF(source,''),'Прямой') AS source, COUNT(*) AS n FROM leads GROUP BY COALESCE(NULLIF(source,''),'Прямой') ORDER BY n DESC LIMIT 1").first();
+    const leadsToday = await env.DB.prepare("SELECT COUNT(*) AS n FROM leads WHERE date(created_at)=date('now') AND deleted_at IS NULL").first();
+    const topSource = await env.DB.prepare("SELECT COALESCE(NULLIF(source,''),'Прямой') AS source, COUNT(*) AS n FROM leads WHERE deleted_at IS NULL GROUP BY COALESCE(NULLIF(source,''),'Прямой') ORDER BY n DESC LIMIT 1").first();
     const pending = await env.DB.prepare("SELECT COUNT(*) AS n FROM reviews WHERE status='pending'").first();
     const rating = await env.DB.prepare("SELECT AVG(rating) AS n FROM reviews WHERE status='approved'").first();
     const rows = await env.DB.prepare("SELECT day, COUNT(*) AS n FROM daily_visitors WHERE day >= date('now','-6 days') GROUP BY day ORDER BY day ASC").all();
@@ -4589,14 +4628,30 @@ async function handleAdminApi(request, env, url, ctx) {
   }
 
   if (url.pathname === "/api/admin/leads" && request.method === "GET") {
-    const result=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,contact,comment,status,promo_code,discount_percent,estimated_total,client_decision,client_comment,client_decision_at,referral_code,referrer_telegram_id,referral_reward_code,source,medium,campaign,content,referrer,landing,created_at FROM leads ORDER BY datetime(created_at) DESC,id DESC LIMIT 300").all();
+    const result=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,contact,comment,status,promo_code,discount_percent,estimated_total,client_decision,client_comment,client_decision_at,referral_code,referrer_telegram_id,referral_reward_code,source,medium,campaign,content,referrer,landing,created_at,(SELECT COUNT(*) FROM lead_sources WHERE lead_id=leads.id) AS has_source FROM leads WHERE deleted_at IS NULL ORDER BY datetime(created_at) DESC,id DESC LIMIT 300").all();
     return json({leads:result.results||[]});
   }
+  const sourceMatch=url.pathname.match(/^\/api\/admin\/leads\/(\d+)\/source$/);
+  if(sourceMatch&&request.method==="GET"){
+    const source=await env.DB.prepare("SELECT mime,image FROM lead_sources WHERE lead_id=? AND EXISTS(SELECT 1 FROM leads WHERE id=? AND deleted_at IS NULL)").bind(Number(sourceMatch[1]),Number(sourceMatch[1])).first();
+    if(!source)return json({error:"Исходник не приложен."},404);
+    return new Response(new Uint8Array(source.image),{headers:{"content-type":source.mime,"cache-control":"no-store","x-content-type-options":"nosniff"}});
+  }
   const leadMatch=url.pathname.match(/^\/api\/admin\/leads\/(\d+)$/);
+  if(leadMatch && request.method==="DELETE"){
+    const id=Number(leadMatch[1]);
+    await syncReferralRewardForLead(env,id,"spam");
+    const result=await env.DB.prepare("UPDATE leads SET deleted_at=datetime('now'),upload_token=NULL WHERE id=? AND deleted_at IS NULL").bind(id).run();
+    if(!Number(result?.meta?.changes||0))return json({error:"Заказ не найден."},404);
+    await env.DB.prepare("DELETE FROM lead_sources WHERE lead_id=?").bind(id).run();
+    return json({ok:true});
+  }
   if(leadMatch && request.method==="PATCH"){
     let body={};try{body=await request.json()}catch{}
     if(!["new","contacted","review","revision","done","spam"].includes(body.status))return json({error:"Недопустимый статус."},400);
     const leadId=Number(leadMatch[1]);
+    const existing=await env.DB.prepare("SELECT id FROM leads WHERE id=? AND deleted_at IS NULL LIMIT 1").bind(leadId).first();
+    if(!existing)return json({error:"Заказ не найден."},404);
     if(body.status==="review"){
       await env.DB.prepare("UPDATE leads SET status=?,client_decision=NULL,client_decision_at=NULL WHERE id=?").bind(body.status,leadId).run();
     }else{
@@ -4605,7 +4660,10 @@ async function handleAdminApi(request, env, url, ctx) {
     await syncReferralRewardForLead(env,leadId,body.status);
     if(body.status==="done")await ensureReferralRewardForLead(env,leadId,new URL(request.url).origin);
     const lead=await env.DB.prepare("SELECT id,telegram_id,product FROM leads WHERE id=? LIMIT 1").bind(leadId).first();
-    if(lead?.telegram_id)await sendClientStatusTelegram(env,lead.telegram_id,leadId,String(lead.product||"Заказ"),body.status,new URL(request.url).origin);
+    if(lead?.telegram_id){
+      await env.DB.prepare("INSERT INTO lead_events (lead_id,telegram_id,title,body) VALUES (?,?,?,?)").bind(leadId,lead.telegram_id,"Статус заказа #"+leadId,"«"+String(lead.product||"Заказ")+"» — "+({new:"Заявка принята",contacted:"В работе",review:"На согласовании",revision:"Правки",done:"Готово",spam:"Закрыта"}[body.status]||body.status)+".").run();
+      await sendClientStatusTelegram(env,lead.telegram_id,leadId,String(lead.product||"Заказ"),body.status,new URL(request.url).origin);
+    }
     return json({ok:true});
   }
 
@@ -4664,6 +4722,7 @@ export default {
     if (url.pathname === "/api/promo") return handlePromo(request, env, ctx);
     if (url.pathname === "/api/promo/check") return handlePublicPromoCheck(request, env, url);
     if (url.pathname === "/api/lead") return handleLead(request, env, ctx);
+    if (/^\/api\/lead\/\d+\/source$/.test(url.pathname)) return handleLeadSource(request,env,url);
     if (url.pathname.startsWith("/api/automation/")) return handleAutomationApi(request, env, url);
     if (url.pathname.startsWith("/api/admin/")) return handleAdminApi(request, env, url, ctx);
 
