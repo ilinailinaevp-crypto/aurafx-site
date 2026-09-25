@@ -2982,6 +2982,9 @@ async function ensureDb(env) {
   if (!leadCols.has("referral_code")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN referral_code TEXT").run();
   if (!leadCols.has("referrer_telegram_id")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN referrer_telegram_id TEXT").run();
   if (!leadCols.has("referral_reward_code")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN referral_reward_code TEXT").run();
+  if (!leadCols.has("promo_code")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN promo_code TEXT").run();
+  if (!leadCols.has("discount_percent")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN discount_percent INTEGER").run();
+  if (!leadCols.has("estimated_total")) await env.DB.prepare("ALTER TABLE leads ADD COLUMN estimated_total INTEGER").run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_leads_telegram_created ON leads(telegram_id, created_at DESC)").run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_leads_referrer_created ON leads(referrer_telegram_id, created_at DESC)").run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_users (
@@ -3063,6 +3066,11 @@ async function ensureDb(env) {
   const promoCols = new Set((promoInfo.results || []).map(c => String(c.name)));
   if (!promoCols.has("redeemed_at")) await env.DB.prepare("ALTER TABLE promo_spins ADD COLUMN redeemed_at TEXT").run();
   if (!promoCols.has("redeemed_note")) await env.DB.prepare("ALTER TABLE promo_spins ADD COLUMN redeemed_note TEXT").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS promo_check_attempts (
+    ip_hash TEXT NOT NULL,
+    created_at TEXT NOT NULL DEFAULT (datetime('now'))
+  )`).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_promo_check_ip_created ON promo_check_attempts(ip_hash,created_at)").run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS app_settings (
     key TEXT PRIMARY KEY,
     value TEXT,
@@ -3397,6 +3405,20 @@ async function promoCheckForNotification(env, code) {
          WHEN datetime(created_at, '+7 days') <= datetime('now') THEN 'expired'
          ELSE 'active' END AS status
     FROM promo_spins WHERE upper(promo_code)=? LIMIT 1`).bind(String(code).toUpperCase()).first();
+}
+
+async function handlePublicPromoCheck(request, env, url) {
+  if (request.method !== "GET") return json({ error:"Метод не поддерживается." },405);
+  try { await ensureDb(env); } catch { return json({ error:"Проверка промокода временно недоступна." },503); }
+  const code=String(url.searchParams.get("code")||"").trim().toUpperCase();
+  if (!/^AURAFX-(?:SUPER20|\d{1,2})-[A-Z0-9]{4,12}$/.test(code)) return json({valid:false,error:"Неверный формат промокода."},400);
+  const ipHash=await hashIp(request);
+  const attempts=await env.DB.prepare("SELECT COUNT(*) AS n FROM promo_check_attempts WHERE ip_hash=? AND datetime(created_at)>datetime('now','-1 hour')").bind(ipHash).first();
+  if (Number(attempts?.n||0)>=25) return json({error:"Слишком много проверок. Попробуй позже."},429);
+  await env.DB.prepare("INSERT INTO promo_check_attempts (ip_hash) VALUES (?)").bind(ipHash).run();
+  const promo=await promoCheckForNotification(env,code);
+  if(!promo||promo.status!=="active")return json({valid:false,error:"Промокод не найден, использован или срок действия истёк."});
+  return json({valid:true,code:promo.code,discount:Number(promo.discount||0)});
 }
 
 function moderationReason(name, text) {
@@ -3888,7 +3910,7 @@ async function handleAccountApi(request,env,url,ctx){
   if(!user)return json({error:"Требуется вход."},401);
   await ensureDb(env);
   if(url.pathname==="/api/account/leads"&&request.method==="GET"){
-    const r=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,status,client_decision,client_comment,client_decision_at,created_at FROM leads WHERE telegram_id=? ORDER BY datetime(created_at) DESC,id DESC LIMIT 100").bind(user.id).all();
+    const r=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,status,promo_code,discount_percent,estimated_total,client_decision,client_comment,client_decision_at,created_at FROM leads WHERE telegram_id=? ORDER BY datetime(created_at) DESC,id DESC LIMIT 100").bind(user.id).all();
     return json({orders:r.results||[]});
   }
   if(url.pathname==="/api/account/referral"&&request.method==="GET"){
@@ -4196,16 +4218,24 @@ async function handleLead(request, env, ctx) {
     rewardRow=await env.DB.prepare("SELECT id,reward_code,status FROM referral_rewards WHERE reward_code=? AND referrer_telegram_id=? LIMIT 1").bind(referralRewardCode,loggedTelegramId).first();
     if(!rewardRow||String(rewardRow.status)!=="available")return json({error:"Этот реферальный бонус уже использован или недоступен."},409);
   }
+  const submittedPromo=String(b.promo_code||"").trim().toUpperCase();
+  if(submittedPromo&&!/^AURAFX-(?:SUPER20|\d{1,2})-[A-Z0-9]{4,12}$/.test(submittedPromo))return json({error:"Неверный формат промокода."},400);
+  const promoCode=submittedPromo||extractPromoCode(comment);
+  const promo=promoCode?await promoCheckForNotification(env,promoCode):null;
+  if(submittedPromo&&(!promo||promo.status!=="active"))return json({error:"Промокод не найден, использован или срок действия истёк."},409);
+  const discountPercent=promo?.status==="active"?Number(promo.discount||0):0;
+  const standardPrice=![1,3,5,10].includes(count)||marketplace==="Бесплатный mini-audit"?null:count*150;
+  const rushPrice=standardPrice!=null&&/срочн/i.test(deadline)?Math.round(standardPrice*1.5):standardPrice;
+  const estimatedTotal=rushPrice==null?null:Math.round(rushPrice*(100-discountPercent)/100);
   const result=await env.DB.prepare(`INSERT INTO leads (visitor_id,marketplace,count,product,style,deadline,contact,comment,status,source,medium,campaign,content,term,referrer,landing,ip_hash,telegram_id)
     VALUES (?,?,?,?,?,?,?,?, 'new',?,?,?,?,?,?,?,?,?)`).bind(visitorId||null,marketplace,count,product,style,deadline,contact,comment,...fields,referrer,landing,ipHash,loggedTelegramId||null).run();
   const leadId = Number(result.meta?.last_row_id || 0);
+  if(leadId&&promo?.status==="active")await env.DB.prepare("UPDATE leads SET promo_code=?,discount_percent=?,estimated_total=? WHERE id=?").bind(promo.code,discountPercent,estimatedTotal,leadId).run();
   if(leadId&&referrerTelegramId){await env.DB.prepare("UPDATE leads SET referral_code=?,referrer_telegram_id=? WHERE id=?").bind(referralCode,referrerTelegramId,leadId).run();}
   if(leadId&&rewardRow){
     const reserved=await env.DB.prepare("UPDATE referral_rewards SET status='reserved',reserved_lead_id=?,reserved_at=datetime('now') WHERE id=? AND status='available'").bind(leadId,Number(rewardRow.id)).run();
     if(Number(reserved?.meta?.changes||0)>0){rewardApplied=true;await env.DB.prepare("UPDATE leads SET referral_reward_code=? WHERE id=?").bind(referralRewardCode,leadId).run();}
   }
-  const promoCode = extractPromoCode(comment);
-  const promo = promoCode ? await promoCheckForNotification(env, promoCode) : null;
   let promoLine = "Промокод: —";
   if (promoCode && !promo) promoLine = "Промокод: " + promoCode + " ❌ НЕ НАЙДЕН в базе";
   if (promo) {
@@ -4222,6 +4252,7 @@ async function handleLead(request, env, ctx) {
     "Срок: " + (deadline || "—"),
     "Контакт: " + contact,
     promoLine,
+    "Расчёт: " + (estimatedTotal==null ? "после оценки" : estimatedTotal+" ₽"+(discountPercent?" со скидкой "+discountPercent+"%":"")),
     "Реферал: " + (referrerTelegramId ? referralCode : "—"),
     "Бонус: " + (rewardApplied ? referralRewardCode + " · 1 карточка" : "—"),
     "Источник: " + sourceLine,
@@ -4231,7 +4262,7 @@ async function handleLead(request, env, ctx) {
     "Админка: " + adminLink(request)
   ].join("\n");
   queueTelegram(ctx, env, leadMessage);
-  return json({ok:true,id:leadId,reward_applied:rewardApplied},201);
+  return json({ok:true,id:leadId,reward_applied:rewardApplied,promo_code:promo?.status==="active"?promo.code:null,discount_percent:discountPercent,estimated_total:estimatedTotal},201);
 }
 
 async function handleAdminApi(request, env, url, ctx) {
@@ -4558,7 +4589,7 @@ async function handleAdminApi(request, env, url, ctx) {
   }
 
   if (url.pathname === "/api/admin/leads" && request.method === "GET") {
-    const result=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,contact,comment,status,client_decision,client_comment,client_decision_at,referral_code,referrer_telegram_id,referral_reward_code,source,medium,campaign,content,referrer,landing,created_at FROM leads ORDER BY datetime(created_at) DESC,id DESC LIMIT 300").all();
+    const result=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,contact,comment,status,promo_code,discount_percent,estimated_total,client_decision,client_comment,client_decision_at,referral_code,referrer_telegram_id,referral_reward_code,source,medium,campaign,content,referrer,landing,created_at FROM leads ORDER BY datetime(created_at) DESC,id DESC LIMIT 300").all();
     return json({leads:result.results||[]});
   }
   const leadMatch=url.pathname.match(/^\/api\/admin\/leads\/(\d+)$/);
@@ -4631,6 +4662,7 @@ export default {
     if (url.pathname === "/api/online") return handleOnline(request, env);
     if (url.pathname === "/api/event") return handleSiteEvent(request, env);
     if (url.pathname === "/api/promo") return handlePromo(request, env, ctx);
+    if (url.pathname === "/api/promo/check") return handlePublicPromoCheck(request, env, url);
     if (url.pathname === "/api/lead") return handleLead(request, env, ctx);
     if (url.pathname.startsWith("/api/automation/")) return handleAutomationApi(request, env, url);
     if (url.pathname.startsWith("/api/admin/")) return handleAdminApi(request, env, url, ctx);
