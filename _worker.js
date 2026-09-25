@@ -2992,6 +2992,13 @@ async function ensureDb(env) {
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS lead_sources (lead_id INTEGER PRIMARY KEY,mime TEXT NOT NULL,image BLOB NOT NULL,created_at TEXT NOT NULL DEFAULT (datetime('now')))` ).run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS lead_events (id INTEGER PRIMARY KEY AUTOINCREMENT,lead_id INTEGER,telegram_id TEXT NOT NULL,title TEXT NOT NULL,body TEXT NOT NULL,created_at TEXT NOT NULL DEFAULT (datetime('now')),read_at TEXT)` ).run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_lead_events_user ON lead_events(telegram_id,id DESC)").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS studio_products (id INTEGER PRIMARY KEY AUTOINCREMENT,owner_id TEXT NOT NULL,name TEXT NOT NULL,marketplace TEXT,advantages TEXT,palette TEXT,created_at TEXT NOT NULL DEFAULT (datetime('now')),updated_at TEXT NOT NULL DEFAULT (datetime('now')))` ).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_studio_products_owner ON studio_products(owner_id,id DESC)").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS studio_projects (lead_id INTEGER PRIMARY KEY,product_id INTEGER,brief TEXT,visual_style TEXT,created_at TEXT NOT NULL DEFAULT (datetime('now')),updated_at TEXT NOT NULL DEFAULT (datetime('now')))` ).run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS studio_versions (id INTEGER PRIMARY KEY AUTOINCREMENT,lead_id INTEGER NOT NULL,slide_no INTEGER NOT NULL,version_no INTEGER NOT NULL,caption TEXT,mime TEXT NOT NULL,image BLOB NOT NULL,created_at TEXT NOT NULL DEFAULT (datetime('now')))` ).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_studio_versions_lead ON studio_versions(lead_id,slide_no,version_no DESC)").run();
+  await env.DB.prepare(`CREATE TABLE IF NOT EXISTS studio_comments (id INTEGER PRIMARY KEY AUTOINCREMENT,lead_id INTEGER NOT NULL,version_id INTEGER,author_id TEXT NOT NULL,author_role TEXT NOT NULL,body TEXT NOT NULL,x REAL,y REAL,created_at TEXT NOT NULL DEFAULT (datetime('now')))` ).run();
+  await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_studio_comments_lead ON studio_comments(lead_id,id)").run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_leads_telegram_created ON leads(telegram_id, created_at DESC)").run();
   await env.DB.prepare("CREATE INDEX IF NOT EXISTS idx_leads_referrer_created ON leads(referrer_telegram_id, created_at DESC)").run();
   await env.DB.prepare(`CREATE TABLE IF NOT EXISTS telegram_users (
@@ -3930,6 +3937,65 @@ async function handleAccountApi(request,env,url,ctx){
     const r=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,status,promo_code,discount_percent,estimated_total,client_decision,client_comment,client_decision_at,created_at FROM leads WHERE telegram_id=? AND deleted_at IS NULL ORDER BY datetime(created_at) DESC,id DESC LIMIT 100").bind(user.id).all();
     return json({orders:r.results||[]});
   }
+  if(url.pathname==="/api/account/studio/products"&&request.method==="GET"){
+    const r=await env.DB.prepare("SELECT id,name,marketplace,advantages,palette,created_at,updated_at FROM studio_products WHERE owner_id=? ORDER BY id DESC LIMIT 100").bind(user.id).all();
+    return json({products:r.results||[]});
+  }
+  if(url.pathname==="/api/account/studio/products"&&request.method==="POST"){
+    if(!sameOrigin(request))return json({error:"Запрос отклонён."},403);
+    let b={};try{b=await request.json()}catch{}
+    const name=String(b.name||"").trim().slice(0,100),marketplace=String(b.marketplace||"").trim().slice(0,50),advantages=String(b.advantages||"").trim().slice(0,1200),palette=String(b.palette||"").trim().slice(0,120);
+    if(name.length<2)return json({error:"Укажи название товара."},400);
+    const count=await env.DB.prepare("SELECT COUNT(*) AS n FROM studio_products WHERE owner_id=?").bind(user.id).first();
+    if(Number(count?.n||0)>=100)return json({error:"Лимит каталога: 100 товаров."},400);
+    const r=await env.DB.prepare("INSERT INTO studio_products(owner_id,name,marketplace,advantages,palette) VALUES (?,?,?,?,?)").bind(user.id,name,marketplace,advantages,palette).run();
+    return json({ok:true,id:Number(r.meta.last_row_id)},201);
+  }
+  const productPath=url.pathname.match(/^\/api\/account\/studio\/products\/(\d+)$/);
+  if(productPath&&request.method==="DELETE"){
+    if(!sameOrigin(request))return json({error:"Запрос отклонён."},403);
+    const id=Number(productPath[1]);await env.DB.prepare("DELETE FROM studio_products WHERE id=? AND owner_id=?").bind(id,user.id).run();
+    await env.DB.prepare("UPDATE studio_projects SET product_id=NULL WHERE product_id=? AND EXISTS(SELECT 1 FROM leads WHERE id=studio_projects.lead_id AND telegram_id=?)").bind(id,user.id).run();
+    return json({ok:true});
+  }
+  const studioPath=url.pathname.match(/^\/api\/account\/studio\/projects\/(\d+)(?:\/(comments|versions)(?:\/(\d+)\/image)?)?$/);
+  if(studioPath){
+    const leadId=Number(studioPath[1]),part=studioPath[2]||"",versionId=Number(studioPath[3]||0);
+    const lead=await env.DB.prepare("SELECT id,product,status,marketplace,telegram_id,created_at FROM leads WHERE id=? AND telegram_id=? AND deleted_at IS NULL").bind(leadId,user.id).first();
+    if(!lead)return json({error:"Проект не найден."},404);
+    if(!part&&request.method==="GET"){
+      const project=await env.DB.prepare("SELECT product_id,brief,visual_style FROM studio_projects WHERE lead_id=?").bind(leadId).first();
+      const versions=await env.DB.prepare("SELECT id,slide_no,version_no,caption,created_at FROM studio_versions WHERE lead_id=? ORDER BY slide_no,version_no DESC LIMIT 60").bind(leadId).all();
+      const comments=await env.DB.prepare("SELECT id,version_id,author_role,body,x,y,created_at FROM studio_comments WHERE lead_id=? ORDER BY id LIMIT 200").bind(leadId).all();
+      return json({lead,project:project||null,versions:versions.results||[],comments:comments.results||[]});
+    }
+    if(!part&&request.method==="PATCH"){
+      if(!sameOrigin(request))return json({error:"Запрос отклонён."},403);
+      let b={};try{b=await request.json()}catch{}
+      const brief=String(b.brief||"").trim().slice(0,3000),style=String(b.visual_style||"").trim().slice(0,80),productId=Number(b.product_id||0);
+      if(productId){const product=await env.DB.prepare("SELECT id FROM studio_products WHERE id=? AND owner_id=?").bind(productId,user.id).first();if(!product)return json({error:"Товар не найден."},404)}
+      await env.DB.prepare("INSERT INTO studio_projects(lead_id,product_id,brief,visual_style) VALUES (?,?,?,?) ON CONFLICT(lead_id) DO UPDATE SET product_id=excluded.product_id,brief=excluded.brief,visual_style=excluded.visual_style,updated_at=datetime('now')").bind(leadId,productId||null,brief,style).run();
+      return json({ok:true});
+    }
+    if(part==="comments"&&request.method==="POST"){
+      if(!sameOrigin(request))return json({error:"Запрос отклонён."},403);
+      let b={};try{b=await request.json()}catch{}
+      const body=String(b.body||"").trim().slice(0,1000),id=Number(b.version_id||0);
+      if(body.length<2)return json({error:"Напиши комментарий."},400);
+      if(id){const v=await env.DB.prepare("SELECT id FROM studio_versions WHERE id=? AND lead_id=?").bind(id,leadId).first();if(!v)return json({error:"Версия не найдена."},404)}
+      const x=Number(b.x),y=Number(b.y),px=Number.isFinite(x)&&x>=0&&x<=1?x:null,py=Number.isFinite(y)&&y>=0&&y<=1?y:null;
+      const recent=await env.DB.prepare("SELECT id FROM studio_comments WHERE lead_id=? AND author_id=? AND datetime(created_at)>datetime('now','-3 seconds') LIMIT 1").bind(leadId,user.id).first();
+      if(recent)return json({error:"Подожди несколько секунд перед следующим сообщением."},429);
+      await env.DB.prepare("INSERT INTO studio_comments(lead_id,version_id,author_id,author_role,body,x,y) VALUES (?,?,?,'client',?,?,?)").bind(leadId,id||null,user.id,body,px,py).run();
+      if(ctx&&typeof ctx.waitUntil==="function")ctx.waitUntil(sendTelegram(env,"✏️ Правка клиента по проекту #"+leadId+(id?" · версия #"+id:"")+"\n"+body.slice(0,700)+"\n\nОткрыть админку: "+new URL("/admin",request.url).toString()).catch(()=>({sent:false})));
+      return json({ok:true},201);
+    }
+    if(part==="versions"&&versionId&&request.method==="GET"){
+      const v=await env.DB.prepare("SELECT mime,image FROM studio_versions WHERE id=? AND lead_id=?").bind(versionId,leadId).first();
+      if(!v)return json({error:"Версия не найдена."},404);
+      return new Response(new Uint8Array(v.image),{headers:{"content-type":v.mime,"cache-control":"private, no-store","x-content-type-options":"nosniff"}});
+    }
+  }
   if(url.pathname==="/api/account/referral"&&request.method==="GET"){
     const code=await referralCodeFor(env,user.id);
     const leadStats=await env.DB.prepare("SELECT COUNT(*) AS total FROM leads WHERE referrer_telegram_id=? AND status!='spam' AND deleted_at IS NULL").bind(user.id).first();
@@ -4631,6 +4697,48 @@ async function handleAdminApi(request, env, url, ctx) {
     const result=await env.DB.prepare("SELECT id,marketplace,count,product,style,deadline,contact,comment,status,promo_code,discount_percent,estimated_total,client_decision,client_comment,client_decision_at,referral_code,referrer_telegram_id,referral_reward_code,source,medium,campaign,content,referrer,landing,created_at,(SELECT COUNT(*) FROM lead_sources WHERE lead_id=leads.id) AS has_source FROM leads WHERE deleted_at IS NULL ORDER BY datetime(created_at) DESC,id DESC LIMIT 300").all();
     return json({leads:result.results||[]});
   }
+  const studioAdmin=url.pathname.match(/^\/api\/admin\/studio\/projects\/(\d+)(?:\/(versions|comments)(?:\/(\d+)\/image)?)?$/);
+  if(studioAdmin){
+    const leadId=Number(studioAdmin[1]),part=studioAdmin[2]||"",imageId=Number(studioAdmin[3]||0);
+    const lead=await env.DB.prepare("SELECT id,telegram_id,product,status FROM leads WHERE id=? AND deleted_at IS NULL").bind(leadId).first();
+    if(!lead)return json({error:"Проект не найден."},404);
+    if(!part&&request.method==="GET"){
+      const project=await env.DB.prepare("SELECT product_id,brief,visual_style FROM studio_projects WHERE lead_id=?").bind(leadId).first();
+      const versions=await env.DB.prepare("SELECT id,slide_no,version_no,caption,created_at FROM studio_versions WHERE lead_id=? ORDER BY slide_no,version_no DESC LIMIT 60").bind(leadId).all();
+      const comments=await env.DB.prepare("SELECT id,version_id,author_role,body,x,y,created_at FROM studio_comments WHERE lead_id=? ORDER BY id LIMIT 200").bind(leadId).all();
+      return json({lead,project:project||null,versions:versions.results||[],comments:comments.results||[]});
+    }
+    if(part==="versions"&&imageId&&request.method==="GET"){
+      const v=await env.DB.prepare("SELECT mime,image FROM studio_versions WHERE id=? AND lead_id=?").bind(imageId,leadId).first();
+      if(!v)return json({error:"Слайд не найден."},404);
+      return new Response(new Uint8Array(v.image),{headers:{"content-type":v.mime,"cache-control":"private, no-store","x-content-type-options":"nosniff"}});
+    }
+    if(part==="versions"&&!imageId&&request.method==="POST"){
+      if(Number(request.headers.get("content-length")||0)>1400000)return json({error:"Слайд слишком большой."},413);
+      let b={};try{b=await request.json()}catch{}
+      const slide=Number(b.slide_no),caption=String(b.caption||"").trim().slice(0,220),encoded=String(b.image_base64||"");
+      if(!Number.isInteger(slide)||slide<1||slide>30||encoded.length>1300000||!/^[A-Za-z0-9+/]+={0,2}$/.test(encoded))return json({error:"Нужен номер слайда и JPEG до 900 КБ."},400);
+      let bytes;try{bytes=Uint8Array.from(atob(encoded),c=>c.charCodeAt(0))}catch{return json({error:"Некорректное изображение."},400)}
+      if(bytes.length<100||bytes.length>900000||bytes[0]!==255||bytes[1]!==216||bytes[bytes.length-2]!==255||bytes[bytes.length-1]!==217)return json({error:"Нужен JPEG до 900 КБ."},400);
+      const total=await env.DB.prepare("SELECT COUNT(*) AS n FROM studio_versions WHERE lead_id=?").bind(leadId).first();
+      if(Number(total?.n||0)>=60)return json({error:"Лимит: 60 версий на проект."},400);
+      const last=await env.DB.prepare("SELECT COALESCE(MAX(version_no),0) AS n FROM studio_versions WHERE lead_id=? AND slide_no=?").bind(leadId,slide).first();
+      const version=Number(last?.n||0)+1;
+      const result=await env.DB.prepare("INSERT INTO studio_versions(lead_id,slide_no,version_no,caption,mime,image) VALUES (?,?,?,?,'image/jpeg',?)").bind(leadId,slide,version,caption,bytes.buffer).run();
+      await env.DB.prepare("UPDATE leads SET status='review',client_decision=NULL,client_decision_at=NULL WHERE id=?").bind(leadId).run();
+      if(lead.telegram_id){await env.DB.prepare("INSERT INTO lead_events(lead_id,telegram_id,title,body) VALUES (?,?,?,?)").bind(leadId,lead.telegram_id,"Новый слайд заказа #"+leadId,"Слайд "+slide+", версия "+version+" готов к просмотру и согласованию.").run();await sendClientStatusTelegram(env,lead.telegram_id,leadId,lead.product,"review",new URL(request.url).origin)}
+      return json({ok:true,id:Number(result.meta.last_row_id),version_no:version},201);
+    }
+    if(part==="comments"&&request.method==="POST"){
+      let b={};try{b=await request.json()}catch{}
+      const body=String(b.body||"").trim().slice(0,1000),id=Number(b.version_id||0);
+      if(body.length<2)return json({error:"Напиши ответ."},400);
+      if(id){const v=await env.DB.prepare("SELECT id FROM studio_versions WHERE id=? AND lead_id=?").bind(id,leadId).first();if(!v)return json({error:"Версия не найдена."},404)}
+      await env.DB.prepare("INSERT INTO studio_comments(lead_id,version_id,author_id,author_role,body) VALUES (?,?,?,'admin',?)").bind(leadId,id||null,"owner",body).run();
+      if(lead.telegram_id)await env.DB.prepare("INSERT INTO lead_events(lead_id,telegram_id,title,body) VALUES (?,?,?,?)").bind(leadId,lead.telegram_id,"Ответ по заказу #"+leadId,body.slice(0,220)).run();
+      return json({ok:true},201);
+    }
+  }
   const sourceMatch=url.pathname.match(/^\/api\/admin\/leads\/(\d+)\/source$/);
   if(sourceMatch&&request.method==="GET"){
     const source=await env.DB.prepare("SELECT mime,image FROM lead_sources WHERE lead_id=? AND EXISTS(SELECT 1 FROM leads WHERE id=? AND deleted_at IS NULL)").bind(Number(sourceMatch[1]),Number(sourceMatch[1])).first();
@@ -4644,6 +4752,9 @@ async function handleAdminApi(request, env, url, ctx) {
     const result=await env.DB.prepare("UPDATE leads SET deleted_at=datetime('now'),upload_token=NULL WHERE id=? AND deleted_at IS NULL").bind(id).run();
     if(!Number(result?.meta?.changes||0))return json({error:"Заказ не найден."},404);
     await env.DB.prepare("DELETE FROM lead_sources WHERE lead_id=?").bind(id).run();
+    await env.DB.prepare("DELETE FROM studio_versions WHERE lead_id=?").bind(id).run();
+    await env.DB.prepare("DELETE FROM studio_comments WHERE lead_id=?").bind(id).run();
+    await env.DB.prepare("DELETE FROM studio_projects WHERE lead_id=?").bind(id).run();
     return json({ok:true});
   }
   if(leadMatch && request.method==="PATCH"){
